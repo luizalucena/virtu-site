@@ -49,8 +49,13 @@ function bindEvents() {
       const view = btn.getAttribute('data-view');
       document.querySelectorAll('.admin-view').forEach(v => v.classList.add('admin-view--hidden'));
       document.getElementById(`view${capitalize(view)}`)?.classList.remove('admin-view--hidden');
-      document.getElementById('viewTitle').textContent = capitalize(view);
+      // Títulos legíveis na topbar
+      const viewTitles = { produtos: 'Produtos', sobre: 'Página Sobre', configuracoes: 'Configurações' };
+      document.getElementById('viewTitle').textContent = viewTitles[view] || capitalize(view);
+      // Ocultar/mostrar botão Novo Produto
+      document.getElementById('btnNewProduct').style.display = view === 'produtos' ? '' : 'none';
       if (view === 'configuracoes') populateConfig();
+      if (view === 'sobre')        populateSobre();
     });
   });
 
@@ -120,6 +125,9 @@ function bindEvents() {
 
   // Salvar config
   document.getElementById('btnSaveConfig')?.addEventListener('click', saveConfig);
+
+  // Salvar sobre
+  document.getElementById('btnSaveSobre')?.addEventListener('click', saveSobre);
 
   // ESC fecha modal
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
@@ -468,6 +476,138 @@ async function saveConfig() {
     setStatus('error', `✗ Erro ao salvar configurações: ${e.message}`);
   } finally {
     if (btnSave) { btnSave.disabled = false; btnSave.textContent = 'Salvar Configurações'; }
+  }
+}
+
+// ── PÁGINA SOBRE ────────────────────────────
+function populateSobre() {
+  const s = DB.configuracoes?.sobre || {};
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+
+  // Hero
+  const h = s.hero || {};
+  set('sobreHeroEyebrow',   h.eyebrow);
+  set('sobreHeroTitulo1',   h.titulo_linha1);
+  set('sobreHeroTitulo2',   h.titulo_linha2);
+  set('sobreHeroSubtitulo', h.subtitulo);
+
+  // Manifesto
+  const m = s.manifesto || {};
+  set('sobreManifestoTitulo',     m.titulo);
+  set('sobreManifestoP1',         m.paragrafo1);
+  set('sobreManifestoP2',         m.paragrafo2);
+  set('sobreManifestoP3',         m.paragrafo3);
+  set('sobreManifestoQuote',      m.quote_texto);
+  set('sobreManifestoQuoteAutor', m.quote_autor);
+  set('sobreManifestoImg',        m.imagem_url);
+
+  // Valores
+  const v = s.valores || [];
+  [1,2,3,4].forEach(i => {
+    const val = v[i-1] || {};
+    set(`sobreValor${i}Titulo`, val.titulo);
+    set(`sobreValor${i}Texto`,  val.texto);
+  });
+
+  // Fundadora
+  const f = s.fundadora || {};
+  set('sobreFundadoraTitulo1', f.titulo_linha1);
+  set('sobreFundadoraTitulo2', f.titulo_linha2);
+  set('sobreFundadoraP1',      f.paragrafo1);
+  set('sobreFundadoraP2',      f.paragrafo2);
+  set('sobreFundadoraImg',     f.imagem_url);
+
+  // Números
+  const n = s.numeros || [];
+  [1,2,3,4].forEach(i => {
+    const num = n[i-1] || {};
+    set(`sobreNum${i}Valor`, num.valor);
+    set(`sobreNum${i}Label`, num.label);
+  });
+
+  // Envio
+  const e = s.envio || [];
+  [1,2,3,4].forEach(i => {
+    const env = e[i-1] || {};
+    set(`sobreEnvio${i}Titulo`, env.titulo);
+    set(`sobreEnvio${i}Texto`,  env.texto);
+  });
+
+  // Pagamento
+  const p = s.pagamento || [];
+  [1,2,3,4].forEach(i => {
+    const pag = p[i-1] || {};
+    set(`sobrePag${i}Titulo`, pag.titulo);
+    set(`sobrePag${i}Texto`,  pag.texto);
+  });
+}
+
+async function saveSobre() {
+  const btnSave = document.getElementById('btnSaveSobre');
+  if (btnSave) { btnSave.disabled = true; btnSave.textContent = 'Salvando…'; }
+
+  const get = id => document.getElementById(id)?.value.trim() ?? '';
+  const getNum = id => parseInt(document.getElementById(id)?.value) || 0;
+
+  const sobre = {
+    hero: {
+      eyebrow:      get('sobreHeroEyebrow'),
+      titulo_linha1: get('sobreHeroTitulo1'),
+      titulo_linha2: get('sobreHeroTitulo2'),
+      subtitulo:    get('sobreHeroSubtitulo')
+    },
+    manifesto: {
+      titulo:      get('sobreManifestoTitulo'),
+      paragrafo1:  get('sobreManifestoP1'),
+      paragrafo2:  get('sobreManifestoP2'),
+      paragrafo3:  get('sobreManifestoP3'),
+      quote_texto: get('sobreManifestoQuote'),
+      quote_autor: get('sobreManifestoQuoteAutor'),
+      imagem_url:  get('sobreManifestoImg')
+    },
+    valores: [1,2,3,4].map(i => ({
+      titulo: get(`sobreValor${i}Titulo`),
+      texto:  get(`sobreValor${i}Texto`)
+    })),
+    fundadora: {
+      titulo_linha1: get('sobreFundadoraTitulo1'),
+      titulo_linha2: get('sobreFundadoraTitulo2'),
+      paragrafo1:   get('sobreFundadoraP1'),
+      paragrafo2:   get('sobreFundadoraP2'),
+      imagem_url:   get('sobreFundadoraImg')
+    },
+    numeros: [1,2,3,4].map(i => ({
+      valor: getNum(`sobreNum${i}Valor`),
+      label: get(`sobreNum${i}Label`)
+    })),
+    envio: [1,2,3,4].map(i => ({
+      titulo: get(`sobreEnvio${i}Titulo`),
+      texto:  get(`sobreEnvio${i}Texto`)
+    })),
+    pagamento: [1,2,3,4].map(i => ({
+      titulo: get(`sobrePag${i}Titulo`),
+      texto:  get(`sobrePag${i}Texto`)
+    }))
+  };
+
+  // Preserva o restante das configurações e atualiza apenas o campo "sobre"
+  const cfgAtualizada = { ...DB.configuracoes, id: 1, sobre };
+
+  try {
+    const { error } = await supabaseClient
+      .from('configuracoes')
+      .upsert(cfgAtualizada, { onConflict: 'id' });
+
+    if (error) throw error;
+
+    DB.configuracoes = cfgAtualizada;
+    toast('Página Sobre salva! ✓', 'success');
+    setStatus('success', '✓ Conteúdo da página Sobre atualizado. O site já reflete as mudanças em wearvirtu.com/sobre');
+  } catch (e) {
+    toast(`Erro: ${e.message}`, 'error');
+    setStatus('error', `✗ Erro ao salvar: ${e.message}`);
+  } finally {
+    if (btnSave) { btnSave.disabled = false; btnSave.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Página Sobre'; }
   }
 }
 

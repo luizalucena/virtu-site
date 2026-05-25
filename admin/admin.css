@@ -517,9 +517,56 @@ body {
 .admin-toast.success { background: #2e7d32; }
 .admin-toast.error   { background: #c62828; }
 
+/* ── SOBRE PAGE EDITOR ───────────────────── */
+.admin-sobre-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-card--full {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.admin-card__title {
+  display: flex;
+  align-items: center;
+}
+
+.admin-valores-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-valor-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.admin-numeros-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-numero-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
 /* ── RESPONSIVE ──────────────────────────── */
 @media (max-width: 1200px) {
   .admin-config-grid { grid-template-columns: 1fr 1fr; }
+  .admin-valores-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-numeros-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 900px) {
   :root { --sidebar-w: 60px; }
@@ -529,4 +576,10 @@ body {
   .admin-nav-btn { justify-content: center; padding: 0.7rem; }
   .admin-modal__grid { grid-template-columns: 1fr; }
   .admin-config-grid { grid-template-columns: 1fr; }
+  .admin-valores-grid { grid-template-columns: 1fr 1fr; }
+  .admin-numeros-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .admin-valores-grid { grid-template-columns: 1fr; }
+  .admin-numeros-grid { grid-template-columns: 1fr; }
 }

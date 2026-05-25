@@ -21,13 +21,17 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         Produtos
       </button>
+      <button class="admin-nav-btn" data-view="sobre">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Página Sobre
+      </button>
       <button class="admin-nav-btn" data-view="configuracoes">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Configurações
       </button>
     </nav>
     <div class="admin-sidebar__footer">
-      <p>Virtù Admin v1.0</p>
+      <p>Virtù Admin v1.1</p>
     </div>
   </aside>
 
@@ -59,13 +63,14 @@
     <!-- BARRA DE STATUS -->
     <div class="admin-status-bar" id="statusBar">
       <span id="statusIcon">💡</span>
-      <span id="statusMsg">Clique em <strong>Abrir JSON</strong> para carregar o arquivo <code>data/products.json</code>, ou os dados de exemplo serão usados.</span>
+      <span id="statusMsg">Conectando ao banco de dados…</span>
     </div>
 
-    <!-- VIEW: PRODUTOS -->
+    <!-- ══════════════════════════════════════
+         VIEW: PRODUTOS
+    ══════════════════════════════════════ -->
     <div class="admin-view" id="viewProdutos">
 
-      <!-- FILTROS + BUSCA -->
       <div class="admin-filters">
         <input type="search" class="admin-search" id="searchInput" placeholder="Buscar produto…" />
         <div class="admin-filter-pills">
@@ -78,7 +83,6 @@
         </div>
       </div>
 
-      <!-- TABELA -->
       <div class="admin-table-wrap">
         <table class="admin-table" id="productsTable">
           <thead>
@@ -94,9 +98,7 @@
               <th style="width:100px">Ações</th>
             </tr>
           </thead>
-          <tbody id="productsTableBody">
-            <!-- Preenchido pelo JS -->
-          </tbody>
+          <tbody id="productsTableBody"></tbody>
         </table>
         <div class="admin-empty" id="tableEmpty" hidden>
           <span>Nenhum produto encontrado</span>
@@ -104,7 +106,280 @@
       </div>
     </div>
 
-    <!-- VIEW: CONFIGURAÇÕES -->
+    <!-- ══════════════════════════════════════
+         VIEW: PÁGINA SOBRE
+    ══════════════════════════════════════ -->
+    <div class="admin-view admin-view--hidden" id="viewSobre">
+      <div class="admin-sobre-wrap">
+
+        <!-- HERO -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Seção Hero — Topo da página
+          </h3>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-label">Texto pequeno acima do título (eyebrow)</label>
+              <input type="text" class="admin-input" id="sobreHeroEyebrow" placeholder="Ex: Nossa história" />
+            </div>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-label">Título — Linha 1</label>
+              <input type="text" class="admin-input" id="sobreHeroTitulo1" placeholder="Ex: Há virtude" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Título — Linha 2 (em itálico)</label>
+              <input type="text" class="admin-input" id="sobreHeroTitulo2" placeholder="Ex: no vestir" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Subtítulo</label>
+            <textarea class="admin-input admin-textarea" id="sobreHeroSubtitulo" rows="2" placeholder="Texto abaixo do título…"></textarea>
+          </div>
+        </div>
+
+        <!-- MANIFESTO -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Manifesto — "O que é Virtù?"
+          </h3>
+          <div class="admin-form-group">
+            <label class="admin-label">Título da seção</label>
+            <input type="text" class="admin-input" id="sobreManifestoTitulo" placeholder="Ex: O que é Virtù?" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Parágrafo 1</label>
+            <textarea class="admin-input admin-textarea" id="sobreManifestoP1" rows="3"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Parágrafo 2</label>
+            <textarea class="admin-input admin-textarea" id="sobreManifestoP2" rows="3"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Parágrafo 3</label>
+            <textarea class="admin-input admin-textarea" id="sobreManifestoP3" rows="3"></textarea>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-label">Citação (quote)</label>
+              <textarea class="admin-input admin-textarea" id="sobreManifestoQuote" rows="2" placeholder="Ex: A elegância não é ser notada, é ser lembrada."></textarea>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Autor da citação</label>
+              <input type="text" class="admin-input" id="sobreManifestoQuoteAutor" placeholder="Ex: Giorgio Armani" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Foto do manifesto (URL da imagem)</label>
+            <input type="url" class="admin-input" id="sobreManifestoImg" placeholder="https://… (deixe vazio para usar o gradiente padrão)" />
+            <p class="admin-hint">URL direta de uma imagem hospedada (Imgur, Cloudinary, etc.)</p>
+          </div>
+        </div>
+
+        <!-- VALORES -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Valores — "O que nos guia" (4 princípios)
+          </h3>
+          <div class="admin-valores-grid">
+            <!-- Valor 1 -->
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Princípio 1</p>
+              <div class="admin-form-group">
+                <label class="admin-label">Título</label>
+                <input type="text" class="admin-input" id="sobreValor1Titulo" placeholder="Ex: Curadoria rigorosa" />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-label">Texto</label>
+                <textarea class="admin-input admin-textarea" id="sobreValor1Texto" rows="3"></textarea>
+              </div>
+            </div>
+            <!-- Valor 2 -->
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Princípio 2</p>
+              <div class="admin-form-group">
+                <label class="admin-label">Título</label>
+                <input type="text" class="admin-input" id="sobreValor2Titulo" />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-label">Texto</label>
+                <textarea class="admin-input admin-textarea" id="sobreValor2Texto" rows="3"></textarea>
+              </div>
+            </div>
+            <!-- Valor 3 -->
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Princípio 3</p>
+              <div class="admin-form-group">
+                <label class="admin-label">Título</label>
+                <input type="text" class="admin-input" id="sobreValor3Titulo" />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-label">Texto</label>
+                <textarea class="admin-input admin-textarea" id="sobreValor3Texto" rows="3"></textarea>
+              </div>
+            </div>
+            <!-- Valor 4 -->
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Princípio 4</p>
+              <div class="admin-form-group">
+                <label class="admin-label">Título</label>
+                <input type="text" class="admin-input" id="sobreValor4Titulo" />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-label">Texto</label>
+                <textarea class="admin-input admin-textarea" id="sobreValor4Texto" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUNDADORA -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Fundadora — "Uma visão de moda com propósito"
+          </h3>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-label">Título — Linha 1</label>
+              <input type="text" class="admin-input" id="sobreFundadoraTitulo1" placeholder="Ex: Uma visão de moda" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Título — Linha 2 (em itálico)</label>
+              <input type="text" class="admin-input" id="sobreFundadoraTitulo2" placeholder="Ex: com propósito" />
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Parágrafo 1</label>
+            <textarea class="admin-input admin-textarea" id="sobreFundadoraP1" rows="3"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Parágrafo 2</label>
+            <textarea class="admin-input admin-textarea" id="sobreFundadoraP2" rows="3"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Foto da fundadora (URL da imagem)</label>
+            <input type="url" class="admin-input" id="sobreFundadoraImg" placeholder="https://… (deixe vazio para usar o gradiente padrão)" />
+          </div>
+        </div>
+
+        <!-- NÚMEROS -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Números — Estatísticas da marca
+          </h3>
+          <div class="admin-numeros-grid">
+            <div class="admin-numero-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.5rem">Número 1</p>
+              <div class="admin-form-row">
+                <div class="admin-form-group"><label class="admin-label">Valor</label><input type="number" class="admin-input" id="sobreNum1Valor" placeholder="Ex: 2000" /></div>
+                <div class="admin-form-group"><label class="admin-label">Descrição</label><input type="text" class="admin-input" id="sobreNum1Label" placeholder="Ex: Clientes satisfeitas" /></div>
+              </div>
+            </div>
+            <div class="admin-numero-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.5rem">Número 2</p>
+              <div class="admin-form-row">
+                <div class="admin-form-group"><label class="admin-label">Valor</label><input type="number" class="admin-input" id="sobreNum2Valor" /></div>
+                <div class="admin-form-group"><label class="admin-label">Descrição</label><input type="text" class="admin-input" id="sobreNum2Label" /></div>
+              </div>
+            </div>
+            <div class="admin-numero-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.5rem">Número 3</p>
+              <div class="admin-form-row">
+                <div class="admin-form-group"><label class="admin-label">Valor</label><input type="number" class="admin-input" id="sobreNum3Valor" /></div>
+                <div class="admin-form-group"><label class="admin-label">Descrição</label><input type="text" class="admin-input" id="sobreNum3Label" /></div>
+              </div>
+            </div>
+            <div class="admin-numero-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.5rem">Número 4</p>
+              <div class="admin-form-row">
+                <div class="admin-form-group"><label class="admin-label">Valor</label><input type="number" class="admin-input" id="sobreNum4Valor" /></div>
+                <div class="admin-form-group"><label class="admin-label">Descrição</label><input type="text" class="admin-input" id="sobreNum4Label" /></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENVIO -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Envio e Trocas (4 cards)
+          </h3>
+          <div class="admin-valores-grid">
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Envio 1</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobreEnvio1Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobreEnvio1Texto" rows="3"></textarea></div>
+            </div>
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Envio 2</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobreEnvio2Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobreEnvio2Texto" rows="3"></textarea></div>
+            </div>
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Envio 3 (Frete Grátis)</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobreEnvio3Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobreEnvio3Texto" rows="3"></textarea></div>
+            </div>
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Envio 4 (Trocas)</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobreEnvio4Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobreEnvio4Texto" rows="3"></textarea></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGAMENTO -->
+        <div class="admin-card admin-card--full">
+          <h3 class="admin-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:8px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Formas de Pagamento (4 cards)
+          </h3>
+          <div class="admin-valores-grid">
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Pagamento 1</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobrePag1Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobrePag1Texto" rows="2"></textarea></div>
+            </div>
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Pagamento 2</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobrePag2Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobrePag2Texto" rows="2"></textarea></div>
+            </div>
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Pagamento 3 (Pix)</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobrePag3Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobrePag3Texto" rows="2"></textarea></div>
+            </div>
+            <div class="admin-valor-item">
+              <p class="admin-label" style="font-weight:600;margin-bottom:0.75rem">Card Pagamento 4</p>
+              <div class="admin-form-group"><label class="admin-label">Título</label><input type="text" class="admin-input" id="sobrePag4Titulo" /></div>
+              <div class="admin-form-group"><label class="admin-label">Texto</label><textarea class="admin-input admin-textarea" id="sobrePag4Texto" rows="2"></textarea></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÃO SALVAR -->
+        <div style="padding:0.5rem 0 2rem;display:flex;gap:1rem;align-items:center">
+          <button class="admin-btn admin-btn--primary" id="btnSaveSobre" style="padding:0.75rem 2rem;font-size:0.9rem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Salvar Página Sobre
+          </button>
+          <span class="admin-hint" style="margin:0">As alterações aparecem imediatamente em wearvirtu.com/sobre</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         VIEW: CONFIGURAÇÕES
+    ══════════════════════════════════════ -->
     <div class="admin-view admin-view--hidden" id="viewConfiguracoes">
       <div class="admin-config-grid">
 
@@ -299,9 +574,7 @@
   <!-- TOAST -->
   <div class="admin-toast" id="toast" aria-live="polite"></div>
 
-  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Configuração do Supabase (credenciais) -->
   <script src="../js/supabase-config.js"></script>
   <script src="admin.js"></script>
 </body>
