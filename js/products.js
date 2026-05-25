@@ -1,32 +1,38 @@
 /* ============================================================
    VIRTÙ — Products.js
-   Motor central: lê products.json e renderiza cards dinamicamente
+   Motor central: lê dados do Supabase e renderiza cards dinamicamente
+   Requer: supabase CDN + js/supabase-config.js carregados antes
    ============================================================ */
 
 const VirtuProducts = (() => {
 
-  // Cache em memória para não re-fetch desnecessário
+  // Cache de sessão (limpo a cada carregamento de página)
   let _cache = null;
 
-  /* ── FETCH ──────────────────────────────── */
+  /* ── FETCH DO SUPABASE ──────────────────── */
   async function fetchAll() {
     if (_cache) return _cache;
+
     try {
-      const res  = await fetch('../data/products.json');
-      const data = await res.json();
-      _cache = data;
-      return data;
-    } catch (e) {
-      // Tenta caminho alternativo (quando chamado da raiz)
-      try {
-        const res  = await fetch('data/products.json');
-        const data = await res.json();
-        _cache = data;
-        return data;
-      } catch (e2) {
-        console.error('Virtù: Não foi possível carregar products.json', e2);
-        return null;
-      }
+      // Busca produtos e configurações em paralelo
+      const [{ data: produtos, error: e1 }, { data: cfg, error: e2 }] = await Promise.all([
+        supabaseClient.from('produtos').select('*').order('criado_em', { ascending: false }),
+        supabaseClient.from('configuracoes').select('*').eq('id', 1).single()
+      ]);
+
+      if (e1) throw new Error(`Produtos: ${e1.message}`);
+      if (e2) throw new Error(`Configurações: ${e2.message}`);
+
+      _cache = {
+        produtos:       produtos || [],
+        configuracoes:  cfg     || {}
+      };
+
+      return _cache;
+    } catch (err) {
+      console.error('[VirtuProducts] Erro ao buscar dados do Supabase:', err.message);
+      // Retorna estrutura vazia para não quebrar a UI
+      return { produtos: [], configuracoes: {} };
     }
   }
 

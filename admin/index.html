@@ -41,13 +41,13 @@
         <span class="admin-topbar__count" id="productCount"></span>
       </div>
       <div class="admin-topbar__actions">
-        <button class="admin-btn admin-btn--ghost" id="btnOpenFile" title="Abrir products.json do seu computador">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Abrir JSON
+        <button class="admin-btn admin-btn--ghost" id="btnOpenFile" title="Recarregar dados do banco de dados">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Recarregar
         </button>
-        <button class="admin-btn admin-btn--gold" id="btnSaveFile" title="Salvar alterações no products.json">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 0-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Salvar JSON
+        <button class="admin-btn admin-btn--gold" id="btnSaveFile" title="Exportar backup dos dados em JSON">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar Backup
         </button>
         <button class="admin-btn admin-btn--primary" id="btnNewProduct">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -299,6 +299,10 @@
   <!-- TOAST -->
   <div class="admin-toast" id="toast" aria-live="polite"></div>
 
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Configuração do Supabase (credenciais) -->
+  <script src="../js/supabase-config.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

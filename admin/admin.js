@@ -1,35 +1,43 @@
 /* ============================================================
-   VIRTÙ — Admin Panel JavaScript
-   File System Access API: lê e salva products.json direto no disco
+   VIRTÙ — Admin Panel JavaScript (Supabase Edition)
+   Todas as alterações são salvas automaticamente no banco de dados.
+   Requer: supabase CDN + js/supabase-config.js carregados antes
    ============================================================ */
 
 // ── ESTADO GLOBAL ──────────────────────────
-let DB = null;          // objeto products.json em memória
-let fileHandle = null;  // referência ao arquivo aberto (File System API)
+let DB = { produtos: [], configuracoes: {} };
 let filtroAtual = 'todos';
-let editandoId  = null; // null = novo produto, string = editando existente
-
-// ── DADOS DE EXEMPLO (fallback sem arquivo) ─
-const EXEMPLO = {
-  produtos: [
-    { id:"vestido-athena", nome:"Vestido Athena", categoria:"vestidos", descricao:"Vestido midi com silhueta clássica.", composicao:"70% viscose, 30% poliéster", preco_original:420, preco_desconto:null, badge:"Novo", imagem_placeholder:"linear-gradient(135deg,#E8E0D5,#D4CCC0)", imagem_url:"", cores:[{nome:"Navy",hex:"#2B3F54"}], tamanhos:["PP","P","M","G","GG"], tamanhos_esgotados:[], destaque:true, novidade:true, ativo:true, estoque:15 },
-    { id:"blusa-helena", nome:"Blusa Helena", categoria:"blusas", descricao:"Blusa de linho com decote V.", composicao:"100% linho", preco_original:195, preco_desconto:null, badge:"Novo", imagem_placeholder:"linear-gradient(135deg,#D5C8BA,#C4B8A8)", imagem_url:"", cores:[{nome:"Off-White",hex:"#F9F7F4"}], tamanhos:["PP","P","M","G","GG"], tamanhos_esgotados:["PP"], destaque:true, novidade:true, ativo:true, estoque:22 },
-    { id:"calca-diana", nome:"Calça Diana", categoria:"calcas", descricao:"Calça wide leg de alfaiataria.", composicao:"65% poliéster, 35% viscose", preco_original:360, preco_desconto:280, badge:"Sale", imagem_placeholder:"linear-gradient(135deg,#3D5470,#2B3F54)", imagem_url:"", cores:[{nome:"Navy",hex:"#2B3F54"}], tamanhos:["PP","P","M","G","GG"], tamanhos_esgotados:["G"], destaque:false, novidade:false, ativo:true, estoque:8 }
-  ],
-  configuracoes: {
-    nome_loja:"Virtù", slogan:"há virtude no vestir", instagram:"@wear.virtu", frete_gratis_acima:300, max_parcelas:6,
-    banner_home:{ titulo_linha1:"Nova Coleção", titulo_linha2:"Outono 2025", subtitulo:"Peças que falam mais alto que qualquer tendência", cta_texto:"Explorar Coleção", cta_link:"catalogo.html" },
-    banner_editorial:{ titulo:"há virtude no vestir", texto:"Cada peça da Virtù é pensada para mulheres que escolhem com intenção.", cta_texto:"Conhecer a Virtù", cta_link:"sobre.html" }
-  }
-};
+let editandoId  = null;
 
 // ── INICIALIZAÇÃO ───────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  DB = structuredClone(EXEMPLO);
-  renderTable();
+document.addEventListener('DOMContentLoaded', async () => {
+  setStatus('info', '⏳ Conectando ao banco de dados…');
+  await carregarDados();
   bindEvents();
-  setStatus('info', '💡 Clique em <strong>Abrir JSON</strong> para carregar o arquivo <code>data/products.json</code>. Editando dados de exemplo por enquanto.');
 });
+
+// ── CARREGAR DADOS DO SUPABASE ──────────────
+async function carregarDados() {
+  try {
+    const [{ data: produtos, error: e1 }, { data: cfg, error: e2 }] = await Promise.all([
+      supabaseClient.from('produtos').select('*').order('criado_em', { ascending: false }),
+      supabaseClient.from('configuracoes').select('*').eq('id', 1).single()
+    ]);
+
+    if (e1) throw e1;
+    if (e2) throw e2;
+
+    DB.produtos      = produtos || [];
+    DB.configuracoes = cfg     || {};
+
+    renderTable();
+    const n = DB.produtos.length;
+    setStatus('success', `✓ Conectado ao Supabase. <strong>${n}</strong> produto${n !== 1 ? 's' : ''} carregado${n !== 1 ? 's' : ''}.`);
+  } catch (e) {
+    setStatus('error', `✗ Erro ao conectar: ${e.message}. Verifique as credenciais em <code>js/supabase-config.js</code>`);
+    toast('Erro ao conectar ao banco de dados', 'error');
+  }
+}
 
 // ── BIND DE EVENTOS ─────────────────────────
 function bindEvents() {
@@ -46,11 +54,14 @@ function bindEvents() {
     });
   });
 
-  // Abrir arquivo JSON
-  document.getElementById('btnOpenFile')?.addEventListener('click', openFile);
+  // Botão recarregar (era "Abrir JSON")
+  document.getElementById('btnOpenFile')?.addEventListener('click', async () => {
+    setStatus('info', '⏳ Recarregando dados…');
+    await carregarDados();
+  });
 
-  // Salvar arquivo JSON
-  document.getElementById('btnSaveFile')?.addEventListener('click', saveFile);
+  // Botão exportar backup (era "Salvar JSON")
+  document.getElementById('btnSaveFile')?.addEventListener('click', exportarBackup);
 
   // Novo produto
   document.getElementById('btnNewProduct')?.addEventListener('click', () => openModal(null));
@@ -58,7 +69,9 @@ function bindEvents() {
   // Fechar modal
   document.getElementById('modalClose')?.addEventListener('click', closeModal);
   document.getElementById('btnCancelModal')?.addEventListener('click', closeModal);
-  document.getElementById('modalOverlay')?.addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
+  document.getElementById('modalOverlay')?.addEventListener('click', e => {
+    if (e.target.id === 'modalOverlay') closeModal();
+  });
 
   // Salvar produto no modal
   document.getElementById('btnSaveProduct')?.addEventListener('click', saveProduct);
@@ -77,17 +90,16 @@ function bindEvents() {
   });
 
   // Preview da cor de fundo
-  document.getElementById('formPlaceholder')?.addEventListener('input', function() {
+  document.getElementById('formPlaceholder')?.addEventListener('input', function () {
     document.getElementById('colorPreview').style.background = this.value;
   });
 
   // Preview de desconto (range ↔ campo de preço)
-  document.getElementById('formPctDesconto')?.addEventListener('input', function() {
+  document.getElementById('formPctDesconto')?.addEventListener('input', function () {
     const orig = parseFloat(document.getElementById('formPrecoOriginal')?.value) || 0;
     const pct  = parseInt(this.value);
     if (orig > 0 && pct > 0) {
-      const desc = orig * (1 - pct / 100);
-      document.getElementById('formPrecoDesconto').value = desc.toFixed(2);
+      document.getElementById('formPrecoDesconto').value = (orig * (1 - pct / 100)).toFixed(2);
     } else {
       document.getElementById('formPrecoDesconto').value = '';
     }
@@ -95,12 +107,11 @@ function bindEvents() {
   });
 
   document.getElementById('formPrecoOriginal')?.addEventListener('input', updateDiscountPreview);
-  document.getElementById('formPrecoDesconto')?.addEventListener('input', function() {
+  document.getElementById('formPrecoDesconto')?.addEventListener('input', function () {
     const orig = parseFloat(document.getElementById('formPrecoOriginal')?.value) || 0;
     const desc = parseFloat(this.value);
     if (orig > 0 && desc > 0 && desc < orig) {
-      const pct = Math.round((1 - desc / orig) * 100);
-      document.getElementById('formPctDesconto').value = pct;
+      document.getElementById('formPctDesconto').value = Math.round((1 - desc / orig) * 100);
     } else {
       document.getElementById('formPctDesconto').value = 0;
     }
@@ -114,97 +125,17 @@ function bindEvents() {
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 }
 
-// ── ABRIR ARQUIVO (File System Access API) ──
-async function openFile() {
-  if (!('showOpenFilePicker' in window)) {
-    // Fallback: input file clássico
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        DB = JSON.parse(text);
-        renderTable();
-        setStatus('success', `✓ Arquivo <strong>${file.name}</strong> carregado. Faça suas edições e clique em Salvar JSON para baixar o arquivo atualizado.`);
-        toast('Arquivo carregado com sucesso!', 'success');
-      } catch (e) {
-        setStatus('error', `✗ Erro ao ler o arquivo: ${e.message}`);
-        toast('Erro ao ler o JSON', 'error');
-      }
-    };
-    input.click();
-    return;
-  }
-
-  try {
-    [fileHandle] = await window.showOpenFilePicker({
-      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
-      multiple: false
-    });
-    const file = await fileHandle.getFile();
-    const text = await file.text();
-    DB = JSON.parse(text);
-    renderTable();
-    setStatus('success', `✓ <strong>${file.name}</strong> aberto. Edições serão salvas diretamente neste arquivo.`);
-    toast('Arquivo carregado!', 'success');
-  } catch (e) {
-    if (e.name !== 'AbortError') {
-      setStatus('error', `✗ Erro: ${e.message}`);
-      toast('Erro ao abrir arquivo', 'error');
-    }
-  }
-}
-
-// ── SALVAR ARQUIVO ──────────────────────────
-async function saveFile() {
+// ── EXPORTAR BACKUP (JSON download) ────────
+function exportarBackup() {
   const json = JSON.stringify(DB, null, 2);
-
-  if (fileHandle) {
-    // Salva diretamente no arquivo original (File System API)
-    try {
-      const writable = await fileHandle.createWritable();
-      await writable.write(json);
-      await writable.close();
-      setStatus('success', '✓ Arquivo salvo com sucesso! As mudanças já estão no seu products.json.');
-      toast('Salvo com sucesso!', 'success');
-    } catch (e) {
-      setStatus('error', `✗ Erro ao salvar: ${e.message}`);
-      toast('Erro ao salvar', 'error');
-    }
-    return;
-  }
-
-  // Fallback: download do arquivo
-  if ('showSaveFilePicker' in window) {
-    try {
-      const newHandle = await window.showSaveFilePicker({
-        suggestedName: 'products.json',
-        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
-      });
-      const writable = await newHandle.createWritable();
-      await writable.write(json);
-      await writable.close();
-      fileHandle = newHandle;
-      setStatus('success', '✓ Arquivo salvo! Substitua o arquivo <code>data/products.json</code> do seu projeto por este.');
-      toast('Arquivo salvo!', 'success');
-    } catch (e) {
-      if (e.name !== 'AbortError') toast('Erro ao salvar', 'error');
-    }
-    return;
-  }
-
-  // Último fallback: download clássico
   const blob = new Blob([json], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href = url; a.download = 'products.json';
+  a.href = url;
+  a.download = `virtu-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  setStatus('success', '✓ products.json baixado. Substitua o arquivo em <code>virtu-site/data/products.json</code>.');
-  toast('JSON baixado!', 'success');
+  toast('Backup exportado!', 'success');
 }
 
 // ── RENDERIZA TABELA ────────────────────────
@@ -212,9 +143,9 @@ function renderTable() {
   const tbody  = document.getElementById('productsTableBody');
   const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const empty  = document.getElementById('tableEmpty');
-  if (!tbody || !DB) return;
+  if (!tbody) return;
 
-  let lista = DB.produtos || [];
+  let lista = [...DB.produtos];
 
   // Filtro por categoria / status
   if (filtroAtual === 'inativos') {
@@ -252,16 +183,24 @@ function renderTable() {
     return `
       <tr>
         <td>
-          <div class="prod-thumb" style="background:${p.imagem_url ? `url('${p.imagem_url}') center/cover` : p.imagem_placeholder || '#E8E0D5'};border-radius:4px;border:1px solid #eee"></div>
+          <div class="prod-thumb" style="background:${p.imagem_url
+            ? `url('${p.imagem_url}') center/cover`
+            : p.imagem_placeholder || '#E8E0D5'};border-radius:4px;border:1px solid #eee"></div>
         </td>
         <td>
           <div class="prod-name">${escHtml(p.nome)}</div>
           <div class="prod-id">${escHtml(p.id)}</div>
         </td>
         <td><span class="badge-cat">${escHtml(p.categoria)}</span></td>
-        <td>${temDesc ? `<span class="price-original">${fmt(p.preco_original)}</span>` : `<span class="price-normal">${fmt(p.preco_original)}</span>`}</td>
-        <td>${temDesc ? `<span class="price-sale">${fmt(p.preco_desconto)}</span>` : '<span style="color:#ccc">—</span>'}</td>
-        <td>${pct > 0 ? `<span class="badge-discount">−${pct}%</span>` : '<span style="color:#ccc">—</span>'}</td>
+        <td>${temDesc
+          ? `<span class="price-original">${fmt(p.preco_original)}</span>`
+          : `<span class="price-normal">${fmt(p.preco_original)}</span>`}</td>
+        <td>${temDesc
+          ? `<span class="price-sale">${fmt(p.preco_desconto)}</span>`
+          : '<span style="color:#ccc">—</span>'}</td>
+        <td>${pct > 0
+          ? `<span class="badge-discount">−${pct}%</span>`
+          : '<span style="color:#ccc">—</span>'}</td>
         <td><span class="${stockClass}">${p.estoque ?? '—'}</span></td>
         <td>
           <span class="status-badge ${p.ativo ? 'status-badge--active' : 'status-badge--inactive'}">
@@ -282,38 +221,34 @@ function renderTable() {
 // ── ABRIR MODAL DE PRODUTO ──────────────────
 function openModal(id) {
   editandoId = id;
-  const modal  = document.getElementById('modalOverlay');
-  const title  = document.getElementById('modalTitle');
+  const modal = document.getElementById('modalOverlay');
+  const title = document.getElementById('modalTitle');
 
-  // Reset form
   resetForm();
 
   if (id) {
-    // Editar
     const p = DB.produtos.find(x => x.id === id);
     if (!p) return;
     title.textContent = `Editar — ${p.nome}`;
-    document.getElementById('formId').value              = p.id;
-    document.getElementById('formNome').value            = p.nome;
-    document.getElementById('formCategoria').value       = p.categoria;
-    document.getElementById('formBadge').value           = p.badge || '';
-    document.getElementById('formPrecoOriginal').value   = p.preco_original;
-    document.getElementById('formPrecoDesconto').value   = p.preco_desconto || '';
-    document.getElementById('formEstoque').value         = p.estoque ?? '';
-    document.getElementById('formImagem').value          = p.imagem_url || '';
-    document.getElementById('formPlaceholder').value     = p.imagem_placeholder || '';
-    document.getElementById('formDescricao').value       = p.descricao || '';
-    document.getElementById('formComposicao').value      = p.composicao || '';
-    document.getElementById('formDestaque').checked      = !!p.destaque;
-    document.getElementById('formNovidade').checked      = !!p.novidade;
-    document.getElementById('formAtivo').checked         = p.ativo !== false;
+    document.getElementById('formId').value               = p.id;
+    document.getElementById('formNome').value             = p.nome;
+    document.getElementById('formCategoria').value        = p.categoria;
+    document.getElementById('formBadge').value            = p.badge || '';
+    document.getElementById('formPrecoOriginal').value    = p.preco_original;
+    document.getElementById('formPrecoDesconto').value    = p.preco_desconto || '';
+    document.getElementById('formEstoque').value          = p.estoque ?? '';
+    document.getElementById('formImagem').value           = p.imagem_url || '';
+    document.getElementById('formPlaceholder').value      = p.imagem_placeholder || '';
+    document.getElementById('formDescricao').value        = p.descricao || '';
+    document.getElementById('formComposicao').value       = p.composicao || '';
+    document.getElementById('formDestaque').checked       = !!p.destaque;
+    document.getElementById('formNovidade').checked       = !!p.novidade;
+    document.getElementById('formAtivo').checked          = p.ativo !== false;
 
-    // Tamanhos
     document.querySelectorAll('.admin-size-check input').forEach(cb => {
       cb.checked = (p.tamanhos || []).includes(cb.value);
     });
 
-    // Preview cor
     document.getElementById('colorPreview').style.background = p.imagem_placeholder || '';
     updateDiscountPreview();
   } else {
@@ -336,88 +271,138 @@ function closeModal() {
 }
 
 function resetForm() {
-  ['formId','formNome','formPrecoOriginal','formPrecoDesconto','formEstoque','formImagem','formPlaceholder','formDescricao','formComposicao']
+  ['formId','formNome','formPrecoOriginal','formPrecoDesconto','formEstoque',
+   'formImagem','formPlaceholder','formDescricao','formComposicao']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  document.getElementById('formCategoria').value = 'vestidos';
-  document.getElementById('formBadge').value     = '';
+  document.getElementById('formCategoria').value  = 'vestidos';
+  document.getElementById('formBadge').value      = '';
   document.getElementById('formDestaque').checked = false;
   document.getElementById('formNovidade').checked = false;
   document.getElementById('formAtivo').checked    = true;
   document.getElementById('formPctDesconto').value = 0;
   document.getElementById('colorPreview').style.background = '';
-  document.getElementById('discountPreview').textContent = '—';
+  document.getElementById('discountPreview').textContent   = '—';
   document.querySelectorAll('.admin-size-check input').forEach(cb => cb.checked = false);
   document.querySelectorAll('.admin-input.error').forEach(el => el.classList.remove('error'));
 }
 
-// ── SALVAR PRODUTO ──────────────────────────
-function saveProduct() {
+// ── SALVAR PRODUTO NO SUPABASE ──────────────
+async function saveProduct() {
   const nome  = document.getElementById('formNome')?.value.trim();
   const preco = parseFloat(document.getElementById('formPrecoOriginal')?.value);
 
   if (!nome || !preco) {
-    if (!nome) document.getElementById('formNome')?.classList.add('error');
+    if (!nome)  document.getElementById('formNome')?.classList.add('error');
     if (!preco) document.getElementById('formPrecoOriginal')?.classList.add('error');
     toast('Preencha os campos obrigatórios', 'error');
     return;
   }
 
+  const btnSave = document.getElementById('btnSaveProduct');
+  if (btnSave) { btnSave.disabled = true; btnSave.textContent = 'Salvando…'; }
+
   const desconto = parseFloat(document.getElementById('formPrecoDesconto')?.value) || null;
   const tamanhos = [...document.querySelectorAll('.admin-size-check input:checked')].map(cb => cb.value);
 
+  // Preserva cores do produto existente
+  const coresExistentes = editandoId
+    ? (DB.produtos.find(p => p.id === editandoId)?.cores || [])
+    : [];
+
   const produto = {
-    id:                editandoId || slugify(nome),
+    id:                 editandoId || slugify(nome),
     nome,
-    categoria:         document.getElementById('formCategoria')?.value,
-    descricao:         document.getElementById('formDescricao')?.value.trim(),
-    composicao:        document.getElementById('formComposicao')?.value.trim(),
-    preco_original:    preco,
-    preco_desconto:    desconto && desconto < preco ? desconto : null,
-    badge:             document.getElementById('formBadge')?.value || null,
-    imagem_url:        document.getElementById('formImagem')?.value.trim(),
-    imagem_placeholder:document.getElementById('formPlaceholder')?.value.trim() || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)',
-    cores:             editandoId ? (DB.produtos.find(p => p.id === editandoId)?.cores || []) : [],
-    tamanhos:          tamanhos.length ? tamanhos : ['PP','P','M','G','GG'],
-    tamanhos_esgotados:[],
-    destaque:          document.getElementById('formDestaque')?.checked,
-    novidade:          document.getElementById('formNovidade')?.checked,
-    ativo:             document.getElementById('formAtivo')?.checked,
-    estoque:           parseInt(document.getElementById('formEstoque')?.value) || 0
+    categoria:          document.getElementById('formCategoria')?.value,
+    descricao:          document.getElementById('formDescricao')?.value.trim(),
+    composicao:         document.getElementById('formComposicao')?.value.trim(),
+    preco_original:     preco,
+    preco_desconto:     (desconto && desconto < preco) ? desconto : null,
+    badge:              document.getElementById('formBadge')?.value || null,
+    imagem_url:         document.getElementById('formImagem')?.value.trim(),
+    imagem_placeholder: document.getElementById('formPlaceholder')?.value.trim()
+                          || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)',
+    cores:              coresExistentes,
+    tamanhos:           tamanhos.length ? tamanhos : ['PP','P','M','G','GG'],
+    tamanhos_esgotados: [],
+    destaque:           document.getElementById('formDestaque')?.checked,
+    novidade:           document.getElementById('formNovidade')?.checked,
+    ativo:              document.getElementById('formAtivo')?.checked,
+    estoque:            parseInt(document.getElementById('formEstoque')?.value) || 0
   };
 
-  if (editandoId) {
-    const idx = DB.produtos.findIndex(p => p.id === editandoId);
-    if (idx !== -1) DB.produtos[idx] = produto;
-    toast(`"${nome}" atualizado!`, 'success');
-  } else {
-    DB.produtos.unshift(produto); // adiciona no topo
-    toast(`"${nome}" criado!`, 'success');
-  }
+  try {
+    const { data, error } = await supabaseClient
+      .from('produtos')
+      .upsert(produto, { onConflict: 'id' })
+      .select()
+      .single();
 
-  closeModal();
-  renderTable();
-  setStatus('info', '⚠️ Lembre-se de clicar em <strong>Salvar JSON</strong> para gravar as alterações no arquivo.');
+    if (error) throw error;
+
+    // Atualiza estado local sem re-fetch
+    const idx = DB.produtos.findIndex(p => p.id === produto.id);
+    if (idx !== -1) {
+      DB.produtos[idx] = data;
+    } else {
+      DB.produtos.unshift(data);
+    }
+
+    closeModal();
+    renderTable();
+    toast(`"${nome}" ${editandoId ? 'atualizado' : 'criado'} com sucesso! ✓`, 'success');
+    setStatus('success', `✓ "${nome}" salvo no banco de dados. O site público já reflete a mudança.`);
+  } catch (e) {
+    toast(`Erro ao salvar: ${e.message}`, 'error');
+    setStatus('error', `✗ Erro ao salvar: ${e.message}`);
+  } finally {
+    if (btnSave) { btnSave.disabled = false; btnSave.textContent = 'Salvar Produto'; }
+  }
 }
 
-// ── TOGGLE ATIVO ────────────────────────────
-function toggleAtivo(id) {
+// ── TOGGLE ATIVO NO SUPABASE ────────────────
+async function toggleAtivo(id) {
   const p = DB.produtos.find(x => x.id === id);
   if (!p) return;
-  p.ativo = !p.ativo;
-  renderTable();
-  toast(`"${p.nome}" ${p.ativo ? 'ativado' : 'desativado'}`, 'success');
-  setStatus('info', '⚠️ Clique em <strong>Salvar JSON</strong> para gravar as alterações.');
+
+  const novoAtivo = !p.ativo;
+
+  try {
+    const { error } = await supabaseClient
+      .from('produtos')
+      .update({ ativo: novoAtivo })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    p.ativo = novoAtivo;
+    renderTable();
+    toast(`"${p.nome}" ${novoAtivo ? 'ativado ✓' : 'desativado'}`, 'success');
+  } catch (e) {
+    toast(`Erro: ${e.message}`, 'error');
+  }
 }
 
-// ── DELETAR PRODUTO ─────────────────────────
-function deleteProduct(id) {
+// ── DELETAR PRODUTO NO SUPABASE ─────────────
+async function deleteProduct(id) {
   const p = DB.produtos.find(x => x.id === id);
   if (!p) return;
   if (!confirm(`Excluir "${p.nome}" permanentemente? Esta ação não pode ser desfeita.`)) return;
-  DB.produtos = DB.produtos.filter(x => x.id !== id);
-  renderTable();
-  toast(`"${p.nome}" excluído`, 'error');
-  setStatus('info', '⚠️ Clique em <strong>Salvar JSON</strong> para gravar as alterações.');
+
+  try {
+    const { error } = await supabaseClient
+      .from('produtos')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    DB.produtos = DB.produtos.filter(x => x.id !== id);
+    renderTable();
+    toast(`"${p.nome}" excluído`, 'error');
+    setStatus('info', `ℹ️ "${p.nome}" removido do banco de dados.`);
+  } catch (e) {
+    toast(`Erro: ${e.message}`, 'error');
+  }
 }
 
 // ── CONFIGURAÇÕES ───────────────────────────
@@ -442,29 +427,48 @@ function populateConfig() {
   set('cfgEditCtaLink',  e.cta_link);
 }
 
-function saveConfig() {
-  if (!DB.configuracoes) DB.configuracoes = {};
-  const cfg = DB.configuracoes;
-  cfg.nome_loja          = document.getElementById('cfgNomeLoja')?.value.trim();
-  cfg.slogan             = document.getElementById('cfgSlogan')?.value.trim();
-  cfg.instagram          = document.getElementById('cfgInstagram')?.value.trim();
-  cfg.frete_gratis_acima = parseFloat(document.getElementById('cfgFrete')?.value) || 300;
-  cfg.max_parcelas       = parseInt(document.getElementById('cfgParcelas')?.value) || 6;
-  cfg.banner_home = {
-    titulo_linha1: document.getElementById('cfgBannerL1')?.value.trim(),
-    titulo_linha2: document.getElementById('cfgBannerL2')?.value.trim(),
-    subtitulo:     document.getElementById('cfgBannerSub')?.value.trim(),
-    cta_texto:     document.getElementById('cfgBannerCta')?.value.trim(),
-    cta_link:      document.getElementById('cfgBannerCtaLink')?.value.trim()
+async function saveConfig() {
+  const btnSave = document.getElementById('btnSaveConfig');
+  if (btnSave) { btnSave.disabled = true; btnSave.textContent = 'Salvando…'; }
+
+  const cfg = {
+    id:                 1,
+    nome_loja:          document.getElementById('cfgNomeLoja')?.value.trim(),
+    slogan:             document.getElementById('cfgSlogan')?.value.trim(),
+    instagram:          document.getElementById('cfgInstagram')?.value.trim(),
+    frete_gratis_acima: parseFloat(document.getElementById('cfgFrete')?.value) || 300,
+    max_parcelas:       parseInt(document.getElementById('cfgParcelas')?.value) || 6,
+    banner_home: {
+      titulo_linha1: document.getElementById('cfgBannerL1')?.value.trim(),
+      titulo_linha2: document.getElementById('cfgBannerL2')?.value.trim(),
+      subtitulo:     document.getElementById('cfgBannerSub')?.value.trim(),
+      cta_texto:     document.getElementById('cfgBannerCta')?.value.trim(),
+      cta_link:      document.getElementById('cfgBannerCtaLink')?.value.trim()
+    },
+    banner_editorial: {
+      titulo:    document.getElementById('cfgEditTitle')?.value.trim(),
+      texto:     document.getElementById('cfgEditText')?.value.trim(),
+      cta_texto: document.getElementById('cfgEditCta')?.value.trim(),
+      cta_link:  document.getElementById('cfgEditCtaLink')?.value.trim()
+    }
   };
-  cfg.banner_editorial = {
-    titulo:    document.getElementById('cfgEditTitle')?.value.trim(),
-    texto:     document.getElementById('cfgEditText')?.value.trim(),
-    cta_texto: document.getElementById('cfgEditCta')?.value.trim(),
-    cta_link:  document.getElementById('cfgEditCtaLink')?.value.trim()
-  };
-  toast('Configurações salvas na memória!', 'success');
-  setStatus('info', '⚠️ Clique em <strong>Salvar JSON</strong> para gravar as alterações no arquivo.');
+
+  try {
+    const { error } = await supabaseClient
+      .from('configuracoes')
+      .upsert(cfg, { onConflict: 'id' });
+
+    if (error) throw error;
+
+    DB.configuracoes = cfg;
+    toast('Configurações salvas! ✓', 'success');
+    setStatus('success', '✓ Configurações atualizadas. O site público já reflete as mudanças.');
+  } catch (e) {
+    toast(`Erro: ${e.message}`, 'error');
+    setStatus('error', `✗ Erro ao salvar configurações: ${e.message}`);
+  } finally {
+    if (btnSave) { btnSave.disabled = false; btnSave.textContent = 'Salvar Configurações'; }
+  }
 }
 
 // ── UTILITÁRIOS ─────────────────────────────
@@ -484,7 +488,7 @@ function updateDiscountPreview() {
 }
 
 function setStatus(type, msg) {
-  const bar  = document.getElementById('statusBar');
+  const bar   = document.getElementById('statusBar');
   const msgEl = document.getElementById('statusMsg');
   if (!bar || !msgEl) return;
   bar.className = `admin-status-bar${type === 'success' ? ' success' : type === 'error' ? ' error' : ''}`;
@@ -518,7 +522,7 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// Expõe funções usadas em onclick inline na tabela
+// Expõe funções usadas em onclick inline
 window.openModal     = openModal;
 window.toggleAtivo   = toggleAtivo;
 window.deleteProduct = deleteProduct;

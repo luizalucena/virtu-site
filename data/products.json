@@ -6,17 +6,32 @@
       "categoria": "vestidos",
       "descricao": "Vestido midi com silhueta clássica e caimento impecável. Tecido fluido de alta qualidade que acompanha o movimento do corpo com elegância.",
       "composicao": "70% viscose, 30% poliéster",
-      "preco_original": 420.00,
+      "preco_original": 420,
       "preco_desconto": null,
       "badge": "Novo",
-      "imagem_placeholder": "linear-gradient(135deg,#E8E0D5,#D4CCC0)",
       "imagem_url": "",
+      "imagem_placeholder": "linear-gradient(135deg,#E8E0D5,#D4CCC0)",
       "cores": [
-        { "nome": "Navy", "hex": "#2B3F54" },
-        { "nome": "Nude", "hex": "#E8D5B5" },
-        { "nome": "Grafite", "hex": "#6E6660" }
+        {
+          "nome": "Navy",
+          "hex": "#2B3F54"
+        },
+        {
+          "nome": "Nude",
+          "hex": "#E8D5B5"
+        },
+        {
+          "nome": "Grafite",
+          "hex": "#6E6660"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
       "tamanhos_esgotados": [],
       "destaque": true,
       "novidade": true,
@@ -29,17 +44,31 @@
       "categoria": "blusas",
       "descricao": "Blusa de linho com decote V refinado e mangas longas. Peça coringa que transita entre o casual e o formal com facilidade.",
       "composicao": "100% linho",
-      "preco_original": 195.00,
+      "preco_original": 195,
       "preco_desconto": null,
       "badge": "Novo",
       "imagem_placeholder": "linear-gradient(135deg,#D5C8BA,#C4B8A8)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Off-White", "hex": "#F9F7F4" },
-        { "nome": "Dourado", "hex": "#C4934A" }
+        {
+          "nome": "Off-White",
+          "hex": "#F9F7F4"
+        },
+        {
+          "nome": "Dourado",
+          "hex": "#C4934A"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
-      "tamanhos_esgotados": ["PP"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
+      "tamanhos_esgotados": [
+        "PP"
+      ],
       "destaque": true,
       "novidade": true,
       "ativo": true,
@@ -51,16 +80,27 @@
       "categoria": "calcas",
       "descricao": "Calça wide leg de alfaiataria com cós alto e caimento estruturado. Um clássico do guarda-roupa feminino com toque contemporâneo.",
       "composicao": "65% poliéster, 35% viscose",
-      "preco_original": 360.00,
-      "preco_desconto": 280.00,
+      "preco_original": 360,
+      "preco_desconto": 280,
       "badge": "Sale",
       "imagem_placeholder": "linear-gradient(135deg,#3D5470,#2B3F54)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Navy", "hex": "#2B3F54" }
+        {
+          "nome": "Navy",
+          "hex": "#2B3F54"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
-      "tamanhos_esgotados": ["G"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
+      "tamanhos_esgotados": [
+        "G"
+      ],
       "destaque": false,
       "novidade": false,
       "ativo": true,
@@ -72,16 +112,28 @@
       "categoria": "essenciais",
       "descricao": "Body com decote quadrado e alças reguláveis. A base perfeita para qualquer composição, com tecido que proporciona conforto durante todo o dia.",
       "composicao": "95% algodão, 5% elastano",
-      "preco_original": 145.00,
+      "preco_original": 145,
       "preco_desconto": null,
       "badge": null,
       "imagem_placeholder": "linear-gradient(135deg,#E8D5B5,#D4BF98)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Nude", "hex": "#E8D5B5" },
-        { "nome": "Preto", "hex": "#1A1A1A" }
+        {
+          "nome": "Nude",
+          "hex": "#E8D5B5"
+        },
+        {
+          "nome": "Preto",
+          "hex": "#1A1A1A"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
       "tamanhos_esgotados": [],
       "destaque": false,
       "novidade": false,
@@ -94,17 +146,30 @@
       "categoria": "vestidos",
       "descricao": "Vestido slip midi em tecido acetinado com alças finas e brilho sutil. Para noites especiais ou dias que pedem elegância sem esforço.",
       "composicao": "100% acetato",
-      "preco_original": 390.00,
+      "preco_original": 390,
       "preco_desconto": null,
       "badge": "Novo",
       "imagem_placeholder": "linear-gradient(135deg,#C8C0B8,#B8B0A8)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Prata", "hex": "#C8C0B8" },
-        { "nome": "Champagne", "hex": "#E8D5B5" }
+        {
+          "nome": "Prata",
+          "hex": "#C8C0B8"
+        },
+        {
+          "nome": "Champagne",
+          "hex": "#E8D5B5"
+        }
       ],
-      "tamanhos": ["PP","P","M","G"],
-      "tamanhos_esgotados": ["PP"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G"
+      ],
+      "tamanhos_esgotados": [
+        "PP"
+      ],
       "destaque": true,
       "novidade": true,
       "ativo": true,
@@ -116,15 +181,24 @@
       "categoria": "blusas",
       "descricao": "Blusa de seda com estampa floral discreta e manga bufante. Peça que traz feminilidade e sofisticação sem abrir mão do conforto.",
       "composicao": "80% seda, 20% viscose",
-      "preco_original": 230.00,
+      "preco_original": 230,
       "preco_desconto": null,
       "badge": "Mais Vendido",
       "imagem_placeholder": "linear-gradient(135deg,#C4934A,#9A7038)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Dourado", "hex": "#C4934A" }
+        {
+          "nome": "Dourado",
+          "hex": "#C4934A"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
       "tamanhos_esgotados": [],
       "destaque": true,
       "novidade": false,
@@ -137,16 +211,28 @@
       "categoria": "vestidos",
       "descricao": "Vestido longo com decote drapeado e fenda lateral. Para a mulher que quer ser lembrada sem precisar de explicação.",
       "composicao": "72% viscose, 28% poliamida",
-      "preco_original": 480.00,
+      "preco_original": 480,
       "preco_desconto": null,
       "badge": null,
       "imagem_placeholder": "linear-gradient(135deg,#E8E0D5,#D5CAC0)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Off-White", "hex": "#F9F7F4" },
-        { "nome": "Nude", "hex": "#E8D5B5" }
+        {
+          "nome": "Off-White",
+          "hex": "#F9F7F4"
+        },
+        {
+          "nome": "Nude",
+          "hex": "#E8D5B5"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
       "tamanhos_esgotados": [],
       "destaque": false,
       "novidade": false,
@@ -159,16 +245,28 @@
       "categoria": "calcas",
       "descricao": "Calça de alfaiataria slim com bolsos funcionais e cintura alta. Versátil para o ambiente corporativo ou um jantar elegante.",
       "composicao": "60% lã, 40% poliéster",
-      "preco_original": 310.00,
+      "preco_original": 310,
       "preco_desconto": null,
       "badge": null,
       "imagem_placeholder": "linear-gradient(135deg,#D0C8C0,#BEB6AE)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Bege", "hex": "#D0C8C0" },
-        { "nome": "Preto", "hex": "#1A1A1A" }
+        {
+          "nome": "Bege",
+          "hex": "#D0C8C0"
+        },
+        {
+          "nome": "Preto",
+          "hex": "#1A1A1A"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
       "tamanhos_esgotados": [],
       "destaque": false,
       "novidade": false,
@@ -181,16 +279,27 @@
       "categoria": "essenciais",
       "descricao": "Conjunto cropped + calça de malha ribbed com textura marcante. Conforto e estilo que se encaixam em qualquer rotina.",
       "composicao": "88% algodão, 12% elastano",
-      "preco_original": 380.00,
-      "preco_desconto": 290.00,
+      "preco_original": 380,
+      "preco_desconto": 290,
       "badge": "Sale",
       "imagem_placeholder": "linear-gradient(135deg,#2B3F54,#1E2E3E)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Navy", "hex": "#2B3F54" }
+        {
+          "nome": "Navy",
+          "hex": "#2B3F54"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
-      "tamanhos_esgotados": ["GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
+      "tamanhos_esgotados": [
+        "GG"
+      ],
       "destaque": false,
       "novidade": false,
       "ativo": true,
@@ -202,16 +311,27 @@
       "categoria": "blusas",
       "descricao": "Blusa cropped com franzido frontal e ombros à mostra. Peça-chave para composições com calças de cintura alta.",
       "composicao": "100% viscose",
-      "preco_original": 175.00,
+      "preco_original": 175,
       "preco_desconto": null,
       "badge": null,
       "imagem_placeholder": "linear-gradient(135deg,#E8D5B5,#C4934A)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Nude", "hex": "#E8D5B5" },
-        { "nome": "Dourado", "hex": "#C4934A" }
+        {
+          "nome": "Nude",
+          "hex": "#E8D5B5"
+        },
+        {
+          "nome": "Dourado",
+          "hex": "#C4934A"
+        }
       ],
-      "tamanhos": ["PP","P","M","G"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G"
+      ],
       "tamanhos_esgotados": [],
       "destaque": false,
       "novidade": false,
@@ -224,16 +344,28 @@
       "categoria": "vestidos",
       "descricao": "Vestido midi com manga comprida e decote em V profundo. Corte estruturado que valoriza a silhueta sem revelar demais.",
       "composicao": "65% poliéster, 35% viscose",
-      "preco_original": 520.00,
+      "preco_original": 520,
       "preco_desconto": null,
       "badge": null,
       "imagem_placeholder": "linear-gradient(135deg,#1E2E3E,#2B3F54)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Navy", "hex": "#2B3F54" },
-        { "nome": "Preto", "hex": "#1A1A1A" }
+        {
+          "nome": "Navy",
+          "hex": "#2B3F54"
+        },
+        {
+          "nome": "Preto",
+          "hex": "#1A1A1A"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
       "tamanhos_esgotados": [],
       "destaque": false,
       "novidade": false,
@@ -246,16 +378,28 @@
       "categoria": "calcas",
       "descricao": "Calça pantalona de crepe com cós elástico e caimento fluido. Elegância e praticidade em uma peça só.",
       "composicao": "100% crepe de viscose",
-      "preco_original": 340.00,
-      "preco_desconto": 260.00,
+      "preco_original": 340,
+      "preco_desconto": 260,
       "badge": "Sale",
       "imagem_placeholder": "linear-gradient(135deg,#BEB6AE,#AEA69E)",
       "imagem_url": "",
       "cores": [
-        { "nome": "Bege", "hex": "#BEB6AE" }
+        {
+          "nome": "Bege",
+          "hex": "#BEB6AE"
+        }
       ],
-      "tamanhos": ["PP","P","M","G","GG"],
-      "tamanhos_esgotados": ["PP","P"],
+      "tamanhos": [
+        "PP",
+        "P",
+        "M",
+        "G",
+        "GG"
+      ],
+      "tamanhos_esgotados": [
+        "PP",
+        "P"
+      ],
       "destaque": false,
       "novidade": false,
       "ativo": true,
