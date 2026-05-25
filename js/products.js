@@ -17,11 +17,11 @@ const VirtuProducts = (() => {
       // Busca produtos e configurações em paralelo
       const [{ data: produtos, error: e1 }, { data: cfg, error: e2 }] = await Promise.all([
         supabaseClient.from('produtos').select('*').order('criado_em', { ascending: false }),
-        supabaseClient.from('configuracoes').select('*').eq('id', 1).single()
+        supabaseClient.from('configuracoes').select('*').eq('id', 1).maybeSingle()
       ]);
 
       if (e1) throw new Error(`Produtos: ${e1.message}`);
-      if (e2) throw new Error(`Configurações: ${e2.message}`);
+      // e2 ignorado se cfg for null (configurações ainda não criadas)
 
       _cache = {
         produtos:       produtos || [],

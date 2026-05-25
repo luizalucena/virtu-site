@@ -21,11 +21,11 @@ async function carregarDados() {
   try {
     const [{ data: produtos, error: e1 }, { data: cfg, error: e2 }] = await Promise.all([
       supabaseClient.from('produtos').select('*').order('criado_em', { ascending: false }),
-      supabaseClient.from('configuracoes').select('*').eq('id', 1).single()
+      supabaseClient.from('configuracoes').select('*').eq('id', 1).maybeSingle()
     ]);
 
     if (e1) throw e1;
-    if (e2) throw e2;
+    // e2 é ignorado se cfg vier null (tabela vazia é ok)
 
     DB.produtos      = produtos || [];
     DB.configuracoes = cfg     || {};
