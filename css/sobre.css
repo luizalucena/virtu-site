@@ -4,11 +4,12 @@
 
 /* ── LOGO-CONCHA como ornamento ──────────────────────────── */
 .ornamento-concha {
-  width: 32px;
+  width: 40px;
   height: auto;
+  display: block;
+  margin: 0 auto 1.5rem;
   /* Filtro CSS para tornar a imagem dourada */
   filter: brightness(0) saturate(100%) invert(62%) sepia(40%) saturate(600%) hue-rotate(5deg) brightness(1.1);
-  display: block;
 }
 
 .ornamento-concha--light {
@@ -631,10 +632,7 @@
 
 .sobre-newsletter__ornament {
   display: block;
-  font-size: 1rem;
-  color: var(--color-gold);
-  letter-spacing: 0.5em;
-  margin-bottom: 1.5rem;
+  /* margem controlada pelo .ornamento-concha filho */
 }
 
 .sobre-newsletter__title {
