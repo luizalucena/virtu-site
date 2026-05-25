@@ -6,8 +6,8 @@
       "categoria": "vestidos",
       "descricao": "Vestido midi com silhueta clássica e caimento impecável. Tecido fluido de alta qualidade que acompanha o movimento do corpo com elegância.",
       "composicao": "70% viscose, 30% poliéster",
-      "preco_original": 420,
-      "preco_desconto": null,
+      "preco_original": 300,
+      "preco_desconto": 273,
       "badge": "Novo",
       "imagem_url": "",
       "imagem_placeholder": "linear-gradient(135deg,#E8E0D5,#D4CCC0)",
@@ -414,8 +414,8 @@
     "max_parcelas": 6,
     "banner_home": {
       "titulo_linha1": "Nova Coleção",
-      "titulo_linha2": "Outono 2025",
-      "subtitulo": "Peças que falam mais alto que qualquer tendência",
+      "titulo_linha2": "Essenza",
+      "subtitulo": "Peças que falam mais alto que qualquer tendência.",
       "cta_texto": "Explorar Coleção",
       "cta_link": "catalogo.html"
     },
