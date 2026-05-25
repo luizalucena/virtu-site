@@ -392,6 +392,24 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* Grid de sugestões — 4 colunas no desktop, 2 no mobile */
+.cart-suggestions .products-grid {
+  display: grid;
+  gap: 1.5rem 1.25rem;
+}
+
+.cart-suggestions .products-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Garante que o card de produto tem aspect-ratio correto */
+.cart-suggestions .product-card__image-wrap {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--color-gold-light);
+}
+
 /* ── BREADCRUMB ──────────────────────────── */
 .breadcrumb {
   display: flex;
@@ -512,6 +530,18 @@
   .cart-item__img-placeholder { width: 80px; height: 100px; }
 }
 
+@media (max-width: 1024px) {
+  /* Sugestões: 2 colunas a partir de tablets */
+  .cart-suggestions .products-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 1rem;
+  }
+}
+
 @media (max-width: 480px) {
   .cart-coupon__row { flex-direction: column; }
+  .cart-suggestions .products-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem 0.75rem;
+  }
 }
