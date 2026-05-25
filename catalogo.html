@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Virtù — Catálogo de moda feminina. Vestidos, blusas, calças e essenciais." />
+  <title>Catálogo — Virtù</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/catalogo.css" />
+</head>
+<body>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar" role="banner">
+    <div class="announcement-bar__track">
+      <span class="announcement-bar__item"><span class="sep">✦</span> Frete grátis acima de R$399</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Parcelamento em até 6x sem juros</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Trocas e devoluções em até 30 dias</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Atendimento via WhatsApp</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Frete grátis acima de R$399</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Parcelamento em até 6x sem juros</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Trocas e devoluções em até 30 dias</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Atendimento via WhatsApp</span>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="container navbar__inner">
+      <div class="navbar__left">
+        <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <button class="navbar__action-btn" id="searchToggle" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+      </div>
+      <a href="index.html" class="navbar__logo" aria-label="Virtù — página inicial">
+        <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" aria-hidden="true" />
+        <span class="navbar__logo-text">VIRTÙ</span>
+      </a>
+      <nav class="navbar__nav" aria-label="Menu principal">
+        <a href="catalogo.html" class="navbar__link active">Coleções</a>
+        <a href="catalogo.html" class="navbar__link">Novidades</a>
+        <a href="catalogo.html" class="navbar__link">Sale</a>
+        <a href="sobre.html"   class="navbar__link">Sobre</a>
+        <a href="contato.html" class="navbar__link">Contato</a>
+      </nav>
+      <div class="navbar__actions">
+        <button class="navbar__action-btn navbar__action-btn--desktop" id="searchToggleDesktop" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <button class="navbar__action-btn" aria-label="Minha conta">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+        <a href="carrinho.html" class="navbar__action-btn" aria-label="Carrinho">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" aria-hidden="true">
+    <div class="search-overlay__inner">
+      <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <form class="search-overlay__form">
+        <input type="search" class="search-overlay__input" placeholder="O que você procura?" />
+        <button type="submit" class="search-overlay__btn" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+      </form>
+      <p class="search-overlay__hint">Sugestões: Vestidos, Blusas, Calças, Novidades</p>
+    </div>
+  </div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true">
+    <div class="mobile-menu__overlay" id="menuOverlay"></div>
+    <div class="mobile-menu__drawer">
+      <div class="mobile-menu__header">
+        <span class="navbar__logo-text" style="font-size:18px;letter-spacing:4px;">VIRTÙ</span>
+        <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <nav class="mobile-menu__nav">
+        <a href="catalogo.html" class="mobile-menu__link">Coleções</a>
+        <a href="catalogo.html" class="mobile-menu__link">Novidades</a>
+        <a href="catalogo.html" class="mobile-menu__link">Sale</a>
+        <a href="sobre.html"    class="mobile-menu__link">Sobre</a>
+        <a href="contato.html"  class="mobile-menu__link">Contato</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- BREADCRUMB + TÍTULO -->
+    <section class="cat-header">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Navegação estrutural">
+          <a href="index.html" class="breadcrumb__link">Home</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <span class="breadcrumb__current" id="breadcrumbCurrent">Todas as peças</span>
+        </nav>
+        <div class="cat-header__content">
+          <div>
+            <h1 class="display-lg display-italic" id="catTitle">Todas as Peças</h1>
+            <p class="cat-header__count" id="catCount">24 produtos</p>
+          </div>
+          <div class="cat-header__view-toggle" role="group" aria-label="Modo de visualização">
+            <button class="view-btn view-btn--active" id="view4" aria-label="4 colunas" aria-pressed="true">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="0" y="0" width="4" height="4"/><rect x="5" y="0" width="4" height="4"/><rect x="10" y="0" width="4" height="4"/><rect x="15" y="0" width="4" height="4"/><rect x="0" y="7" width="4" height="4"/><rect x="5" y="7" width="4" height="4"/><rect x="10" y="7" width="4" height="4"/><rect x="15" y="7" width="4" height="4"/><rect x="0" y="14" width="4" height="4"/><rect x="5" y="14" width="4" height="4"/><rect x="10" y="14" width="4" height="4"/><rect x="15" y="14" width="4" height="4"/></svg>
+            </button>
+            <button class="view-btn" id="view2" aria-label="2 colunas" aria-pressed="false">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="0" y="0" width="8" height="8"/><rect x="10" y="0" width="8" height="8"/><rect x="0" y="10" width="8" height="8"/><rect x="10" y="10" width="8" height="8"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIAS PILLS -->
+    <div class="cat-pills-wrap">
+      <div class="container">
+        <div class="cat-pills" role="list" aria-label="Filtro por categoria">
+          <button class="cat-pill cat-pill--active" data-cat="todas" role="listitem">Todas</button>
+          <button class="cat-pill" data-cat="vestidos"  role="listitem">Vestidos</button>
+          <button class="cat-pill" data-cat="blusas"    role="listitem">Blusas</button>
+          <button class="cat-pill" data-cat="calcas"    role="listitem">Calças</button>
+          <button class="cat-pill" data-cat="essenciais" role="listitem">Essenciais</button>
+          <button class="cat-pill" data-cat="sale"      role="listitem">Sale ✦</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAYOUT: SIDEBAR + GRID -->
+    <div class="container cat-layout">
+
+      <!-- SIDEBAR FILTROS -->
+      <aside class="cat-sidebar" id="catSidebar" aria-label="Filtros">
+
+        <div class="sidebar-block">
+          <button class="sidebar-block__title" aria-expanded="true" data-toggle="filtro-cat">
+            Categoria
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sidebar-block__content" id="filtro-cat">
+            <label class="filter-option"><input type="checkbox" checked> <span>Todas</span></label>
+            <label class="filter-option"><input type="checkbox"> <span>Vestidos</span></label>
+            <label class="filter-option"><input type="checkbox"> <span>Blusas</span></label>
+            <label class="filter-option"><input type="checkbox"> <span>Calças</span></label>
+            <label class="filter-option"><input type="checkbox"> <span>Essenciais</span></label>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <button class="sidebar-block__title" aria-expanded="true" data-toggle="filtro-tam">
+            Tamanho
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sidebar-block__content" id="filtro-tam">
+            <div class="size-grid">
+              <button class="size-btn">PP</button>
+              <button class="size-btn">P</button>
+              <button class="size-btn size-btn--active">M</button>
+              <button class="size-btn">G</button>
+              <button class="size-btn">GG</button>
+              <button class="size-btn">XG</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <button class="sidebar-block__title" aria-expanded="true" data-toggle="filtro-cor">
+            Cor
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sidebar-block__content" id="filtro-cor">
+            <div class="color-grid">
+              <button class="color-btn color-btn--active" style="background:#2B3F54;" title="Azul Âncora" aria-label="Azul"></button>
+              <button class="color-btn" style="background:#C4934A;" title="Dourado" aria-label="Dourado"></button>
+              <button class="color-btn" style="background:#E8D5B5;" title="Cru" aria-label="Cru"></button>
+              <button class="color-btn" style="background:#1a1a1a;" title="Preto" aria-label="Preto"></button>
+              <button class="color-btn" style="background:#F9F7F4; border:1px solid #ccc;" title="Off-white" aria-label="Off-white"></button>
+              <button class="color-btn" style="background:#6E6660;" title="Cinza" aria-label="Cinza"></button>
+              <button class="color-btn" style="background:#8B6F5E;" title="Terracota" aria-label="Terracota"></button>
+              <button class="color-btn" style="background:#D4A5A5;" title="Rosa" aria-label="Rosa"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <button class="sidebar-block__title" aria-expanded="true" data-toggle="filtro-preco">
+            Preço
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sidebar-block__content" id="filtro-preco">
+            <div class="price-range">
+              <div class="price-range__track">
+                <div class="price-range__fill" id="priceRangeFill"></div>
+                <input type="range" class="price-range__input" id="priceMin" min="0" max="800" value="0" aria-label="Preço mínimo">
+                <input type="range" class="price-range__input" id="priceMax" min="0" max="800" value="800" aria-label="Preço máximo">
+              </div>
+              <div class="price-range__labels">
+                <span id="priceMinLabel">R$ 0</span>
+                <span id="priceMaxLabel">R$ 800</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <button class="sidebar-block__title" aria-expanded="false" data-toggle="filtro-cond">
+            Condição
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sidebar-block__content sidebar-block__content--hidden" id="filtro-cond">
+            <label class="filter-option"><input type="checkbox"> <span>Novo</span></label>
+            <label class="filter-option"><input type="checkbox"> <span>Sale</span></label>
+          </div>
+        </div>
+
+        <button class="btn btn--ghost btn--full btn--sm" id="clearFilters" style="margin-top:var(--space-4);">
+          Limpar filtros
+        </button>
+
+      </aside>
+
+      <!-- GRID DE PRODUTOS -->
+      <div class="cat-main">
+
+        <!-- Barra de ordenação -->
+        <div class="sort-bar">
+          <p class="sort-bar__count" id="sortCount">Exibindo <strong>24</strong> produtos</p>
+          <div class="sort-bar__right">
+            <!-- Filtro mobile -->
+            <button class="sort-bar__filter-btn" id="filterToggleMobile" aria-label="Abrir filtros">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+              Filtrar
+            </button>
+            <div class="sort-select-wrap">
+              <select class="sort-select" id="sortSelect" aria-label="Ordenar produtos">
+                <option value="relevance">Mais relevantes</option>
+                <option value="newest">Mais recentes</option>
+                <option value="price-asc">Menor preço</option>
+                <option value="price-desc">Maior preço</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid — populado dinamicamente por products.js -->
+        <div class="products-grid products-grid--4" id="productsGrid" role="list">
+          <!-- Os cards são renderizados aqui pelo JavaScript -->
+        </div><!-- /products-grid -->
+
+        <!-- SEM RESULTADOS -->
+        <div class="no-results" id="noResults" hidden>
+          <div class="no-results__icon" aria-hidden="true">✦</div>
+          <h3 class="display-lg display-italic">Nenhuma peça encontrada</h3>
+          <p>Tente outros filtros ou explore todas as coleções.</p>
+          <button class="btn btn--ghost" id="clearFilters2">Ver tudo</button>
+        </div>
+
+        <!-- PAGINAÇÃO -->
+        <nav class="pagination" aria-label="Paginação">
+          <button class="pagination__btn pagination__btn--prev" disabled aria-label="Página anterior">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="pagination__num pagination__num--active" aria-current="page">1</button>
+          <button class="pagination__num">2</button>
+          <button class="pagination__num">3</button>
+          <span class="pagination__ellipsis">…</span>
+          <button class="pagination__num">8</button>
+          <button class="pagination__btn pagination__btn--next" aria-label="Próxima página">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </nav>
+
+      </div><!-- /cat-main -->
+    </div><!-- /cat-layout -->
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__brand-logo">
+            <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" />
+            <span class="footer__logo-text">VIRTÙ</span>
+          </div>
+          <p class="footer__tagline">há virtude no vestir</p>
+          <p class="footer__desc" style="margin-top:var(--space-4);">Moda feminina que une o clássico ao contemporâneo. Peças pensadas para durar — no tecido, no corte e no significado.</p>
+          <div class="footer__socials">
+            <a href="https://instagram.com/wear.virtu" class="footer__social-btn" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="footer__social-btn" aria-label="TikTok">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+            </a>
+            <a href="#" class="footer__social-btn" aria-label="Pinterest">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.04-2.83.18-.77 1.22-5.17 1.22-5.17s-.31-.63-.31-1.56c0-1.46.85-2.55 1.9-2.55.9 0 1.33.67 1.33 1.48 0 .9-.58 2.26-.87 3.51-.25 1.05.52 1.9 1.54 1.9 1.85 0 3.09-2.38 3.09-5.2 0-2.14-1.44-3.76-4.05-3.76-2.95 0-4.79 2.2-4.79 4.66 0 .85.24 1.44.62 1.9.17.2.19.28.13.52-.04.17-.14.58-.18.74-.06.24-.24.32-.44.23-1.24-.51-1.82-1.87-1.82-3.4 0-2.53 2.14-5.6 6.39-5.6 3.41 0 5.65 2.47 5.65 5.12 0 3.51-1.94 6.13-4.8 6.13-.96 0-1.86-.52-2.17-1.1l-.59 2.27c-.21.81-.78 1.82-1.16 2.44.88.27 1.81.41 2.77.41 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div>
+          <p class="footer__col-title">Loja</p>
+          <nav class="footer__links">
+            <a href="catalogo.html" class="footer__link">Novidades</a>
+            <a href="catalogo.html?cat=vestidos" class="footer__link">Vestidos</a>
+            <a href="catalogo.html?cat=blusas" class="footer__link">Blusas</a>
+            <a href="catalogo.html?cat=calcas" class="footer__link">Calças</a>
+            <a href="catalogo.html?cat=essenciais" class="footer__link">Essenciais</a>
+            <a href="catalogo.html?sale=1" class="footer__link" style="color:var(--color-gold);">Sale ✦</a>
+          </nav>
+        </div>
+        <div>
+          <p class="footer__col-title">Ajuda</p>
+          <nav class="footer__links">
+            <a href="#" class="footer__link">Como funciona</a>
+            <a href="#" class="footer__link">Trocas e devoluções</a>
+            <a href="#" class="footer__link">Guia de tamanhos</a>
+            <a href="#" class="footer__link">Rastreio de pedido</a>
+            <a href="contato.html" class="footer__link">Fale conosco</a>
+          </nav>
+        </div>
+        <div>
+          <p class="footer__col-title">Virtù</p>
+          <nav class="footer__links">
+            <a href="sobre.html" class="footer__link">Nossa história</a>
+            <a href="#" class="footer__link">Sustentabilidade</a>
+            <a href="#" class="footer__link">Política de privacidade</a>
+          </nav>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Virtù. Todos os direitos reservados.</p>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Visa · Mastercard · Pix · Boleto</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/catalogo.js"></script>
+</body>
+</html>

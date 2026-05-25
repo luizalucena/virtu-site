@@ -1,0 +1,249 @@
+/* ============================================================
+   VIRTÙ — Products.js
+   Motor central: lê products.json e renderiza cards dinamicamente
+   ============================================================ */
+
+const VirtuProducts = (() => {
+
+  // Cache em memória para não re-fetch desnecessário
+  let _cache = null;
+
+  /* ── FETCH ──────────────────────────────── */
+  async function fetchAll() {
+    if (_cache) return _cache;
+    try {
+      const res  = await fetch('../data/products.json');
+      const data = await res.json();
+      _cache = data;
+      return data;
+    } catch (e) {
+      // Tenta caminho alternativo (quando chamado da raiz)
+      try {
+        const res  = await fetch('data/products.json');
+        const data = await res.json();
+        _cache = data;
+        return data;
+      } catch (e2) {
+        console.error('Virtù: Não foi possível carregar products.json', e2);
+        return null;
+      }
+    }
+  }
+
+  /* ── UTILITÁRIOS ────────────────────────── */
+  function formatCurrency(value) {
+    return `R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  }
+
+  function calcDesconto(original, desconto) {
+    if (!desconto) return 0;
+    return Math.round((1 - desconto / original) * 100);
+  }
+
+  function slugToUrl(id) {
+    return `produto.html?id=${id}`;
+  }
+
+  /* ── RENDERIZA UM CARD ───────────────────── */
+  function renderCard(produto, opts = {}) {
+    const { preco_original, preco_desconto, badge, nome, categoria,
+            imagem_url, imagem_placeholder, id, cores } = produto;
+
+    const precoFinal = preco_desconto ?? preco_original;
+    const temDesconto = !!preco_desconto;
+    const pct = calcDesconto(preco_original, preco_desconto);
+    const link = slugToUrl(id);
+
+    // Imagem: usa URL real se tiver, senão placeholder CSS
+    const imgStyle = imagem_url
+      ? `background: url('${imagem_url}') center/cover no-repeat`
+      : `background: ${imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)'}`;
+
+    // Badge
+    let badgeHtml = '';
+    if (badge === 'Sale' || temDesconto) {
+      badgeHtml = `<span class="product-card__badge product-card__badge--sale">${pct > 0 ? `−${pct}%` : 'Sale'}</span>`;
+    } else if (badge && badge !== 'Sale') {
+      badgeHtml = `<span class="product-card__badge">${badge}</span>`;
+    }
+
+    // Swatches de cor
+    const swatchesHtml = (cores || []).map((c, i) =>
+      `<span class="product-card__swatch${i === 0 ? ' active' : ''}"
+             style="background:${c.hex}${c.nome === 'Off-White' ? ';border:1px solid #ccc' : ''}"
+             title="${c.nome}"></span>`
+    ).join('');
+
+    // Preço
+    const precoHtml = temDesconto
+      ? `<span class="product-card__price-current">${formatCurrency(precoFinal)}</span>
+         <span class="product-card__price-old">${formatCurrency(preco_original)}</span>`
+      : `<span class="product-card__price-current">${formatCurrency(precoFinal)}</span>`;
+
+    return `
+      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" role="listitem">
+        <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
+          <div class="product-card__image-wrap">
+            <div class="product-card__placeholder" style="${imgStyle}"></div>
+            ${badgeHtml}
+            <button class="product-card__wishlist" aria-label="Favoritar ${nome}">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+            <div class="product-card__quick-add">
+              <button class="product-card__quick-btn" data-id="${id}">+ Adicionar ao carrinho</button>
+            </div>
+          </div>
+        </a>
+        <div class="product-card__info">
+          <p class="product-card__category">${categoria.charAt(0).toUpperCase() + categoria.slice(1)}</p>
+          <h3 class="product-card__name"><a href="${link}">${nome}</a></h3>
+          <div class="product-card__price">${precoHtml}</div>
+          ${swatchesHtml ? `<div class="product-card__swatches">${swatchesHtml}</div>` : ''}
+        </div>
+      </article>`;
+  }
+
+  /* ── RENDERIZA LISTA NO CONTAINER ─────────── */
+  async function renderGrid(containerId, filtros = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `<div class="products-loading" style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--color-text-light);font-family:var(--font-body);font-size:0.85rem;letter-spacing:0.08em">Carregando…</div>`;
+
+    const data = await fetchAll();
+    if (!data) {
+      container.innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--font-body);color:#c62828">Erro ao carregar produtos.</p>`;
+      return;
+    }
+
+    let lista = data.produtos.filter(p => p.ativo);
+
+    // Filtros
+    if (filtros.categoria && filtros.categoria !== 'todas') {
+      lista = lista.filter(p => p.categoria === filtros.categoria);
+    }
+    if (filtros.novidade)  lista = lista.filter(p => p.novidade);
+    if (filtros.destaque)  lista = lista.filter(p => p.destaque);
+    if (filtros.sale)      lista = lista.filter(p => !!p.preco_desconto);
+    if (filtros.limite)    lista = lista.slice(0, filtros.limite);
+
+    if (lista.length === 0) {
+      container.innerHTML = `<div class="no-results" style="grid-column:1/-1;text-align:center;padding:4rem;font-family:var(--font-body);color:var(--color-text-light)">Nenhum produto encontrado.</div>`;
+      return;
+    }
+
+    container.innerHTML = lista.map(p => renderCard(p)).join('');
+    initCardEvents(container);
+    return lista;
+  }
+
+  /* ── RENDERIZA CARROSSEL (home) ───────────── */
+  async function renderCarousel(containerId, filtros = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const data = await fetchAll();
+    if (!data) return;
+
+    let lista = data.produtos.filter(p => p.ativo);
+    if (filtros.novidade) lista = lista.filter(p => p.novidade);
+    if (filtros.destaque) lista = lista.filter(p => p.destaque);
+    if (filtros.limite)   lista = lista.slice(0, filtros.limite);
+
+    container.innerHTML = lista.map(p => renderCard(p)).join('');
+    initCardEvents(container);
+  }
+
+  /* ── CARREGA CONFIGURAÇÕES (home banners) ─── */
+  async function getConfig() {
+    const data = await fetchAll();
+    return data?.configuracoes || null;
+  }
+
+  /* ── APLICA CONFIG DO BANNER NA HOME ──────── */
+  async function applyHomeBanners() {
+    const cfg = await getConfig();
+    if (!cfg) return;
+
+    // Banner principal hero
+    const b = cfg.banner_home;
+    const tl1 = document.getElementById('heroLine1');
+    const tl2 = document.getElementById('heroLine2');
+    const tsub = document.getElementById('heroSubtitle');
+    const tcta = document.getElementById('heroCta');
+    if (tl1 && b.titulo_linha1) tl1.textContent = b.titulo_linha1;
+    if (tl2 && b.titulo_linha2) tl2.textContent = b.titulo_linha2;
+    if (tsub && b.subtitulo)    tsub.textContent = b.subtitulo;
+    if (tcta) { tcta.textContent = b.cta_texto; tcta.href = b.cta_link; }
+
+    // Banner editorial
+    const e = cfg.banner_editorial;
+    const etit = document.getElementById('editorialTitle');
+    const etxt = document.getElementById('editorialText');
+    const ecta = document.getElementById('editorialCta');
+    if (etit && e.titulo) etit.textContent = e.titulo;
+    if (etxt && e.texto)  etxt.textContent = e.texto;
+    if (ecta) { ecta.textContent = e.cta_texto; ecta.href = e.cta_link; }
+  }
+
+  /* ── EVENTOS DOS CARDS ────────────────────── */
+  function initCardEvents(container) {
+    // Wishlist toggle
+    container.querySelectorAll('.product-card__wishlist').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        btn.classList.toggle('active');
+        btn.animate([{ transform:'scale(1.3)' },{ transform:'scale(1)' }], { duration:300, easing:'ease-out' });
+      });
+    });
+
+    // Quick add
+    container.querySelectorAll('.product-card__quick-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Adicionado!';
+        btn.style.cssText = 'background:var(--color-navy);color:white;';
+        // Atualiza badge do carrinho
+        const badge = document.getElementById('cartBadge');
+        if (badge) { badge.hidden = false; badge.textContent = parseInt(badge.textContent || 0) + 1; }
+        setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1400);
+      });
+    });
+
+    // Swatch hover
+    container.querySelectorAll('.product-card__swatch').forEach(sw => {
+      sw.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        sw.closest('.product-card__swatches')?.querySelectorAll('.product-card__swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+      });
+    });
+
+    // Scroll reveal
+    if ('IntersectionObserver' in window) {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+
+      container.querySelectorAll('.product-card').forEach((card, i) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(18px)';
+        card.style.transition = `opacity 0.5s ease ${i * 0.06}s, transform 0.5s ease ${i * 0.06}s`;
+        obs.observe(card);
+      });
+    }
+  }
+
+  // API pública
+  return { fetchAll, renderGrid, renderCarousel, getConfig, applyHomeBanners, renderCard, formatCurrency };
+
+})();

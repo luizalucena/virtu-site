@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sobre — Virtù</title>
+  <meta name="description" content="Conheça a história e os valores da Virtù — há virtude no vestir." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/sobre.css" />
+</head>
+<body>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar" role="marquee" aria-label="Avisos da loja">
+    <div class="announcement-bar__track">
+      <span>Frete grátis acima de R$ 300 &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Devolução grátis em 30 dias &nbsp;✦&nbsp; Frete grátis acima de R$ 300 &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Devolução grátis em 30 dias</span>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar" role="banner">
+    <div class="navbar__inner">
+      <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="navbar__logo" href="index.html" aria-label="Virtù — Ir para a página inicial">
+        <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" width="32" height="26" aria-hidden="true" />
+        <span class="navbar__logo-text">VIRTÙ</span>
+      </a>
+      <nav class="navbar__links" aria-label="Navegação principal">
+        <a href="catalogo.html">Catálogo</a>
+        <a href="catalogo.html?cat=novidades">Novidades</a>
+        <a href="catalogo.html?cat=sale">Sale</a>
+        <a href="sobre.html" aria-current="page">Sobre</a>
+      </nav>
+      <div class="navbar__actions">
+        <button class="navbar__icon-btn" id="searchToggle" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <a href="carrinho.html" class="navbar__icon-btn" aria-label="Carrinho">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Menu de navegação" aria-modal="true">
+    <div class="mobile-menu__header">
+      <span class="navbar__logo-text">VIRTÙ</span>
+      <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu">✕</button>
+    </div>
+    <nav class="mobile-menu__nav">
+      <a href="catalogo.html">Catálogo</a>
+      <a href="catalogo.html?cat=novidades">Novidades</a>
+      <a href="catalogo.html?cat=sale">Sale</a>
+      <a href="sobre.html">Sobre</a>
+      <a href="contato.html">Contato</a>
+    </nav>
+    <div class="mobile-menu__social">
+      <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </div>
+  </div>
+  <div class="mobile-menu__overlay" id="menuOverlay" aria-hidden="true"></div>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-label="Busca" aria-modal="true" aria-hidden="true">
+    <div class="search-overlay__inner">
+      <input type="search" class="search-overlay__input" placeholder="Buscar peças…" aria-label="Campo de busca" />
+      <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">✕</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- HERO SOBRE -->
+    <section class="sobre-hero" aria-label="Apresentação da Virtù">
+      <div class="sobre-hero__bg" aria-hidden="true"></div>
+      <div class="sobre-hero__content">
+        <p class="sobre-hero__eyebrow">Nossa história</p>
+        <h1 class="sobre-hero__title">
+          Há virtude<br/>
+          <em>no vestir</em>
+        </h1>
+        <p class="sobre-hero__subtitle">
+          A Virtù nasceu da crença de que a moda pode ser, ao mesmo tempo,<br class="br-desktop"/>
+          intencional, elegante e verdadeiramente sua.
+        </p>
+      </div>
+    </section>
+
+    <!-- MANIFESTO -->
+    <section class="sobre-manifesto" aria-labelledby="manifestoTitle">
+      <div class="sobre-manifesto__inner">
+        <div class="sobre-manifesto__text">
+          <span class="sobre-manifesto__ornament" aria-hidden="true">✦</span>
+          <h2 class="sobre-manifesto__title" id="manifestoTitle">O que é Virtù?</h2>
+          <p>
+            Na filosofia do Renascimento, <em>virtù</em> era a capacidade humana de agir com excelência,
+            de transformar o ordinário em extraordinário por meio da intenção e da forma.
+          </p>
+          <p>
+            Para nós, vestir-se bem é um ato de cuidado — consigo mesma, com o tempo que você habita,
+            com a imagem que você escolhe apresentar ao mundo. Não é sobre seguir tendências.
+            É sobre encontrar peças que <em>conversam com quem você já é</em>.
+          </p>
+          <p>
+            Cada coleção da Virtù é pensada para mulheres que apreciam o detalhe, que preferem
+            menos e melhor, e que entendem que elegância verdadeira prescinde de esforço aparente.
+          </p>
+        </div>
+        <div class="sobre-manifesto__visual" aria-hidden="true">
+          <div class="sobre-manifesto__img"></div>
+          <div class="sobre-manifesto__quote">
+            <blockquote>
+              "A elegância não é ser notada,<br/>é ser lembrada."
+              <cite>— Giorgio Armani</cite>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VALORES -->
+    <section class="sobre-valores" aria-labelledby="valoresTitle">
+      <div class="sobre-valores__inner">
+        <div class="section-header">
+          <p class="section-eyebrow">Princípios</p>
+          <h2 class="section-title" id="valoresTitle">O que nos guia</h2>
+        </div>
+        <div class="sobre-valores__grid">
+
+          <article class="sobre-valor">
+            <div class="sobre-valor__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <h3 class="sobre-valor__title">Curadoria rigorosa</h3>
+            <p class="sobre-valor__text">Cada peça passa por uma seleção criteriosa de caimento, tecido e acabamento. Não vendemos quantidade — vendemos escolhas certas.</p>
+          </article>
+
+          <article class="sobre-valor">
+            <div class="sobre-valor__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <h3 class="sobre-valor__title">Intenção em cada detalhe</h3>
+            <p class="sobre-valor__text">Do corte ao etiquetamento, tudo é pensado para que a experiência de receber, vestir e usar uma peça Virtù seja memorável.</p>
+          </article>
+
+          <article class="sobre-valor">
+            <div class="sobre-valor__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <h3 class="sobre-valor__title">Atemporal sobre efêmero</h3>
+            <p class="sobre-valor__text">Trabalhamos com silhuetas que resistem às estações. Investir em Virtù é construir um guarda-roupa que dura e envelhece bem.</p>
+          </article>
+
+          <article class="sobre-valor">
+            <div class="sobre-valor__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h3 class="sobre-valor__title">Presença real</h3>
+            <p class="sobre-valor__text">Acreditamos no relacionamento humano. Nosso atendimento é próximo, honesto e sem scripts — porque você merece uma resposta de verdade.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- FUNDADORA -->
+    <section class="sobre-fundadora" aria-labelledby="fundadoraTitle">
+      <div class="sobre-fundadora__inner">
+        <div class="sobre-fundadora__visual">
+          <div class="sobre-fundadora__img" aria-label="Foto da fundadora"></div>
+        </div>
+        <div class="sobre-fundadora__text">
+          <p class="section-eyebrow">Quem criou</p>
+          <h2 class="sobre-fundadora__title" id="fundadoraTitle">Uma visão de moda<br/><em>com propósito</em></h2>
+          <p>
+            A Virtù foi criada por uma mulher que, cansada de peças que não duravam além de uma
+            estação, decidiu construir a loja que ela própria queria encontrar: com curadoria
+            impecável, sem ruído, sem o barulho das tendências passageiras.
+          </p>
+          <p>
+            A proposta sempre foi simples: oferecer peças que fazem você se sentir bem vestida
+            sem precisar de explicação — porque a própria peça já diz tudo.
+          </p>
+          <a href="contato.html" class="btn btn--ghost-gold">Fale com a gente →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- NÚMEROS -->
+    <section class="sobre-numeros" aria-labelledby="numerosTitle">
+      <div class="sobre-numeros__inner">
+        <h2 class="visually-hidden" id="numerosTitle">A Virtù em números</h2>
+        <div class="sobre-numeros__grid">
+          <div class="sobre-numero">
+            <span class="sobre-numero__value" data-target="2000">0</span>
+            <span class="sobre-numero__label">Clientes satisfeitas</span>
+          </div>
+          <div class="sobre-numero">
+            <span class="sobre-numero__value" data-target="150">0</span>
+            <span class="sobre-numero__label">Peças em catálogo</span>
+          </div>
+          <div class="sobre-numero">
+            <span class="sobre-numero__value" data-target="30">0</span>
+            <span class="sobre-numero__label">Dias de devolução grátis</span>
+          </div>
+          <div class="sobre-numero">
+            <span class="sobre-numero__value" data-target="98">0</span>
+            <span class="sobre-numero__label">% de avaliações positivas</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="sobre-cta" aria-labelledby="ctaTitle">
+      <div class="sobre-cta__inner">
+        <h2 class="sobre-cta__title" id="ctaTitle">Pronta para descobrir<br/><em>sua Virtù?</em></h2>
+        <p class="sobre-cta__text">Explore nossa coleção com curadoria para mulheres que escolhem com intenção.</p>
+        <div class="sobre-cta__btns">
+          <a href="catalogo.html" class="btn btn--ghost-white">Ver Catálogo</a>
+          <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" class="btn btn--ghost-white">@wear.virtu</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" style="filter:brightness(0) invert(1);opacity:0.85" />
+          <span>VIRTÙ</span>
+        </div>
+        <p class="footer__tagline">há virtude no vestir</p>
+        <div class="footer__social">
+          <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" aria-label="Instagram @wear.virtu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Loja</h4>
+        <ul>
+          <li><a href="catalogo.html">Catálogo</a></li>
+          <li><a href="catalogo.html?cat=novidades">Novidades</a></li>
+          <li><a href="catalogo.html?cat=sale">Sale</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Institucional</h4>
+        <ul>
+          <li><a href="sobre.html">Sobre a Virtù</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Atendimento</h4>
+        <ul>
+          <li><a href="#">Trocas e devoluções</a></li>
+          <li><a href="#">Guia de tamanhos</a></li>
+          <li><a href="#">Política de privacidade</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2025 Virtù. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="js/sobre.js"></script>
+</body>
+</html>

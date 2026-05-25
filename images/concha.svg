@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 85" fill="#C4934A">
+  <!-- Círculo base -->
+  <circle cx="50" cy="72" r="7"/>
+  <!-- Segmento central (mais alto) -->
+  <path d="M47 68 Q44 40 46 18 Q50 10 54 18 Q56 40 53 68 Z"/>
+  <!-- Segmento 2 esquerda -->
+  <path d="M45 67 Q36 42 30 22 Q33 14 39 20 Q48 38 48 66 Z"/>
+  <!-- Segmento 2 direita -->
+  <path d="M55 67 Q64 42 70 22 Q67 14 61 20 Q52 38 52 66 Z"/>
+  <!-- Segmento 3 esquerda -->
+  <path d="M43 65 Q26 44 14 28 Q15 19 22 24 Q38 38 46 64 Z"/>
+  <!-- Segmento 3 direita -->
+  <path d="M57 65 Q74 44 86 28 Q85 19 78 24 Q62 38 54 64 Z"/>
+  <!-- Segmento 4 esquerda (externo) -->
+  <path d="M41 62 Q18 48 4 36 Q3 27 11 31 Q32 41 44 61 Z"/>
+  <!-- Segmento 4 direita (externo) -->
+  <path d="M59 62 Q82 48 96 36 Q97 27 89 31 Q68 41 56 61 Z"/>
+</svg>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrinho — Virtù</title>
+  <meta name="description" content="Seu carrinho de compras na Virtù." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/carrinho.css" />
+</head>
+<body>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar" role="marquee" aria-label="Avisos da loja">
+    <div class="announcement-bar__track">
+      <span>Frete grátis acima de R$ 300 &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Devolução grátis em 30 dias &nbsp;✦&nbsp; Frete grátis acima de R$ 300 &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Devolução grátis em 30 dias</span>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar" role="banner">
+    <div class="navbar__inner">
+      <!-- Hamburguer Mobile -->
+      <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <!-- Logo -->
+      <a class="navbar__logo" href="index.html" aria-label="Virtù — Ir para a página inicial">
+        <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" width="32" height="26" aria-hidden="true" />
+        <span class="navbar__logo-text">VIRTÙ</span>
+      </a>
+
+      <!-- Nav Links (desktop) -->
+      <nav class="navbar__links" aria-label="Navegação principal">
+        <a href="catalogo.html">Catálogo</a>
+        <a href="catalogo.html?cat=novidades">Novidades</a>
+        <a href="catalogo.html?cat=sale">Sale</a>
+        <a href="sobre.html">Sobre</a>
+      </nav>
+
+      <!-- Ações -->
+      <div class="navbar__actions">
+        <button class="navbar__icon-btn" id="searchToggle" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <a href="carrinho.html" class="navbar__icon-btn navbar__cart" aria-label="Carrinho" style="position:relative">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="navbar__cart-badge" id="cartBadge" aria-live="polite" hidden>0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Menu de navegação" aria-modal="true">
+    <div class="mobile-menu__header">
+      <span class="navbar__logo-text">VIRTÙ</span>
+      <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu">✕</button>
+    </div>
+    <nav class="mobile-menu__nav">
+      <a href="catalogo.html">Catálogo</a>
+      <a href="catalogo.html?cat=novidades">Novidades</a>
+      <a href="catalogo.html?cat=sale">Sale</a>
+      <a href="sobre.html">Sobre</a>
+      <a href="contato.html">Contato</a>
+    </nav>
+    <div class="mobile-menu__social">
+      <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" aria-label="Instagram @wear.virtu">Instagram</a>
+    </div>
+  </div>
+  <div class="mobile-menu__overlay" id="menuOverlay" aria-hidden="true"></div>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-label="Busca" aria-modal="true" aria-hidden="true">
+    <div class="search-overlay__inner">
+      <input type="search" class="search-overlay__input" placeholder="Buscar peças…" aria-label="Campo de busca" />
+      <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">✕</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="cart-main">
+    <div class="cart-container">
+
+      <!-- BREADCRUMB -->
+      <nav class="breadcrumb" aria-label="Navegação estrutural">
+        <a href="index.html">Início</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Carrinho</span>
+      </nav>
+
+      <h1 class="cart-title">Seu Carrinho</h1>
+
+      <!-- LAYOUT: ITENS + RESUMO -->
+      <div class="cart-layout" id="cartLayout">
+
+        <!-- COLUNA ESQUERDA: ITENS -->
+        <section class="cart-items" aria-label="Itens do carrinho">
+
+          <!-- Cabeçalho (desktop) -->
+          <div class="cart-items__header" aria-hidden="true">
+            <span class="cart-col cart-col--product">Produto</span>
+            <span class="cart-col cart-col--price">Preço</span>
+            <span class="cart-col cart-col--qty">Quantidade</span>
+            <span class="cart-col cart-col--total">Total</span>
+            <span class="cart-col cart-col--remove"></span>
+          </div>
+
+          <!-- ITEM 1 -->
+          <article class="cart-item" data-price="420" data-id="1">
+            <a href="produto.html" class="cart-item__image" aria-label="Ver Vestido Midi Ribbed">
+              <div class="cart-item__img-placeholder"></div>
+            </a>
+            <div class="cart-item__info">
+              <a href="produto.html" class="cart-item__name">Vestido Midi Ribbed</a>
+              <p class="cart-item__meta">Cor: <strong>Off-White</strong></p>
+              <p class="cart-item__meta">Tamanho: <strong>P</strong></p>
+              <p class="cart-item__price-mobile">R$ 420,00</p>
+            </div>
+            <p class="cart-item__price" aria-label="Preço unitário">R$ 420,00</p>
+            <div class="cart-item__qty">
+              <button class="qty-btn qty-btn--minus" aria-label="Diminuir quantidade">−</button>
+              <input type="number" class="qty-input" value="1" min="1" max="10" aria-label="Quantidade" />
+              <button class="qty-btn qty-btn--plus" aria-label="Aumentar quantidade">+</button>
+            </div>
+            <p class="cart-item__total" aria-label="Total do item">R$ 420,00</p>
+            <button class="cart-item__remove" aria-label="Remover Vestido Midi Ribbed do carrinho">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+            </button>
+          </article>
+
+          <!-- ITEM 2 -->
+          <article class="cart-item" data-price="185" data-id="2">
+            <a href="produto.html" class="cart-item__image" aria-label="Ver Blusa Decote V">
+              <div class="cart-item__img-placeholder" style="background:linear-gradient(135deg,#B8A99A,#8B7D6B)"></div>
+            </a>
+            <div class="cart-item__info">
+              <a href="produto.html" class="cart-item__name">Blusa Decote V Linho</a>
+              <p class="cart-item__meta">Cor: <strong>Areia</strong></p>
+              <p class="cart-item__meta">Tamanho: <strong>M</strong></p>
+              <p class="cart-item__price-mobile">R$ 185,00</p>
+            </div>
+            <p class="cart-item__price" aria-label="Preço unitário">R$ 185,00</p>
+            <div class="cart-item__qty">
+              <button class="qty-btn qty-btn--minus" aria-label="Diminuir quantidade">−</button>
+              <input type="number" class="qty-input" value="1" min="1" max="10" aria-label="Quantidade" />
+              <button class="qty-btn qty-btn--plus" aria-label="Aumentar quantidade">+</button>
+            </div>
+            <p class="cart-item__total" aria-label="Total do item">R$ 185,00</p>
+            <button class="cart-item__remove" aria-label="Remover Blusa Decote V do carrinho">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+            </button>
+          </article>
+
+          <!-- Estado vazio (oculto por padrão) -->
+          <div class="cart-empty" id="cartEmpty" hidden>
+            <div class="cart-empty__icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <h2 class="cart-empty__title">Seu carrinho está vazio</h2>
+            <p class="cart-empty__text">Que tal explorar nossas peças?</p>
+            <a href="catalogo.html" class="btn btn--primary">Ver Catálogo</a>
+          </div>
+
+          <!-- CUPOM -->
+          <div class="cart-coupon">
+            <label for="couponInput" class="cart-coupon__label">Cupom de desconto</label>
+            <div class="cart-coupon__row">
+              <input type="text" id="couponInput" class="cart-coupon__input" placeholder="Digite seu cupom…" aria-label="Código do cupom" />
+              <button class="btn btn--ghost" id="applyCoupon">Aplicar</button>
+            </div>
+            <p class="cart-coupon__feedback" id="couponFeedback" aria-live="polite"></p>
+          </div>
+
+        </section>
+
+        <!-- COLUNA DIREITA: RESUMO -->
+        <aside class="cart-summary" aria-label="Resumo do pedido">
+          <h2 class="cart-summary__title">Resumo do Pedido</h2>
+
+          <dl class="cart-summary__lines">
+            <div class="cart-summary__line">
+              <dt>Subtotal</dt>
+              <dd id="summarySubtotal">R$ 605,00</dd>
+            </div>
+            <div class="cart-summary__line" id="discountLine" hidden>
+              <dt class="cart-summary__discount-label">Desconto</dt>
+              <dd class="cart-summary__discount-value" id="summaryDiscount">−R$ 0,00</dd>
+            </div>
+            <div class="cart-summary__line">
+              <dt>Frete</dt>
+              <dd id="summaryShipping" class="cart-summary__shipping-free">Grátis ✦</dd>
+            </div>
+          </dl>
+
+          <!-- FRETE GRÁTIS PROGRESS -->
+          <div class="cart-free-shipping">
+            <p class="cart-free-shipping__text" id="freeShippingText">🎉 Você ganhou frete grátis!</p>
+            <div class="cart-free-shipping__bar">
+              <div class="cart-free-shipping__fill" id="freeShippingFill" style="width:100%"></div>
+            </div>
+          </div>
+
+          <div class="cart-summary__divider"></div>
+
+          <dl class="cart-summary__total-line">
+            <dt>Total</dt>
+            <dd id="summaryTotal">R$ 605,00</dd>
+          </dl>
+          <p class="cart-summary__installments" id="summaryInstallments">ou 6x de R$ 100,83 sem juros</p>
+
+          <a href="checkout.html" class="btn btn--primary cart-summary__cta" id="checkoutBtn">
+            Finalizar Compra
+          </a>
+
+          <div class="cart-summary__security">
+            <span>🔒 Pagamento 100% seguro</span>
+          </div>
+
+          <div class="cart-summary__payment-icons" aria-label="Formas de pagamento aceitas">
+            <span class="payment-icon">Visa</span>
+            <span class="payment-icon">Master</span>
+            <span class="payment-icon">Pix</span>
+            <span class="payment-icon">Boleto</span>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- VOCÊ TAMBÉM PODE GOSTAR -->
+      <section class="cart-suggestions" aria-labelledby="suggestionsTitle">
+        <h2 class="section-title" id="suggestionsTitle">Você Também Pode Gostar</h2>
+        <div class="products-grid products-grid--4" id="suggestionsGrid">
+
+          <a href="produto.html" class="product-card" data-cat="vestidos" data-price="520">
+            <div class="product-card__image-wrap">
+              <div class="product-card__image" style="background:linear-gradient(135deg,#C9B8A8,#8B7D6B)"></div>
+              <button class="product-card__wishlist" aria-label="Adicionar à lista de desejos">♡</button>
+              <button class="product-card__quick-btn">+ Adicionar</button>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Vestidos</p>
+              <h3 class="product-card__name">Vestido Slip Satin</h3>
+              <p class="product-card__price">R$ 520,00</p>
+            </div>
+          </a>
+
+          <a href="produto.html" class="product-card" data-cat="calcas" data-price="310">
+            <div class="product-card__image-wrap">
+              <div class="product-card__image" style="background:linear-gradient(135deg,#A89888,#6B5D4F)"></div>
+              <button class="product-card__wishlist" aria-label="Adicionar à lista de desejos">♡</button>
+              <button class="product-card__quick-btn">+ Adicionar</button>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Calças</p>
+              <h3 class="product-card__name">Calça Wide Leg Linho</h3>
+              <p class="product-card__price">R$ 310,00</p>
+            </div>
+          </a>
+
+          <a href="produto.html" class="product-card" data-cat="blusas" data-price="165">
+            <div class="product-card__image-wrap">
+              <div class="product-card__image" style="background:linear-gradient(135deg,#D4C4B5,#9B8B7C)"></div>
+              <button class="product-card__wishlist" aria-label="Adicionar à lista de desejos">♡</button>
+              <button class="product-card__quick-btn">+ Adicionar</button>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Blusas</p>
+              <h3 class="product-card__name">Blusa Plissada Minimal</h3>
+              <p class="product-card__price">R$ 165,00</p>
+            </div>
+          </a>
+
+          <a href="produto.html" class="product-card" data-cat="saias" data-price="240">
+            <div class="product-card__image-wrap">
+              <div class="product-card__image" style="background:linear-gradient(135deg,#E2D5C8,#B0A090)"></div>
+              <button class="product-card__wishlist" aria-label="Adicionar à lista de desejos">♡</button>
+              <button class="product-card__quick-btn">+ Adicionar</button>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Saias</p>
+              <h3 class="product-card__name">Saia Midi Plissada</h3>
+              <p class="product-card__price">R$ 240,00</p>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" style="filter:brightness(0) invert(1);opacity:0.85" />
+          <span>VIRTÙ</span>
+        </div>
+        <p class="footer__tagline">há virtude no vestir</p>
+        <div class="footer__social">
+          <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" aria-label="Instagram @wear.virtu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Loja</h4>
+        <ul>
+          <li><a href="catalogo.html">Catálogo</a></li>
+          <li><a href="catalogo.html?cat=novidades">Novidades</a></li>
+          <li><a href="catalogo.html?cat=sale">Sale</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Institucional</h4>
+        <ul>
+          <li><a href="sobre.html">Sobre a Virtù</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Atendimento</h4>
+        <ul>
+          <li><a href="#">Trocas e devoluções</a></li>
+          <li><a href="#">Guia de tamanhos</a></li>
+          <li><a href="#">Política de privacidade</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2025 Virtù. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="js/carrinho.js"></script>
+</body>
+</html>

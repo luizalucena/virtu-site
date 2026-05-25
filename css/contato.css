@@ -1,0 +1,353 @@
+/* ============================================================
+   VIRTÙ — Contato CSS
+   ============================================================ */
+
+/* ── HEADER ──────────────────────────────── */
+.contato-header {
+  padding: calc(var(--navbar-height) + 36px + 3rem) var(--spacing-xl) 3rem;
+  background: var(--color-off-white);
+  border-bottom: 1px solid var(--color-border);
+}
+.contato-header__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.contato-header__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  color: var(--color-navy);
+  letter-spacing: 0.03em;
+  margin: 0.5rem 0 0.75rem;
+}
+.contato-header__subtitle {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: var(--color-text-light);
+  max-width: 480px;
+  line-height: 1.7;
+}
+
+/* ── MAIN SECTION ────────────────────────── */
+.contato-main {
+  padding: 4rem var(--spacing-xl) 5rem;
+  background: var(--color-off-white);
+}
+.contato-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* ── FORMULÁRIO ──────────────────────────── */
+.contato-form-wrap {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 2.5rem;
+}
+.contato-form-wrap__title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--color-navy);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+.contato-form-wrap__sub {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  margin-bottom: 2rem;
+}
+
+.contato-form .form-group { margin-bottom: 1.25rem; }
+
+.form-textarea {
+  height: auto !important;
+  resize: vertical;
+  padding: 0.875rem 1rem;
+  line-height: 1.6;
+}
+
+.form-char-count {
+  display: block;
+  text-align: right;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
+}
+
+.contato-form__submit {
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+}
+
+.contato-form__success {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(46,125,50,0.08);
+  border: 1px solid rgba(46,125,50,0.2);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #2e7d32;
+  text-align: center;
+}
+
+/* ── INFO DE CONTATO ─────────────────────── */
+.contato-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contato-info__block {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+.contato-info__icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-gold-light), rgba(196,147,74,0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gold);
+  flex-shrink: 0;
+}
+
+.contato-info__title {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+  margin-bottom: 0.25rem;
+}
+
+.contato-info__link {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-gold);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.contato-info__link:hover { text-decoration: underline; }
+
+.contato-info__note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+/* ── FAQ ─────────────────────────────────── */
+.contato-faq {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 1.5rem;
+}
+
+.contato-faq__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-navy);
+  margin-bottom: 1rem;
+  letter-spacing: 0.03em;
+}
+
+.contato-faq__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.contato-faq__item {
+  border-bottom: 1px solid var(--color-border);
+}
+.contato-faq__item:last-child { border-bottom: none; }
+
+.contato-faq__question {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-navy);
+  padding: 0.875rem 0;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s;
+}
+.contato-faq__question::-webkit-details-marker { display: none; }
+.contato-faq__question::after {
+  content: '+';
+  font-size: 1.1rem;
+  color: var(--color-gold);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.contato-faq__item[open] .contato-faq__question::after {
+  transform: rotate(45deg);
+}
+.contato-faq__question:hover { color: var(--color-gold); }
+
+.contato-faq__answer {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  line-height: 1.7;
+  padding-bottom: 0.875rem;
+}
+
+/* ── NEWSLETTER ──────────────────────────── */
+.newsletter-section {
+  background: var(--color-navy);
+  padding: 6rem var(--spacing-xl);
+}
+
+.newsletter-section__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.newsletter-section__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  font-weight: 300;
+  color: #fff;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  margin-bottom: 1rem;
+}
+
+.newsletter-section__sub {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.8;
+}
+
+.newsletter-section__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.newsletter-section__input {
+  height: 50px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 0 1.25rem;
+  background: rgba(255,255,255,0.07);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #fff;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+}
+.newsletter-section__input::placeholder { color: rgba(255,255,255,0.4); }
+.newsletter-section__input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  background: rgba(255,255,255,0.1);
+}
+
+.newsletter-section__btn {
+  width: 100%;
+  text-align: center;
+  padding: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.newsletter-section__terms {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+}
+.newsletter-section__terms a { color: var(--color-gold); }
+
+.newsletter-section__success {
+  margin-top: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: rgba(196,147,74,0.15);
+  border: 1px solid rgba(196,147,74,0.3);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-gold-light);
+}
+
+.newsletter-section__perks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.nl-perk {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.7);
+}
+.nl-perk__icon { font-size: 1rem; flex-shrink: 0; }
+
+/* ── FORM SHARED (reutiliza checkout) ────── */
+.form-row { display: grid; gap: 1rem; margin-bottom: 0; }
+.form-row--2 { grid-template-columns: 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-label { font-family: var(--font-body); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-navy); }
+.form-label span { color: var(--color-gold); }
+.form-input { height: 46px; border: 1px solid var(--color-border); border-radius: 4px; padding: 0 1rem; font-family: var(--font-body); font-size: 0.9rem; color: var(--color-navy); background: #fff; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
+.form-input:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 3px rgba(196,147,74,0.12); }
+.form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232B3F54' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2.5rem; }
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media (max-width: 1024px) {
+  .contato-container {
+    grid-template-columns: 1fr;
+  }
+  .newsletter-section__inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .contato-header { padding: calc(var(--navbar-height) + 36px + 2rem) 1.25rem 2rem; }
+  .contato-main { padding: 2.5rem 1.25rem 3.5rem; }
+  .newsletter-section { padding: 4rem 1.25rem; }
+  .form-row--2 { grid-template-columns: 1fr; }
+  .contato-form-wrap { padding: 1.5rem; }
+}

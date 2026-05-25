@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contato — Virtù</title>
+  <meta name="description" content="Entre em contato com a Virtù ou assine nossa newsletter." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/contato.css" />
+</head>
+<body>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar" role="marquee" aria-label="Avisos da loja">
+    <div class="announcement-bar__track">
+      <span>Frete grátis acima de R$ 300 &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Devolução grátis em 30 dias &nbsp;✦&nbsp; Frete grátis acima de R$ 300 &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Devolução grátis em 30 dias</span>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar" role="banner">
+    <div class="navbar__inner">
+      <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="navbar__logo" href="index.html" aria-label="Virtù — Ir para a página inicial">
+        <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" width="32" height="26" aria-hidden="true" />
+        <span class="navbar__logo-text">VIRTÙ</span>
+      </a>
+      <nav class="navbar__links" aria-label="Navegação principal">
+        <a href="catalogo.html">Catálogo</a>
+        <a href="catalogo.html?cat=novidades">Novidades</a>
+        <a href="catalogo.html?cat=sale">Sale</a>
+        <a href="sobre.html">Sobre</a>
+      </nav>
+      <div class="navbar__actions">
+        <button class="navbar__icon-btn" id="searchToggle" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <a href="carrinho.html" class="navbar__icon-btn" aria-label="Carrinho">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Menu de navegação" aria-modal="true">
+    <div class="mobile-menu__header">
+      <span class="navbar__logo-text">VIRTÙ</span>
+      <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu">✕</button>
+    </div>
+    <nav class="mobile-menu__nav">
+      <a href="catalogo.html">Catálogo</a>
+      <a href="catalogo.html?cat=novidades">Novidades</a>
+      <a href="catalogo.html?cat=sale">Sale</a>
+      <a href="sobre.html">Sobre</a>
+      <a href="contato.html">Contato</a>
+    </nav>
+    <div class="mobile-menu__social">
+      <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </div>
+  </div>
+  <div class="mobile-menu__overlay" id="menuOverlay" aria-hidden="true"></div>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-label="Busca" aria-modal="true" aria-hidden="true">
+    <div class="search-overlay__inner">
+      <input type="search" class="search-overlay__input" placeholder="Buscar peças…" aria-label="Campo de busca" />
+      <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">✕</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- HEADER DA PÁGINA -->
+    <div class="contato-header">
+      <div class="contato-header__inner">
+        <nav class="breadcrumb" aria-label="Navegação estrutural">
+          <a href="index.html">Início</a>
+          <span aria-hidden="true">›</span>
+          <span aria-current="page">Contato</span>
+        </nav>
+        <h1 class="contato-header__title">Fale com a Virtù</h1>
+        <p class="contato-header__subtitle">Respondemos com atenção e sem scripts. Porque você merece uma resposta de verdade.</p>
+      </div>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <section class="contato-main">
+      <div class="contato-container">
+
+        <!-- FORMULÁRIO DE CONTATO -->
+        <div class="contato-form-wrap">
+          <h2 class="contato-form-wrap__title">Envie uma mensagem</h2>
+          <p class="contato-form-wrap__sub">Tempo de resposta: até 24 horas em dias úteis.</p>
+
+          <form class="contato-form" id="contactForm" novalidate>
+
+            <div class="form-row form-row--2">
+              <div class="form-group">
+                <label for="cName" class="form-label">Nome <span aria-hidden="true">*</span></label>
+                <input type="text" id="cName" class="form-input" placeholder="Seu nome" required autocomplete="given-name" />
+              </div>
+              <div class="form-group">
+                <label for="cEmail" class="form-label">E-mail <span aria-hidden="true">*</span></label>
+                <input type="email" id="cEmail" class="form-input" placeholder="seu@email.com" required autocomplete="email" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="cSubject" class="form-label">Assunto</label>
+              <select id="cSubject" class="form-input form-select">
+                <option value="" disabled selected>Selecione um assunto</option>
+                <option value="pedido">Dúvida sobre meu pedido</option>
+                <option value="troca">Troca ou devolução</option>
+                <option value="produto">Informação sobre produto</option>
+                <option value="tamanho">Guia de tamanhos</option>
+                <option value="parceria">Parceria / Press</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cMessage" class="form-label">Mensagem <span aria-hidden="true">*</span></label>
+              <textarea id="cMessage" class="form-input form-textarea" placeholder="Escreva sua mensagem aqui…" rows="5" required></textarea>
+              <span class="form-char-count"><span id="charCount">0</span>/500</span>
+            </div>
+
+            <button type="submit" class="btn btn--primary contato-form__submit" id="contactSubmit">
+              Enviar Mensagem →
+            </button>
+
+            <p class="contato-form__success" id="contactSuccess" hidden aria-live="polite">
+              ✓ Mensagem enviada! Entraremos em contato em breve.
+            </p>
+          </form>
+        </div>
+
+        <!-- INFORMAÇÕES DE CONTATO -->
+        <aside class="contato-info">
+
+          <div class="contato-info__block">
+            <div class="contato-info__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            </div>
+            <div>
+              <h3 class="contato-info__title">Instagram</h3>
+              <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" class="contato-info__link">@wear.virtu</a>
+              <p class="contato-info__note">DM respondida em até 2h (dias úteis)</p>
+            </div>
+          </div>
+
+          <div class="contato-info__block">
+            <div class="contato-info__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <h3 class="contato-info__title">E-mail</h3>
+              <a href="mailto:oi@virtu.com.br" class="contato-info__link">oi@virtu.com.br</a>
+              <p class="contato-info__note">Resposta em até 24h úteis</p>
+            </div>
+          </div>
+
+          <div class="contato-info__block">
+            <div class="contato-info__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.42 2 2 0 0 1 3.56 1.24h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div>
+              <h3 class="contato-info__title">WhatsApp</h3>
+              <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" class="contato-info__link">(11) 99999-9999</a>
+              <p class="contato-info__note">Seg–Sex, 9h–18h</p>
+            </div>
+          </div>
+
+          <div class="contato-info__block">
+            <div class="contato-info__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+            </div>
+            <div>
+              <h3 class="contato-info__title">Horário de atendimento</h3>
+              <p class="contato-info__note">Segunda a Sexta, 9h às 18h</p>
+              <p class="contato-info__note">Sábado, 9h às 13h</p>
+            </div>
+          </div>
+
+          <!-- FAQ RÁPIDO -->
+          <div class="contato-faq">
+            <h3 class="contato-faq__title">Perguntas frequentes</h3>
+            <div class="contato-faq__items">
+              <details class="contato-faq__item">
+                <summary class="contato-faq__question">Como funciona a troca?</summary>
+                <p class="contato-faq__answer">Você tem 30 dias a partir do recebimento para solicitar troca ou devolução. O frete de retorno é por nossa conta.</p>
+              </details>
+              <details class="contato-faq__item">
+                <summary class="contato-faq__question">Prazo de entrega?</summary>
+                <p class="contato-faq__answer">Frete grátis em 7–12 dias úteis. Expresso em 3–5 dias úteis. Motoboy (SP capital) no mesmo dia para pedidos até 14h.</p>
+              </details>
+              <details class="contato-faq__item">
+                <summary class="contato-faq__question">As roupas têm garantia?</summary>
+                <p class="contato-faq__answer">Sim! Oferecemos garantia de qualidade contra defeitos de fabricação por 90 dias após a compra.</p>
+              </details>
+              <details class="contato-faq__item">
+                <summary class="contato-faq__question">Parcelo em quantas vezes?</summary>
+                <p class="contato-faq__answer">Em até 6x sem juros no cartão de crédito. Pix tem 5% de desconto. Boleto em 1x.</p>
+              </details>
+            </div>
+          </div>
+
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="newsletter-section" aria-labelledby="newsletterTitle">
+      <div class="newsletter-section__inner">
+        <div class="newsletter-section__text">
+          <p class="section-eyebrow" style="color:var(--color-gold-light)">Newsletter</p>
+          <h2 class="newsletter-section__title" id="newsletterTitle">
+            Seja a primeira<br/>a saber
+          </h2>
+          <p class="newsletter-section__sub">
+            Novidades, lançamentos exclusivos, conteúdo sobre moda intencional
+            e ofertas especiais direto no seu e-mail. Sem spam, prometemos.
+          </p>
+        </div>
+
+        <div class="newsletter-section__form-wrap">
+          <form class="newsletter-section__form" id="newsletterForm" novalidate>
+            <div class="newsletter-section__fields">
+              <input
+                type="text"
+                id="nlName"
+                class="newsletter-section__input"
+                placeholder="Seu primeiro nome"
+                aria-label="Primeiro nome"
+                required
+              />
+              <input
+                type="email"
+                id="nlEmail"
+                class="newsletter-section__input"
+                placeholder="Seu melhor e-mail"
+                aria-label="E-mail para newsletter"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn--ghost-white newsletter-section__btn">
+              Quero receber →
+            </button>
+            <p class="newsletter-section__terms">
+              Ao assinar, você concorda com nossa <a href="#">política de privacidade</a>.
+              Cancele quando quiser.
+            </p>
+            <p class="newsletter-section__success" id="nlSuccess" hidden aria-live="polite">
+              ✓ Obrigada! Você está na lista. Fique de olho no seu e-mail.
+            </p>
+          </form>
+
+          <div class="newsletter-section__perks">
+            <div class="nl-perk">
+              <span class="nl-perk__icon">🎁</span>
+              <span>10% off na primeira compra</span>
+            </div>
+            <div class="nl-perk">
+              <span class="nl-perk__icon">✨</span>
+              <span>Acesso antecipado a lançamentos</span>
+            </div>
+            <div class="nl-perk">
+              <span class="nl-perk__icon">📦</span>
+              <span>Frete grátis em datas especiais</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" style="filter:brightness(0) invert(1);opacity:0.85" />
+          <span>VIRTÙ</span>
+        </div>
+        <p class="footer__tagline">há virtude no vestir</p>
+        <div class="footer__social">
+          <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" aria-label="Instagram @wear.virtu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Loja</h4>
+        <ul>
+          <li><a href="catalogo.html">Catálogo</a></li>
+          <li><a href="catalogo.html?cat=novidades">Novidades</a></li>
+          <li><a href="catalogo.html?cat=sale">Sale</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Institucional</h4>
+        <ul>
+          <li><a href="sobre.html">Sobre a Virtù</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Atendimento</h4>
+        <ul>
+          <li><a href="#">Trocas e devoluções</a></li>
+          <li><a href="#">Guia de tamanhos</a></li>
+          <li><a href="#">Política de privacidade</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2025 Virtù. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="js/contato.js"></script>
+</body>
+</html>

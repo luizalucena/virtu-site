@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Vestido Athena — Virtù. Elegância que atravessa estações." />
+  <title>Vestido Athena — Virtù</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/produto.css" />
+</head>
+<body>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar" role="banner">
+    <div class="announcement-bar__track">
+      <span class="announcement-bar__item"><span class="sep">✦</span> Frete grátis acima de R$399</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Parcelamento em até 6x sem juros</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Trocas e devoluções em até 30 dias</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Atendimento via WhatsApp</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Frete grátis acima de R$399</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Parcelamento em até 6x sem juros</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Trocas e devoluções em até 30 dias</span>
+      <span class="announcement-bar__item"><span class="sep">✦</span> Atendimento via WhatsApp</span>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="container navbar__inner">
+      <div class="navbar__left">
+        <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <button class="navbar__action-btn" id="searchToggle" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+      </div>
+      <a href="index.html" class="navbar__logo" aria-label="Virtù — página inicial">
+        <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" aria-hidden="true" />
+        <span class="navbar__logo-text">VIRTÙ</span>
+      </a>
+      <nav class="navbar__nav">
+        <a href="catalogo.html" class="navbar__link">Coleções</a>
+        <a href="catalogo.html" class="navbar__link">Novidades</a>
+        <a href="catalogo.html" class="navbar__link">Sale</a>
+        <a href="sobre.html"   class="navbar__link">Sobre</a>
+        <a href="contato.html" class="navbar__link">Contato</a>
+      </nav>
+      <div class="navbar__actions">
+        <button class="navbar__action-btn navbar__action-btn--desktop" id="searchToggleDesktop" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <button class="navbar__action-btn" aria-label="Minha conta">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+        <a href="carrinho.html" class="navbar__action-btn" aria-label="Carrinho">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" aria-hidden="true">
+    <div class="search-overlay__inner">
+      <button class="search-overlay__close" id="searchClose" aria-label="Fechar"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <form class="search-overlay__form"><input type="search" class="search-overlay__input" placeholder="O que você procura?" /><button type="submit" class="search-overlay__btn" aria-label="Buscar"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button></form>
+      <p class="search-overlay__hint">Sugestões: Vestidos, Blusas, Calças, Novidades</p>
+    </div>
+  </div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true">
+    <div class="mobile-menu__overlay" id="menuOverlay"></div>
+    <div class="mobile-menu__drawer">
+      <div class="mobile-menu__header">
+        <span class="navbar__logo-text" style="font-size:18px;letter-spacing:4px;">VIRTÙ</span>
+        <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <nav class="mobile-menu__nav">
+        <a href="catalogo.html" class="mobile-menu__link">Coleções</a>
+        <a href="catalogo.html" class="mobile-menu__link">Novidades</a>
+        <a href="catalogo.html" class="mobile-menu__link">Sale</a>
+        <a href="sobre.html"    class="mobile-menu__link">Sobre</a>
+        <a href="contato.html"  class="mobile-menu__link">Contato</a>
+      </nav>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- BREADCRUMB -->
+    <div class="container" style="padding-top:var(--space-5); padding-bottom:var(--space-4);">
+      <nav class="breadcrumb" aria-label="Navegação estrutural">
+        <a href="index.html" class="breadcrumb__link">Home</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <a href="catalogo.html" class="breadcrumb__link">Vestidos</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span class="breadcrumb__current">Vestido Athena</span>
+      </nav>
+    </div>
+
+    <!-- PRODUTO PRINCIPAL -->
+    <section class="produto-section container" aria-label="Detalhes do produto">
+      <div class="produto-layout">
+
+        <!-- GALERIA -->
+        <div class="produto-galeria" aria-label="Galeria de fotos do produto">
+          <!-- Thumbnails -->
+          <div class="galeria-thumbs" role="list" aria-label="Miniaturas">
+            <button class="galeria-thumb galeria-thumb--active" data-index="0" role="listitem" aria-label="Foto 1" aria-pressed="true">
+              <div class="thumb-placeholder" style="background:linear-gradient(135deg,#E8E0D5,#D4CCC0);"></div>
+            </button>
+            <button class="galeria-thumb" data-index="1" role="listitem" aria-label="Foto 2" aria-pressed="false">
+              <div class="thumb-placeholder" style="background:linear-gradient(135deg,#D5C8BA,#C8BCB0);"></div>
+            </button>
+            <button class="galeria-thumb" data-index="2" role="listitem" aria-label="Foto 3" aria-pressed="false">
+              <div class="thumb-placeholder" style="background:linear-gradient(135deg,#2B3F54,#3D5470);"></div>
+            </button>
+            <button class="galeria-thumb" data-index="3" role="listitem" aria-label="Foto 4" aria-pressed="false">
+              <div class="thumb-placeholder" style="background:linear-gradient(135deg,#C4934A,#9A7038);"></div>
+            </button>
+          </div>
+
+          <!-- Imagem principal -->
+          <div class="galeria-main" aria-live="polite">
+            <div class="galeria-main__img" id="mainImg">
+              <div class="galeria-main__placeholder" id="mainPlaceholder" style="background:linear-gradient(135deg,#E8E0D5,#D4CCC0);">
+                <span class="galeria-main__placeholder-label">foto do produto</span>
+              </div>
+              <!-- Zoom hint -->
+              <div class="galeria-zoom-hint" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                Ampliar
+              </div>
+            </div>
+            <!-- Setas mobile -->
+            <button class="galeria-arrow galeria-arrow--prev" id="galPrev" aria-label="Foto anterior">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="galeria-arrow galeria-arrow--next" id="galNext" aria-label="Próxima foto">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- INFO DO PRODUTO -->
+        <div class="produto-info" aria-label="Informações e compra">
+
+          <div class="produto-info__top">
+            <p class="overline">Vestidos · Nova Coleção</p>
+            <button class="produto-wishlist" id="wishlistBtn" aria-label="Adicionar aos favoritos" aria-pressed="false">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+
+          <h1 class="produto-info__nome display-lg">Vestido Athena</h1>
+
+          <div class="produto-info__preco">
+            <span class="produto-preco-atual">R$ 420,00</span>
+            <span class="produto-parcelamento">ou 6x de R$ 70,00 sem juros</span>
+          </div>
+
+          <hr class="divider" style="margin-block: var(--space-5);" />
+
+          <!-- CORES -->
+          <div class="produto-opcao">
+            <div class="produto-opcao__header">
+              <span class="produto-opcao__label">Cor:</span>
+              <span class="produto-opcao__value" id="selectedColor">Azul Âncora</span>
+            </div>
+            <div class="produto-cores">
+              <button class="produto-cor produto-cor--active" data-color="Azul Âncora" style="background:#2B3F54;" aria-label="Azul Âncora" aria-pressed="true"></button>
+              <button class="produto-cor" data-color="Off-white" style="background:#F9F7F4; border:1px solid #ddd;" aria-label="Off-white" aria-pressed="false"></button>
+              <button class="produto-cor" data-color="Cinza" style="background:#6E6660;" aria-label="Cinza" aria-pressed="false"></button>
+            </div>
+          </div>
+
+          <!-- TAMANHOS -->
+          <div class="produto-opcao" style="margin-top:var(--space-5);">
+            <div class="produto-opcao__header">
+              <span class="produto-opcao__label">Tamanho:</span>
+              <span class="produto-opcao__value" id="selectedSize">Selecione</span>
+              <button class="produto-guia-link" id="openGuia" aria-label="Abrir guia de tamanhos">Guia de tamanhos ›</button>
+            </div>
+            <div class="produto-tamanhos" role="group" aria-label="Selecionar tamanho">
+              <button class="produto-tamanho" data-size="PP" aria-pressed="false">PP</button>
+              <button class="produto-tamanho" data-size="P"  aria-pressed="false">P</button>
+              <button class="produto-tamanho" data-size="M"  aria-pressed="false">M</button>
+              <button class="produto-tamanho" data-size="G"  aria-pressed="false">G</button>
+              <button class="produto-tamanho produto-tamanho--esgotado" data-size="GG" aria-pressed="false" aria-disabled="true">GG</button>
+            </div>
+            <p class="produto-estoque" id="estoqueMsg"></p>
+          </div>
+
+          <!-- BOTÕES DE COMPRA -->
+          <div class="produto-acoes">
+            <button class="btn btn--primary btn--full btn--lg" id="addCartBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              Adicionar ao carrinho
+            </button>
+            <button class="btn btn--gold btn--full btn--lg" id="buyNowBtn">
+              Comprar agora
+            </button>
+          </div>
+
+          <!-- ALERTA SEM TAMANHO -->
+          <p class="produto-alerta" id="sizeAlert" hidden>Por favor, selecione um tamanho.</p>
+
+          <!-- DIFERENCIAIS RÁPIDOS -->
+          <div class="produto-diferenciais">
+            <div class="produto-diferencial">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><path d="M5 12H2l9-9 9 9h-3v8H5z"/></svg>
+              <span>Frete grátis acima de R$ 399</span>
+            </div>
+            <div class="produto-diferencial">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span>Troca em até 30 dias</span>
+            </div>
+            <div class="produto-diferencial">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span>6x sem juros no cartão</span>
+            </div>
+          </div>
+
+          <hr class="divider" style="margin-block: var(--space-5);" />
+
+          <!-- ACCORDION DETALHES -->
+          <div class="produto-accordion">
+
+            <div class="accordion-item accordion-item--open">
+              <button class="accordion-header" aria-expanded="true" data-acc="desc">
+                Descrição
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="accordion-content" id="acc-desc">
+                <p>O Vestido Athena é uma peça que celebra a elegância no cotidiano. Com corte midi levemente evasê, ele favorece diferentes silhuetas e transita com facilidade do dia à noite.</p>
+                <p style="margin-top:var(--space-3);">Produzido em tecido de viscose premium com leve toque cetinado, a peça oferece caimento fluido e conforto durante todo o dia.</p>
+                <ul style="margin-top:var(--space-3); padding-left:var(--space-5); display:flex; flex-direction:column; gap:var(--space-2);">
+                  <li>Comprimento midi (abaixo do joelho)</li>
+                  <li>Decote V suave</li>
+                  <li>Manga curta com babado</li>
+                  <li>Forro interno</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button class="accordion-header" aria-expanded="false" data-acc="composicao">
+                Composição & Cuidados
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="accordion-content accordion-content--hidden" id="acc-composicao">
+                <p><strong>Composição:</strong> 95% Viscose · 5% Elastano</p>
+                <p style="margin-top:var(--space-3);"><strong>Cuidados:</strong></p>
+                <ul style="margin-top:var(--space-2); padding-left:var(--space-5); display:flex; flex-direction:column; gap:var(--space-2);">
+                  <li>Lavar à mão ou na máquina em ciclo delicado</li>
+                  <li>Água fria (máx. 30°C)</li>
+                  <li>Não usar alvejante</li>
+                  <li>Secar à sombra</li>
+                  <li>Passar com ferro morno pelo avesso</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button class="accordion-header" aria-expanded="false" data-acc="entrega">
+                Entrega & Trocas
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="accordion-content accordion-content--hidden" id="acc-entrega">
+                <p>Pedidos confirmados até as <strong>14h</strong> são despachados no mesmo dia útil.</p>
+                <p style="margin-top:var(--space-3);"><strong>Prazos estimados:</strong></p>
+                <ul style="margin-top:var(--space-2); padding-left:var(--space-5); display:flex; flex-direction:column; gap:var(--space-2);">
+                  <li>Capitais: 2 a 4 dias úteis</li>
+                  <li>Interior: 4 a 8 dias úteis</li>
+                  <li>Regiões remotas: até 12 dias úteis</li>
+                </ul>
+                <p style="margin-top:var(--space-3);">Trocas e devoluções aceitas em até <strong>30 dias</strong> após o recebimento, mediante produto sem uso e com etiqueta.</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div><!-- /produto-info -->
+      </div><!-- /produto-layout -->
+    </section>
+
+    <!-- GUIA DE TAMANHOS (Modal) -->
+    <div class="guia-modal" id="guiaModal" role="dialog" aria-modal="true" aria-label="Guia de tamanhos" hidden>
+      <div class="guia-modal__overlay" id="guiaOverlay"></div>
+      <div class="guia-modal__content">
+        <div class="guia-modal__header">
+          <h2 class="display-lg display-italic">Guia de Tamanhos</h2>
+          <button class="guia-modal__close" id="guiaClose" aria-label="Fechar guia">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="guia-modal__hint">Medidas em centímetros. Caso esteja entre dois tamanhos, recomendamos o maior.</p>
+        <div class="guia-table-wrap">
+          <table class="guia-table" aria-label="Tabela de medidas">
+            <thead>
+              <tr>
+                <th scope="col">Tamanho</th>
+                <th scope="col">Busto</th>
+                <th scope="col">Cintura</th>
+                <th scope="col">Quadril</th>
+                <th scope="col">Comprimento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>PP</td><td>80–84</td><td>60–64</td><td>88–92</td><td>110</td></tr>
+              <tr><td>P</td> <td>84–88</td><td>64–68</td><td>92–96</td><td>112</td></tr>
+              <tr class="guia-table__highlight"><td>M</td> <td>88–92</td><td>68–72</td><td>96–100</td><td>114</td></tr>
+              <tr><td>G</td> <td>92–96</td><td>72–76</td><td>100–104</td><td>116</td></tr>
+              <tr><td>GG</td><td>96–100</td><td>76–80</td><td>104–108</td><td>118</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="guia-modal__tip">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Dúvidas sobre o tamanho? Fale com a gente via <a href="https://wa.me/5500000000000" target="_blank" rel="noopener" style="color:var(--color-gold);">WhatsApp</a>.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRE JUNTO -->
+    <section class="section bg-white compre-junto" aria-labelledby="compre-junto-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="overline">Complete o look</p>
+          <h2 id="compre-junto-title" class="display-lg display-italic">Compre Junto</h2>
+        </div>
+        <div class="compre-junto__layout">
+          <!-- Produto principal resumido -->
+          <div class="compre-junto__main">
+            <div class="compre-junto__card">
+              <div class="compre-junto__img" style="background:linear-gradient(135deg,#E8E0D5,#D4CCC0);"></div>
+              <div class="compre-junto__tag">Este produto</div>
+              <p class="compre-junto__name">Vestido Athena</p>
+              <p class="compre-junto__price">R$ 420,00</p>
+            </div>
+            <span class="compre-junto__plus" aria-hidden="true">+</span>
+            <div class="compre-junto__card">
+              <div class="compre-junto__img" style="background:linear-gradient(135deg,#E8D5B5,#D4BF98);"></div>
+              <div class="compre-junto__tag">Sugestão</div>
+              <p class="compre-junto__name">Body Serena</p>
+              <p class="compre-junto__price">R$ 145,00</p>
+            </div>
+            <span class="compre-junto__plus" aria-hidden="true">+</span>
+            <div class="compre-junto__card">
+              <div class="compre-junto__img" style="background:linear-gradient(135deg,#C4934A,#9A7038);"></div>
+              <div class="compre-junto__tag">Sugestão</div>
+              <p class="compre-junto__name">Blusa Íris</p>
+              <p class="compre-junto__price">R$ 230,00</p>
+            </div>
+          </div>
+          <div class="compre-junto__cta">
+            <p class="compre-junto__total-label">Total dos 3 itens</p>
+            <p class="compre-junto__total">R$ 795,00</p>
+            <p class="compre-junto__economia">Você economiza R$ 40,00 comprando juntos</p>
+            <button class="btn btn--primary btn--full" id="addAllBtn">Adicionar os 3 ao carrinho</button>
+            <a href="catalogo.html" class="btn btn--ghost btn--full" style="margin-top:var(--space-3);">Ver mais sugestões</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VOCÊ TAMBÉM PODE GOSTAR -->
+    <section class="section voce-gosta" aria-labelledby="voce-gosta-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="overline">Você também pode gostar</p>
+          <h2 id="voce-gosta-title" class="display-lg display-italic">Peças Relacionadas</h2>
+        </div>
+        <div class="destaques__grid">
+
+          <article class="product-card">
+            <div class="product-card__image-wrap">
+              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#C8C0B8,#B8B0A8); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
+              <span class="product-card__badge">Novo</span>
+              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Vestidos</p>
+              <h3 class="product-card__name"><a href="produto.html">Vestido Sofía</a></h3>
+              <div class="product-card__price"><span class="product-card__price-current">R$ 390,00</span></div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-card__image-wrap">
+              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#E8E0D5,#D5CAC0); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(0,0,0,0.2);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
+              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Vestidos</p>
+              <h3 class="product-card__name"><a href="produto.html">Vestido Hera</a></h3>
+              <div class="product-card__price"><span class="product-card__price-current">R$ 480,00</span></div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-card__image-wrap">
+              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#1E2E3E,#2B3F54); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
+              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Vestidos</p>
+              <h3 class="product-card__name"><a href="produto.html">Vestido Perséfone</a></h3>
+              <div class="product-card__price"><span class="product-card__price-current">R$ 520,00</span></div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-card__image-wrap">
+              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#D5C8BA,#C4B8A8); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(0,0,0,0.2);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
+              <span class="product-card__badge">Mais Vendido</span>
+              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
+            </div>
+            <div class="product-card__info">
+              <p class="product-card__category">Blusas</p>
+              <h3 class="product-card__name"><a href="produto.html">Blusa Helena</a></h3>
+              <div class="product-card__price"><span class="product-card__price-current">R$ 195,00</span></div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__brand-logo">
+            <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" />
+            <span class="footer__logo-text">VIRTÙ</span>
+          </div>
+          <p class="footer__tagline">há virtude no vestir</p>
+          <p class="footer__desc" style="margin-top:var(--space-4);">Moda feminina que une o clássico ao contemporâneo.</p>
+          <div class="footer__socials">
+            <a href="https://instagram.com/wear.virtu" class="footer__social-btn" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="footer__social-btn" aria-label="TikTok">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+            </a>
+          </div>
+        </div>
+        <div>
+          <p class="footer__col-title">Loja</p>
+          <nav class="footer__links">
+            <a href="catalogo.html" class="footer__link">Novidades</a>
+            <a href="catalogo.html?cat=vestidos" class="footer__link">Vestidos</a>
+            <a href="catalogo.html?cat=blusas" class="footer__link">Blusas</a>
+            <a href="catalogo.html?cat=calcas" class="footer__link">Calças</a>
+            <a href="catalogo.html?sale=1" class="footer__link" style="color:var(--color-gold);">Sale ✦</a>
+          </nav>
+        </div>
+        <div>
+          <p class="footer__col-title">Ajuda</p>
+          <nav class="footer__links">
+            <a href="#" class="footer__link">Trocas e devoluções</a>
+            <a href="#" class="footer__link">Guia de tamanhos</a>
+            <a href="#" class="footer__link">Rastreio de pedido</a>
+            <a href="contato.html" class="footer__link">Fale conosco</a>
+          </nav>
+        </div>
+        <div>
+          <p class="footer__col-title">Virtù</p>
+          <nav class="footer__links">
+            <a href="sobre.html" class="footer__link">Nossa história</a>
+            <a href="#" class="footer__link">Sustentabilidade</a>
+            <a href="#" class="footer__link">Política de privacidade</a>
+          </nav>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Virtù. Todos os direitos reservados.</p>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Visa · Mastercard · Pix · Boleto</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- STICKY BAR MOBILE -->
+  <div class="sticky-buy-bar" id="stickyBar" aria-label="Barra de compra rápida">
+    <div class="sticky-buy-bar__info">
+      <p class="sticky-buy-bar__name">Vestido Athena</p>
+      <p class="sticky-buy-bar__price">R$ 420,00</p>
+    </div>
+    <button class="btn btn--primary" id="stickyAddBtn">Adicionar ao carrinho</button>
+  </div>
+
+  <script src="js/produto.js"></script>
+</body>
+</html>

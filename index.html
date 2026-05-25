@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Virtù — Moda feminina clássica, elegante e moderna. Há virtude no vestir." />
+  <title>Virtù — Há virtude no vestir</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/home.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       ANNOUNCEMENT BAR
+  ============================================== -->
+  <div class="announcement-bar" role="banner">
+    <div class="announcement-bar__track" aria-label="Informações da loja">
+      <!-- duplicado para loop contínuo -->
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Frete grátis acima de R$399
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Parcelamento em até 6x sem juros
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Trocas e devoluções em até 30 dias
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Atendimento via WhatsApp
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Frete grátis acima de R$399
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Parcelamento em até 6x sem juros
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Trocas e devoluções em até 30 dias
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Atendimento via WhatsApp
+      </span>
+    </div>
+  </div>
+
+  <!-- =============================================
+       NAVBAR
+  ============================================== -->
+  <header class="navbar" id="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="container navbar__inner">
+
+      <!-- Esquerda: Hamburguer + Busca -->
+      <div class="navbar__left">
+        <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <button class="navbar__action-btn" id="searchToggle" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Centro: Logo -->
+      <a href="index.html" class="navbar__logo" aria-label="Virtù — página inicial">
+        <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" aria-hidden="true" />
+        <span class="navbar__logo-text">VIRTÙ</span>
+      </a>
+
+      <!-- Centro: Nav links (desktop) -->
+      <nav class="navbar__nav" aria-label="Menu principal">
+        <a href="catalogo.html" class="navbar__link">Coleções</a>
+        <a href="catalogo.html" class="navbar__link">Novidades</a>
+        <a href="catalogo.html" class="navbar__link">Sale</a>
+        <a href="sobre.html" class="navbar__link">Sobre</a>
+        <a href="contato.html" class="navbar__link">Contato</a>
+      </nav>
+
+      <!-- Direita: Ações -->
+      <div class="navbar__actions">
+        <button class="navbar__action-btn navbar__action-btn--desktop" id="searchToggleDesktop" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+        <button class="navbar__action-btn" aria-label="Minha conta">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+        <a href="carrinho.html" class="navbar__action-btn" aria-label="Carrinho (0 itens)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="searchOverlay" role="search" aria-hidden="true">
+    <div class="search-overlay__inner">
+      <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      <form class="search-overlay__form" role="search">
+        <input type="search" class="search-overlay__input" placeholder="O que você procura?" aria-label="Campo de busca" />
+        <button type="submit" class="search-overlay__btn" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
+            <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+      </form>
+      <p class="search-overlay__hint">Sugestões: Vestidos, Blusas, Calças, Novidades</p>
+    </div>
+  </div>
+
+  <!-- =============================================
+       MOBILE MENU
+  ============================================== -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Menu de navegação">
+    <div class="mobile-menu__overlay" id="menuOverlay"></div>
+    <div class="mobile-menu__drawer">
+      <div class="mobile-menu__header">
+        <span class="navbar__logo-text" style="font-size:18px; letter-spacing:4px;">VIRTÙ</span>
+        <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <nav class="mobile-menu__nav">
+        <a href="catalogo.html" class="mobile-menu__link">Coleções</a>
+        <a href="catalogo.html" class="mobile-menu__link">Novidades</a>
+        <a href="catalogo.html" class="mobile-menu__link">Sale</a>
+        <a href="sobre.html"    class="mobile-menu__link">Sobre</a>
+        <a href="contato.html"  class="mobile-menu__link">Contato</a>
+      </nav>
+      <div style="margin-top:auto; padding-top: 32px;">
+        <p class="overline" style="margin-bottom:12px;">Siga a Virtù</p>
+        <div style="display:flex; gap:12px;">
+          <a href="#" class="footer__social-btn" style="border-color:rgba(43,63,84,0.2);" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a href="#" class="footer__social-btn" style="border-color:rgba(43,63,84,0.2);" aria-label="TikTok">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================
+       MAIN CONTENT
+  ============================================== -->
+  <main id="main-content">
+
+    <!-- ── HERO ─────────────────────────────── -->
+    <section class="hero" aria-label="Destaque principal">
+      <div class="hero__slider" id="heroSlider">
+
+        <!-- Slide 1 -->
+        <div class="hero__slide hero__slide--active">
+          <div class="hero__bg" style="background: linear-gradient(135deg, #1E2E3E 0%, #2B3F54 50%, #3D5470 100%);">
+            <!-- Placeholder visual elegante -->
+            <div class="hero__bg-pattern" aria-hidden="true"></div>
+          </div>
+          <div class="hero__content">
+            <div class="hero__text animate-fade-in-up">
+              <p class="overline hero__overline" id="heroLine1">Nova Coleção · Inverno 2025</p>
+              <h1 class="display-hero display-italic hero__title">
+                <span id="heroLine2">O tempo de<br>cada peça</span>
+              </h1>
+              <p class="hero__desc" id="heroSubtitle">
+                Roupas que atravessam estações e permanecem.<br>
+                Feitas para quem valoriza o cuidado nos detalhes.
+              </p>
+              <div class="hero__actions">
+                <a href="catalogo.html" class="btn btn--ghost-white btn--lg" id="heroCta">
+                  Explorar Coleção
+                </a>
+                <a href="catalogo.html" class="btn btn--ghost-gold btn--lg">
+                  Ver Novidades
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="hero__scroll-hint" aria-hidden="true">
+            <span class="label" style="color:rgba(255,255,255,0.5); writing-mode:vertical-rl;">scroll</span>
+            <div class="hero__scroll-line"></div>
+          </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="hero__slide">
+          <div class="hero__bg" style="background: linear-gradient(135deg, #C4934A 0%, #9A7038 50%, #2B3F54 100%);">
+            <div class="hero__bg-pattern" aria-hidden="true"></div>
+          </div>
+          <div class="hero__content">
+            <div class="hero__text">
+              <p class="overline hero__overline">Peças Essenciais</p>
+              <h1 class="display-hero display-italic hero__title">
+                Há virtude<br>no vestir
+              </h1>
+              <p class="hero__desc">
+                Cada escolha é uma afirmação de quem você é.<br>
+                Vista-se com intenção.
+              </p>
+              <div class="hero__actions">
+                <a href="catalogo.html" class="btn btn--ghost-white btn--lg">
+                  Descobrir
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Controles do slider -->
+      <button class="hero__arrow hero__arrow--prev" id="heroPrev" aria-label="Slide anterior">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="hero__arrow hero__arrow--next" id="heroNext" aria-label="Próximo slide">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+      <!-- Dots -->
+      <div class="hero__dots" role="tablist" aria-label="Slides">
+        <button class="hero__dot hero__dot--active" role="tab" aria-selected="true" aria-label="Slide 1"></button>
+        <button class="hero__dot" role="tab" aria-selected="false" aria-label="Slide 2"></button>
+      </div>
+    </section>
+
+    <!-- ── DIFERENCIAIS ──────────────────────── -->
+    <section class="diferenciais section--sm" aria-label="Diferenciais da loja">
+      <div class="container">
+        <div class="diferenciais__grid">
+          <div class="diferencial">
+            <div class="diferencial__icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M5 12H2l9-9 9 9h-3v8H5z"/>
+                <path d="M9 21v-6h6v6"/>
+              </svg>
+            </div>
+            <div class="diferencial__info">
+              <h3>Frete Grátis</h3>
+              <p>Nas compras acima de R$399</p>
+            </div>
+          </div>
+          <div class="diferencial">
+            <div class="diferencial__icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <div class="diferencial__info">
+              <h3>Parcelamento</h3>
+              <p>Até 6x sem juros no cartão</p>
+            </div>
+          </div>
+          <div class="diferencial">
+            <div class="diferencial__icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </div>
+            <div class="diferencial__info">
+              <h3>Trocas Fáceis</h3>
+              <p>Até 30 dias para trocar</p>
+            </div>
+          </div>
+          <div class="diferencial">
+            <div class="diferencial__icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.26 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.17 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8a16 16 0 0 0 6 6l.27-.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 16z"/>
+              </svg>
+            </div>
+            <div class="diferencial__info">
+              <h3>Atendimento</h3>
+              <p>Via WhatsApp, de seg. a sáb.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider--gold" style="margin-inline: auto; max-width:240px; opacity:0.4;" />
+
+    <!-- ── CATEGORIAS ────────────────────────── -->
+    <section class="section categorias" aria-labelledby="categorias-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="overline">Explore por estilo</p>
+          <h2 id="categorias-title" class="display-lg display-italic">Nossas Coleções</h2>
+        </div>
+        <div class="categorias__grid">
+          <a href="catalogo.html?cat=vestidos" class="categoria-card categoria-card--large">
+            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#2B3F54,#3D5470);"></div>
+            <div class="categoria-card__overlay"></div>
+            <div class="categoria-card__content">
+              <p class="overline" style="color:var(--color-gold);">01</p>
+              <h3>Vestidos</h3>
+              <span class="btn btn--ghost-white btn--sm">Ver tudo</span>
+            </div>
+          </a>
+          <a href="catalogo.html?cat=blusas" class="categoria-card">
+            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#C4934A,#9A7038);"></div>
+            <div class="categoria-card__overlay"></div>
+            <div class="categoria-card__content">
+              <p class="overline" style="color:rgba(255,255,255,0.7);">02</p>
+              <h3>Blusas</h3>
+              <span class="btn btn--ghost-white btn--sm">Ver tudo</span>
+            </div>
+          </a>
+          <a href="catalogo.html?cat=calcas" class="categoria-card">
+            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#3D5470,#2B3F54);"></div>
+            <div class="categoria-card__overlay"></div>
+            <div class="categoria-card__content">
+              <p class="overline" style="color:var(--color-gold);">03</p>
+              <h3>Calças</h3>
+              <span class="btn btn--ghost-white btn--sm">Ver tudo</span>
+            </div>
+          </a>
+          <a href="catalogo.html?cat=essenciais" class="categoria-card">
+            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#E8D5B5,#C4934A);"></div>
+            <div class="categoria-card__overlay"></div>
+            <div class="categoria-card__content">
+              <p class="overline" style="color:var(--color-navy);">04</p>
+              <h3 style="color:var(--color-navy);">Essenciais</h3>
+              <span class="btn btn--ghost btn--sm">Ver tudo</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── NOVIDADES / CARROSSEL ─────────────── -->
+    <section class="section novidades bg-white" aria-labelledby="novidades-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="overline">Acabou de chegar</p>
+          <h2 id="novidades-title" class="display-lg display-italic">Novidades da Semana</h2>
+        </div>
+
+        <div class="products-carousel__wrap">
+          <button class="carousel-arrow carousel-arrow--prev" id="novPrev" aria-label="Anterior">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="products-carousel" id="novidadesCarousel" role="list">
+            <!-- Populado dinamicamente por products.js -->
+          </div><!-- /carousel -->
+          <button class="carousel-arrow carousel-arrow--next" id="novNext" aria-label="Próximo">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="text-center" style="margin-top: var(--space-10);">
+          <a href="catalogo.html" class="btn btn--ghost">Ver todas as novidades</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── BANNER EDITORIAL ──────────────────── -->
+    <section class="editorial-banner" aria-label="Banner editorial">
+      <div class="editorial-banner__bg" style="background:linear-gradient(135deg,#1E2E3E 0%,#2B3F54 60%, #3D5470 100%);">
+        <div class="editorial-banner__decoration" aria-hidden="true">
+          <div class="ed-deco ed-deco--1"></div>
+          <div class="ed-deco ed-deco--2"></div>
+        </div>
+      </div>
+      <div class="editorial-banner__content container">
+        <div class="editorial-banner__text">
+          <p class="overline">Manifesto Virtù</p>
+          <h2 class="display-xl display-italic" style="color:var(--color-white);">
+            Clássica hoje.<br>
+            <span style="color:var(--color-gold);">Atemporal</span> sempre.
+          </h2>
+          <p style="color:rgba(255,255,255,0.7); font-size:var(--text-sm); margin-block: var(--space-5); max-width:440px; line-height:1.8;">
+            Acreditamos que a moda é uma forma de expressão que respeita o tempo.
+            Cada peça é pensada para durar — no tecido, no corte e no significado.
+          </p>
+          <a href="sobre.html" class="btn btn--ghost-white">Nossa história</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PRODUTOS EM DESTAQUE ──────────────── -->
+    <section class="section destaques" aria-labelledby="destaques-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="overline">Mais amados</p>
+          <h2 id="destaques-title" class="display-lg display-italic">Produtos em Destaque</h2>
+        </div>
+        <div class="destaques__grid" id="destaquesGrid">
+          <!-- Populado dinamicamente por products.js -->
+        </div><!-- /destaques__grid -->
+      </div>
+    </section>
+
+    <!-- ── INSTAGRAM FEED ────────────────────── -->
+    <section class="section--sm instagram-feed bg-white" aria-labelledby="insta-title">
+      <div class="container">
+        <div class="section-header" style="margin-bottom: var(--space-8);">
+          <p class="overline">Siga-nos</p>
+          <h2 id="insta-title" class="display-lg display-italic">@wear.virtu</h2>
+          <p style="color:var(--color-gray-600); font-size:var(--text-sm);">Compartilhe seu look com <strong>#wearvirtu</strong></p>
+        </div>
+        <div class="instagram-grid">
+          <div class="insta-item" style="background:linear-gradient(135deg,#E8E0D5,#D5CAC0);"><span class="insta-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></div>
+          <div class="insta-item" style="background:linear-gradient(135deg,#2B3F54,#3D5470);"><span class="insta-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></div>
+          <div class="insta-item" style="background:linear-gradient(135deg,#C4934A,#9A7038);"><span class="insta-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></div>
+          <div class="insta-item" style="background:linear-gradient(135deg,#D0C8C0,#BEB6AE);"><span class="insta-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></div>
+          <div class="insta-item insta-item--hidden" style="background:linear-gradient(135deg,#E8D5B5,#D4BF98);"><span class="insta-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></div>
+          <div class="insta-item insta-item--hidden" style="background:linear-gradient(135deg,#3D5470,#2B3F54);"><span class="insta-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></div>
+        </div>
+        <div class="text-center" style="margin-top:var(--space-6);">
+          <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/></svg>
+            Seguir no Instagram
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── NEWSLETTER ─────────────────────────── -->
+    <section class="newsletter" aria-labelledby="newsletter-title">
+      <div class="newsletter__inner">
+        <div class="newsletter__deco" aria-hidden="true">
+          <svg viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.12">
+            <ellipse cx="60" cy="80" rx="12" ry="10" fill="#C4934A"/>
+            <path d="M60 70 L60 20" stroke="#C4934A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M60 70 L30 15" stroke="#C4934A" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 70 L90 15" stroke="#C4934A" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 70 L10 35" stroke="#C4934A" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M60 70 L110 35" stroke="#C4934A" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M60 70 L2 55" stroke="#C4934A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+            <path d="M60 70 L118 55" stroke="#C4934A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="container newsletter__content">
+          <p class="overline" style="color:var(--color-gold);">Fique por dentro</p>
+          <h2 id="newsletter-title" class="display-lg display-italic" style="color:var(--color-white);">
+            Receba as novidades<br>em primeira mão
+          </h2>
+          <p style="color:rgba(255,255,255,0.65); font-size:var(--text-sm); margin-block:var(--space-4); max-width:400px; margin-inline:auto;">
+            Cadastre-se e receba lançamentos, promoções exclusivas e conteúdo especial da Virtù.
+          </p>
+          <form class="newsletter__form" id="newsletterForm" novalidate>
+            <div class="input-inline newsletter__input-wrap">
+              <input
+                type="email"
+                class="input"
+                placeholder="Seu melhor e-mail"
+                aria-label="Seu endereço de e-mail"
+                required
+                id="newsletterEmail"
+              />
+              <button type="submit" class="btn btn--gold">Cadastrar</button>
+            </div>
+            <p class="newsletter__privacy">
+              Ao se cadastrar, você concorda com nossa
+              <a href="#" style="color:var(--color-gold); text-decoration:underline;">Política de Privacidade</a>.
+              Sem spam, prometemos.
+            </p>
+          </form>
+          <p class="newsletter__success" id="newsletterSuccess" aria-live="polite" hidden>
+            ✦ Obrigada! Você está na nossa lista exclusiva.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =============================================
+       FOOTER
+  ============================================== -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer__grid">
+
+        <!-- Coluna 1: Marca -->
+        <div>
+          <div class="footer__brand-logo">
+            <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" />
+            <span class="footer__logo-text">VIRTÙ</span>
+          </div>
+          <p class="footer__tagline">há virtude no vestir</p>
+          <p class="footer__desc" style="margin-top:var(--space-4);">
+            Moda feminina que une o clássico ao contemporâneo. Peças pensadas para durar — no tecido, no corte e no significado.
+          </p>
+          <div class="footer__socials">
+            <a href="#" class="footer__social-btn" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="footer__social-btn" aria-label="TikTok">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+            </a>
+            <a href="#" class="footer__social-btn" aria-label="Pinterest">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.04-2.83.18-.77 1.22-5.17 1.22-5.17s-.31-.63-.31-1.56c0-1.46.85-2.55 1.9-2.55.9 0 1.33.67 1.33 1.48 0 .9-.58 2.26-.87 3.51-.25 1.05.52 1.9 1.54 1.9 1.85 0 3.09-2.38 3.09-5.2 0-2.14-1.44-3.76-4.05-3.76-2.95 0-4.79 2.2-4.79 4.66 0 .85.24 1.44.62 1.9.17.2.19.28.13.52-.04.17-.14.58-.18.74-.06.24-.24.32-.44.23-1.24-.51-1.82-1.87-1.82-3.4 0-2.53 2.14-5.6 6.39-5.6 3.41 0 5.65 2.47 5.65 5.12 0 3.51-1.94 6.13-4.8 6.13-.96 0-1.86-.52-2.17-1.1l-.59 2.27c-.21.81-.78 1.82-1.16 2.44.88.27 1.81.41 2.77.41 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Coluna 2 -->
+        <div>
+          <p class="footer__col-title">Loja</p>
+          <nav class="footer__links" aria-label="Links da loja">
+            <a href="catalogo.html" class="footer__link">Novidades</a>
+            <a href="catalogo.html?cat=vestidos" class="footer__link">Vestidos</a>
+            <a href="catalogo.html?cat=blusas" class="footer__link">Blusas</a>
+            <a href="catalogo.html?cat=calcas" class="footer__link">Calças</a>
+            <a href="catalogo.html?cat=essenciais" class="footer__link">Essenciais</a>
+            <a href="catalogo.html?sale=1" class="footer__link" style="color:var(--color-gold);">Sale ✦</a>
+          </nav>
+        </div>
+
+        <!-- Coluna 3 -->
+        <div>
+          <p class="footer__col-title">Ajuda</p>
+          <nav class="footer__links" aria-label="Links de ajuda">
+            <a href="#" class="footer__link">Como funciona</a>
+            <a href="#" class="footer__link">Trocas e devoluções</a>
+            <a href="#" class="footer__link">Guia de tamanhos</a>
+            <a href="#" class="footer__link">Rastreio de pedido</a>
+            <a href="contato.html" class="footer__link">Fale conosco</a>
+          </nav>
+        </div>
+
+        <!-- Coluna 4 -->
+        <div>
+          <p class="footer__col-title">Virtù</p>
+          <nav class="footer__links" aria-label="Links institucionais">
+            <a href="sobre.html" class="footer__link">Nossa história</a>
+            <a href="#" class="footer__link">Sustentabilidade</a>
+            <a href="#" class="footer__link">Trabalhe conosco</a>
+            <a href="#" class="footer__link">Política de privacidade</a>
+          </nav>
+          <div style="margin-top:var(--space-6);">
+            <p class="footer__col-title">Atendimento</p>
+            <a href="https://wa.me/5500000000000" class="footer__link" target="_blank" rel="noopener">
+              WhatsApp
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /footer__grid -->
+
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Virtù. Todos os direitos reservados.</p>
+        <div class="footer__payments" aria-label="Formas de pagamento aceitas">
+          <!-- Ícones de pagamento (texto) -->
+          <span style="font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; text-transform:uppercase;">Visa · Mastercard · Pix · Boleto</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =============================================
+       JAVASCRIPT
+  ============================================== -->
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>

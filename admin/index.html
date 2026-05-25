@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Virtù</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <span class="admin-sidebar__virtu">VIRTÙ</span>
+      <span class="admin-sidebar__tag">Admin</span>
+    </div>
+    <nav class="admin-sidebar__nav">
+      <button class="admin-nav-btn admin-nav-btn--active" data-view="produtos">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Produtos
+      </button>
+      <button class="admin-nav-btn" data-view="configuracoes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Configurações
+      </button>
+    </nav>
+    <div class="admin-sidebar__footer">
+      <p>Virtù Admin v1.0</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+
+    <!-- TOPBAR -->
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <h1 class="admin-topbar__title" id="viewTitle">Produtos</h1>
+        <span class="admin-topbar__count" id="productCount"></span>
+      </div>
+      <div class="admin-topbar__actions">
+        <button class="admin-btn admin-btn--ghost" id="btnOpenFile" title="Abrir products.json do seu computador">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Abrir JSON
+        </button>
+        <button class="admin-btn admin-btn--gold" id="btnSaveFile" title="Salvar alterações no products.json">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 0-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar JSON
+        </button>
+        <button class="admin-btn admin-btn--primary" id="btnNewProduct">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Produto
+        </button>
+      </div>
+    </header>
+
+    <!-- BARRA DE STATUS -->
+    <div class="admin-status-bar" id="statusBar">
+      <span id="statusIcon">💡</span>
+      <span id="statusMsg">Clique em <strong>Abrir JSON</strong> para carregar o arquivo <code>data/products.json</code>, ou os dados de exemplo serão usados.</span>
+    </div>
+
+    <!-- VIEW: PRODUTOS -->
+    <div class="admin-view" id="viewProdutos">
+
+      <!-- FILTROS + BUSCA -->
+      <div class="admin-filters">
+        <input type="search" class="admin-search" id="searchInput" placeholder="Buscar produto…" />
+        <div class="admin-filter-pills">
+          <button class="admin-pill admin-pill--active" data-filter="todos">Todos</button>
+          <button class="admin-pill" data-filter="vestidos">Vestidos</button>
+          <button class="admin-pill" data-filter="blusas">Blusas</button>
+          <button class="admin-pill" data-filter="calcas">Calças</button>
+          <button class="admin-pill" data-filter="essenciais">Essenciais</button>
+          <button class="admin-pill" data-filter="inativos">Inativos</button>
+        </div>
+      </div>
+
+      <!-- TABELA -->
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="productsTable">
+          <thead>
+            <tr>
+              <th style="width:48px"></th>
+              <th>Produto</th>
+              <th>Categoria</th>
+              <th>Preço Original</th>
+              <th>Preço c/ Desconto</th>
+              <th>Desconto</th>
+              <th>Estoque</th>
+              <th>Status</th>
+              <th style="width:100px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody">
+            <!-- Preenchido pelo JS -->
+          </tbody>
+        </table>
+        <div class="admin-empty" id="tableEmpty" hidden>
+          <span>Nenhum produto encontrado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: CONFIGURAÇÕES -->
+    <div class="admin-view admin-view--hidden" id="viewConfiguracoes">
+      <div class="admin-config-grid">
+
+        <div class="admin-card">
+          <h3 class="admin-card__title">Loja</h3>
+          <div class="admin-form-group">
+            <label class="admin-label">Nome da loja</label>
+            <input type="text" class="admin-input" id="cfgNomeLoja" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Slogan</label>
+            <input type="text" class="admin-input" id="cfgSlogan" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Instagram</label>
+            <input type="text" class="admin-input" id="cfgInstagram" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Frete grátis acima de (R$)</label>
+            <input type="number" class="admin-input" id="cfgFrete" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Máximo de parcelas</label>
+            <input type="number" class="admin-input" id="cfgParcelas" min="1" max="12" />
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3 class="admin-card__title">Banner Principal (Home)</h3>
+          <div class="admin-form-group">
+            <label class="admin-label">Linha 1 (sobrescrito)</label>
+            <input type="text" class="admin-input" id="cfgBannerL1" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Linha 2 (título)</label>
+            <input type="text" class="admin-input" id="cfgBannerL2" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Subtítulo</label>
+            <textarea class="admin-input admin-textarea" id="cfgBannerSub" rows="2"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Texto do botão CTA</label>
+            <input type="text" class="admin-input" id="cfgBannerCta" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Link do botão CTA</label>
+            <input type="text" class="admin-input" id="cfgBannerCtaLink" />
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3 class="admin-card__title">Banner Editorial (Home)</h3>
+          <div class="admin-form-group">
+            <label class="admin-label">Título</label>
+            <input type="text" class="admin-input" id="cfgEditTitle" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Texto</label>
+            <textarea class="admin-input admin-textarea" id="cfgEditText" rows="3"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Texto do botão</label>
+            <input type="text" class="admin-input" id="cfgEditCta" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Link do botão</label>
+            <input type="text" class="admin-input" id="cfgEditCtaLink" />
+          </div>
+        </div>
+
+      </div>
+      <div style="margin-top:1.5rem">
+        <button class="admin-btn admin-btn--primary" id="btnSaveConfig">Salvar Configurações</button>
+      </div>
+    </div>
+
+  </div><!-- /admin-main -->
+
+  <!-- MODAL: FORMULÁRIO DE PRODUTO -->
+  <div class="admin-modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="admin-modal__header">
+        <h2 class="admin-modal__title" id="modalTitle">Novo Produto</h2>
+        <button class="admin-modal__close" id="modalClose" aria-label="Fechar">✕</button>
+      </div>
+      <div class="admin-modal__body">
+        <input type="hidden" id="formId" />
+
+        <div class="admin-modal__grid">
+
+          <!-- Coluna 1 -->
+          <div>
+            <div class="admin-form-group">
+              <label class="admin-label">Nome do produto *</label>
+              <input type="text" class="admin-input" id="formNome" placeholder="Ex: Vestido Athena" required />
+            </div>
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label class="admin-label">Categoria *</label>
+                <select class="admin-input admin-select" id="formCategoria">
+                  <option value="vestidos">Vestidos</option>
+                  <option value="blusas">Blusas</option>
+                  <option value="calcas">Calças</option>
+                  <option value="essenciais">Essenciais</option>
+                </select>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-label">Badge</label>
+                <select class="admin-input admin-select" id="formBadge">
+                  <option value="">Nenhum</option>
+                  <option value="Novo">Novo</option>
+                  <option value="Mais Vendido">Mais Vendido</option>
+                  <option value="Sale">Sale</option>
+                  <option value="Exclusivo">Exclusivo</option>
+                </select>
+              </div>
+            </div>
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label class="admin-label">Preço Original (R$) *</label>
+                <input type="number" class="admin-input" id="formPrecoOriginal" placeholder="0,00" step="0.01" min="0" required />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-label">Preço c/ Desconto (R$)</label>
+                <input type="number" class="admin-input" id="formPrecoDesconto" placeholder="Deixe vazio = sem desconto" step="0.01" min="0" />
+              </div>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Percentual de desconto</label>
+              <div class="admin-discount-preview" id="discountPreview">—</div>
+              <input type="range" class="admin-range" id="formPctDesconto" min="0" max="70" value="0" />
+              <div class="admin-range-labels"><span>0%</span><span>70%</span></div>
+            </div>
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label class="admin-label">Estoque (unid.)</label>
+                <input type="number" class="admin-input" id="formEstoque" placeholder="0" min="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna 2 -->
+          <div>
+            <div class="admin-form-group">
+              <label class="admin-label">URL da Imagem</label>
+              <input type="url" class="admin-input" id="formImagem" placeholder="https://… ou deixe vazio para usar cor" />
+              <p class="admin-hint">Cole a URL de uma imagem hospedada. Ex: Imgur, Google Drive (link direto), etc.</p>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Cor de fundo (sem foto)</label>
+              <input type="text" class="admin-input" id="formPlaceholder" placeholder="linear-gradient(135deg,#E8E0D5,#D4CCC0)" />
+              <div class="admin-color-preview" id="colorPreview"></div>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Tamanhos disponíveis</label>
+              <div class="admin-sizes">
+                <label class="admin-size-check"><input type="checkbox" value="PP" /> PP</label>
+                <label class="admin-size-check"><input type="checkbox" value="P" /> P</label>
+                <label class="admin-size-check"><input type="checkbox" value="M" /> M</label>
+                <label class="admin-size-check"><input type="checkbox" value="G" /> G</label>
+                <label class="admin-size-check"><input type="checkbox" value="GG" /> GG</label>
+              </div>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Descrição</label>
+              <textarea class="admin-input admin-textarea" id="formDescricao" rows="3" placeholder="Descreva a peça…"></textarea>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Composição do tecido</label>
+              <input type="text" class="admin-input" id="formComposicao" placeholder="Ex: 100% viscose" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">Flags</label>
+              <div class="admin-flags">
+                <label class="admin-flag-check"><input type="checkbox" id="formDestaque" /> Produto em Destaque</label>
+                <label class="admin-flag-check"><input type="checkbox" id="formNovidade" /> Novidade</label>
+                <label class="admin-flag-check"><input type="checkbox" id="formAtivo" checked /> Ativo (visível no site)</label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="admin-modal__footer">
+        <button class="admin-btn admin-btn--ghost" id="btnCancelModal">Cancelar</button>
+        <button class="admin-btn admin-btn--primary" id="btnSaveProduct">Salvar Produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="admin-toast" id="toast" aria-live="polite"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
