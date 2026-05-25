@@ -746,7 +746,7 @@
 /* ── CTA ─────────────────────────────────── */
 .sobre-cta {
   padding: 6rem 5%;
-  background: linear-gradient(135deg, var(--color-gold-light) 0%, #D4C4B5 100%);
+  background: linear-gradient(160deg, #F5EDE2 0%, #EDE3D8 100%);
   text-align: center;
 }
 
