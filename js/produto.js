@@ -93,6 +93,12 @@ async function carregarProduto(produtoId) {
       compEl.innerHTML = `<p>${p.composicao.replace(/\n/g, '<br/>')}</p>`;
     }
 
+    // Sticky bar — nome e preço
+    const stickyName  = document.querySelector('.sticky-buy-bar__name');
+    const stickyPrice = document.querySelector('.sticky-buy-bar__price');
+    if (stickyName)  stickyName.textContent  = p.nome;
+    if (stickyPrice) stickyPrice.textContent = fmt(preco);
+
     // Imagem principal
     if (p.imagem_url) {
       const mainPlaceholder = document.getElementById('mainPlaceholder');
@@ -156,10 +162,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── GALERIA ────────────────────────────────
-  const thumbs     = document.querySelectorAll('.gallery-thumb');
-  const mainImage  = document.getElementById('mainImage');
-  const prevBtn    = document.getElementById('galleryPrev');
-  const nextBtn    = document.getElementById('galleryNext');
+  const thumbs     = document.querySelectorAll('.galeria-thumb');
+  const mainImage  = document.getElementById('mainImg');
+  const prevBtn    = document.getElementById('galPrev');
+  const nextBtn    = document.getElementById('galNext');
   let currentThumb = 0;
 
   // Paleta de cores de placeholder para simular imagens diferentes
@@ -168,9 +174,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   ];
 
   function setActiveThumb(index) {
-    thumbs.forEach(t => t.classList.remove('gallery-thumb--active'));
+    thumbs.forEach(t => t.classList.remove('galeria-thumb--active'));
     if (thumbs[index]) {
-      thumbs[index].classList.add('gallery-thumb--active');
+      thumbs[index].classList.add('galeria-thumb--active');
       // Atualiza imagem principal
       const bg = thumbs[index].style.background || `linear-gradient(135deg, ${placeholderColors[index % placeholderColors.length]} 0%, #8B7D6B 100%)`;
       if (mainImage) {
@@ -274,7 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── ADD TO CART ────────────────────────────
   let cartCount = 0;
   const cartBadge    = document.getElementById('cartBadge');
-  const addToCartBtn = document.getElementById('addToCartBtn');
+  const addToCartBtn = document.getElementById('btnComprar');
   const buyNowBtn    = document.getElementById('buyNowBtn');
   const stickyAddBtn = document.getElementById('stickyAddBtn');
 
@@ -384,7 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── STICKY BUY BAR ─────────────────────────
   const stickyBar     = document.querySelector('.sticky-buy-bar');
-  const productActions = document.querySelector('.produto-actions');
+  const productActions = document.querySelector('.produto-acoes');
 
   if (stickyBar && productActions) {
     const stickyObs = new IntersectionObserver(entries => {
