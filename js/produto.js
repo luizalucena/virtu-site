@@ -2,7 +2,121 @@
    VIRTÙ — Produto JavaScript
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+/* ── CARREGAR PRODUTO DO SUPABASE ──────────── */
+async function carregarProduto(produtoId) {
+  try {
+    const { data: p, error } = await supabaseClient
+      .from('produtos')
+      .select('*')
+      .eq('id', produtoId)
+      .single();
+
+    if (error || !p) {
+      window.location.href = 'catalogo.html';
+      return null;
+    }
+
+    const fmt = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+    const preco = p.preco_desconto ?? p.preco_original;
+
+    // Título e meta
+    document.title = `${p.nome} — Virtù`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.content = p.descricao || `${p.nome} — Virtù`;
+
+    // Breadcrumb
+    const bcLinks = document.querySelectorAll('.breadcrumb__link');
+    if (bcLinks[1]) {
+      bcLinks[1].textContent = cap(p.categoria || 'Produtos');
+      bcLinks[1].href = `catalogo.html?categoria=${p.categoria || ''}`;
+    }
+    const bcAtual = document.querySelector('.breadcrumb__current');
+    if (bcAtual) bcAtual.textContent = p.nome.toUpperCase();
+
+    // Categoria (overline)
+    const catEl = document.querySelector('[data-produto-categoria]');
+    if (catEl) {
+      catEl.textContent = cap(p.categoria || '') + (p.nova_colecao ? ' · Nova Coleção' : '');
+    }
+
+    // Nome H1
+    const nomeEl = document.querySelector('[data-produto-nome]');
+    if (nomeEl) nomeEl.textContent = p.nome;
+
+    // Preço atual
+    const precoEl = document.querySelector('[data-preco]');
+    if (precoEl) {
+      precoEl.setAttribute('data-preco', preco);
+      precoEl.textContent = fmt(preco);
+    }
+
+    // Preço original riscado
+    const precoOrigEl = document.querySelector('.produto-preco-original');
+    if (p.preco_desconto && p.preco_original) {
+      if (precoOrigEl) {
+        precoOrigEl.textContent = fmt(p.preco_original);
+        precoOrigEl.style.display = '';
+      }
+    } else if (precoOrigEl) {
+      precoOrigEl.style.display = 'none';
+    }
+
+    // Parcelamento
+    const parcela = preco / 6;
+    const parcelaEl = document.querySelector('.produto-parcelamento');
+    if (parcelaEl) parcelaEl.textContent = `ou 6x de ${fmt(parcela)} sem juros`;
+
+    // Cores
+    const coresContainer = document.getElementById('coresContainer');
+    const selectedColorEl = document.getElementById('selectedColor');
+    if (coresContainer && p.cores && p.cores.length > 0) {
+      coresContainer.innerHTML = p.cores.map((c, i) =>
+        `<button class="produto-cor${i === 0 ? ' produto-cor--active' : ''}"
+                 data-cor="${c.nome}"
+                 style="background:${c.hex}${c.nome === 'Off-White' || c.nome === 'Off white' ? ';border:1px solid #ddd' : ''}"
+                 aria-label="${c.nome}"
+                 aria-pressed="${i === 0 ? 'true' : 'false'}"></button>`
+      ).join('');
+      if (selectedColorEl) selectedColorEl.textContent = p.cores[0].nome;
+    }
+
+    // Descrição
+    const descEl = document.getElementById('acc-desc');
+    if (descEl && p.descricao) {
+      descEl.innerHTML = `<p>${p.descricao.replace(/\n/g, '</p><p style="margin-top:var(--space-3);">')}</p>`;
+    }
+
+    // Composição
+    const compEl = document.getElementById('acc-composicao');
+    if (compEl && p.composicao) {
+      compEl.innerHTML = `<p>${p.composicao.replace(/\n/g, '<br/>')}</p>`;
+    }
+
+    // Imagem principal
+    if (p.imagem_url) {
+      const mainPlaceholder = document.getElementById('mainPlaceholder');
+      if (mainPlaceholder) {
+        mainPlaceholder.style.background = `url('${p.imagem_url}') center/cover no-repeat`;
+        const label = mainPlaceholder.querySelector('.galeria-main__placeholder-label');
+        if (label) label.style.display = 'none';
+      }
+    }
+
+    return p;
+  } catch (err) {
+    console.error('[Produto] Erro ao carregar produto:', err);
+    return null;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+
+  // ── CARREGAR DADOS DO PRODUTO ───────────────
+  const _urlId = new URLSearchParams(window.location.search).get('id');
+  if (_urlId && typeof supabaseClient !== 'undefined') {
+    await carregarProduto(_urlId);
+  }
 
   // ── NAVBAR SCROLL ──────────────────────────
   const navbar = document.getElementById('navbar');
@@ -355,26 +469,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (firstColor) firstColor.click();
 
   // ── VIRTU STOCK — Integração com Supabase ──
-  // Inicializa o sistema de stock se ?id=UUID estiver na URL
-  const _produtoId = new URLSearchParams(window.location.search).get('id');
-
-  if (_produtoId && typeof VirtuStock !== 'undefined') {
-    VirtuStock.init(_produtoId, (resultado, variacao) => {
-      // Após compra bem-sucedida: feedback visual + redireciona para o carrinho
+  if (_urlId && typeof VirtuStock !== 'undefined') {
+    VirtuStock.init(_urlId, (resultado, variacao) => {
       const btnComprar = document.getElementById('btnComprar');
       if (btnComprar) {
         btnComprar.textContent = '✓ Adicionado! A ir para o carrinho…';
         btnComprar.style.background = 'var(--color-navy)';
       }
-      setTimeout(() => {
-        window.location.href = 'carrinho.html';
-      }, 1200);
+      setTimeout(() => { window.location.href = 'carrinho.html'; }, 1200);
     }).catch(err => {
       console.warn('[Produto] Erro ao inicializar stock:', err);
     });
-  } else if (!_produtoId) {
-    // Modo demonstração (sem ID na URL) — mantém os botões estáticos
-    console.info('[Produto] ID do produto não encontrado na URL. Adicione ?id=UUID para carregar stock real.');
   }
 
 });
