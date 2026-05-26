@@ -562,6 +562,160 @@ body {
   padding: 1rem;
 }
 
+/* ── LOGIN SCREEN ────────────────────────── */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, var(--navy-dark) 0%, #1a2d40 50%, #2B3F54 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+}
+.login-screen.login-screen--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  text-align: center;
+}
+
+.login-logo {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.login-logo__virtu {
+  font-family: var(--font-disp);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--navy);
+  letter-spacing: 0.2em;
+}
+.login-logo__tag {
+  font-family: var(--font);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(196,147,74,0.12);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.login-title {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.login-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  margin-bottom: 1.75rem;
+  line-height: 1.5;
+}
+
+.login-form { text-align: left; }
+.login-field {
+  margin-bottom: 1rem;
+}
+.login-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+}
+.login-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.login-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(43,63,84,0.1);
+}
+
+.login-error {
+  font-size: 0.82rem;
+  color: #8b2635;
+  background: #fde8ea;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  display: none;
+}
+.login-error:not(:empty) { display: block; }
+
+.login-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.15s, transform 0.1s;
+}
+.login-btn:hover   { background: var(--navy-dark); }
+.login-btn:active  { transform: scale(0.99); }
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── LOGOUT BUTTON ───────────────────────── */
+.admin-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.65);
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.admin-logout-btn:hover {
+  background: rgba(255,255,255,0.13);
+  color: #fff;
+}
+.admin-logout-btn span { display: block; }
+
 /* ── STOCK ADMIN — MODAL ─────────────────── */
 
 /* Container principal do modal (fixed overlay) */

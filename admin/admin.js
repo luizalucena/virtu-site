@@ -11,10 +11,78 @@ let editandoId  = null;
 
 // ── INICIALIZAÇÃO ───────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  setStatus('info', '⏳ Conectando ao banco de dados…');
-  await carregarDados();
-  bindEvents();
+  // Verifica autenticação antes de mostrar o painel
+  await verificarAuth();
 });
+
+// ── AUTH: VERIFICAR SESSÃO ──────────────────
+async function verificarAuth() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (session) {
+    mostrarAdmin();
+  } else {
+    mostrarLogin();
+  }
+
+  // Escuta mudanças de estado de autenticação
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (session) mostrarAdmin();
+    else mostrarLogin();
+  });
+}
+
+function mostrarLogin() {
+  const loginScreen = document.getElementById('loginScreen');
+  if (loginScreen) {
+    loginScreen.classList.remove('login-screen--hidden');
+  }
+  bindLoginEvents();
+}
+
+function mostrarAdmin() {
+  const loginScreen = document.getElementById('loginScreen');
+  if (loginScreen) {
+    loginScreen.classList.add('login-screen--hidden');
+    setTimeout(() => loginScreen.style.display = 'none', 300);
+  }
+  setStatus('info', '⏳ Conectando ao banco de dados…');
+  carregarDados();
+  bindEvents();
+}
+
+// ── AUTH: EVENTOS DE LOGIN ──────────────────
+function bindLoginEvents() {
+  const form     = document.getElementById('loginForm');
+  const errorEl  = document.getElementById('loginError');
+  const loginBtn = document.getElementById('loginBtn');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('loginEmail')?.value.trim();
+    const password = document.getElementById('loginPassword')?.value;
+
+    if (!email || !password) {
+      errorEl.textContent = 'Preencha o e-mail e a senha.';
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'A entrar…';
+    errorEl.textContent = '';
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      errorEl.textContent = error.message.includes('Invalid login')
+        ? 'E-mail ou senha incorretos.'
+        : error.message;
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Entrar';
+    }
+    // Se sucesso, onAuthStateChange cuida do resto automaticamente
+  });
+}
 
 // ── CARREGAR DADOS DO SUPABASE ──────────────
 async function carregarDados() {
@@ -57,6 +125,17 @@ function bindEvents() {
       if (view === 'configuracoes') populateConfig();
       if (view === 'sobre')        populateSobre();
     });
+  });
+
+  // Botão de logout
+  document.getElementById('btnLogout')?.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    // onAuthStateChange irá mostrar o login automaticamente
+    const loginScreen = document.getElementById('loginScreen');
+    if (loginScreen) {
+      loginScreen.style.display = '';
+      setTimeout(() => loginScreen.classList.remove('login-screen--hidden'), 10);
+    }
   });
 
   // Botão recarregar (era "Abrir JSON")
