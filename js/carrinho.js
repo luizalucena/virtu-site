@@ -192,9 +192,10 @@ function renderCartItems() {
 function updateSummary() {
   const items       = getCart();
   const subtotal    = items.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
-  const isFree      = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const shipping    = isFree ? 0 : (subtotal > 0 ? 25 : 0);
   const giftExtra   = giftWrap ? giftWrapPrice : 0;
+  const baseParaFrete = subtotal + giftExtra;          // embalagem conta para frete grátis
+  const isFree      = baseParaFrete >= FREE_SHIPPING_THRESHOLD;
+  const shipping    = isFree ? 0 : (baseParaFrete > 0 ? 25 : 0);
   const total       = Math.max(0, subtotal - discount + shipping + giftExtra);
   const installment = total / 6;
 
@@ -234,14 +235,14 @@ function updateSummary() {
   // Barra de frete grátis
   const fill = document.getElementById('freeShippingFill');
   const text = document.getElementById('freeShippingText');
-  const pct  = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
+  const pct  = Math.min(100, (baseParaFrete / FREE_SHIPPING_THRESHOLD) * 100);
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
-    if (isFree && subtotal > 0) {
+    if (isFree && baseParaFrete > 0) {
       text.textContent = '🎉 Você ganhou frete grátis!';
       text.style.color = '#2e7d32';
-    } else if (subtotal > 0) {
-      const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
+    } else if (baseParaFrete > 0) {
+      const remaining = FREE_SHIPPING_THRESHOLD - baseParaFrete;
       text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis`;
       text.style.color = '';
     } else {
