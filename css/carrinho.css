@@ -545,3 +545,59 @@
     gap: 1rem 0.75rem;
   }
 }
+
+/* ── EMBALAGEM PARA PRESENTE ─────────────────── */
+.cart-gift-wrap {
+  margin: 1rem 0;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, rgba(196,147,74,0.07), rgba(196,147,74,0.03));
+  border: 1px solid rgba(196,147,74,0.25);
+  border-radius: 8px;
+}
+
+.cart-gift-wrap__label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--color-navy);
+  line-height: 1.4;
+}
+
+.cart-gift-wrap__check {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-gold);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cart-gift-wrap__icon { font-size: 1.1rem; flex-shrink: 0; }
+
+.cart-gift-wrap__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cart-gift-wrap__price {
+  font-weight: 600;
+  color: var(--color-gold);
+  font-size: 0.85rem;
+}
+
+.cart-gift-wrap__note {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.cart-summary__gift-label {
+  color: var(--color-gold);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+}

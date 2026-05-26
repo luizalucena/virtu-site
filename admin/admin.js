@@ -504,6 +504,7 @@ function populateConfig() {
   set('cfgInstagram',cfg.instagram);
   set('cfgFrete',    cfg.frete_gratis_acima);
   set('cfgParcelas', cfg.max_parcelas);
+  set('cfgEmbalagem', cfg.preco_embalagem_presente);
   const b = cfg.banner_home || {};
   set('cfgBannerL1',    b.titulo_linha1);
   set('cfgBannerL2',    b.titulo_linha2);
@@ -539,8 +540,9 @@ async function saveConfig() {
     nome_loja:          document.getElementById('cfgNomeLoja')?.value.trim(),
     slogan:             document.getElementById('cfgSlogan')?.value.trim(),
     instagram:          document.getElementById('cfgInstagram')?.value.trim(),
-    frete_gratis_acima: parseFloat(document.getElementById('cfgFrete')?.value) || 300,
-    max_parcelas:       parseInt(document.getElementById('cfgParcelas')?.value) || 6,
+    frete_gratis_acima:        parseFloat(document.getElementById('cfgFrete')?.value) || 300,
+    max_parcelas:              parseInt(document.getElementById('cfgParcelas')?.value) || 6,
+    preco_embalagem_presente:  parseFloat(document.getElementById('cfgEmbalagem')?.value) || 15,
     banner_home: {
       titulo_linha1: document.getElementById('cfgBannerL1')?.value.trim(),
       titulo_linha2: document.getElementById('cfgBannerL2')?.value.trim(),

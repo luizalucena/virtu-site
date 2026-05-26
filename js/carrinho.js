@@ -8,8 +8,28 @@ const CART_KEY = 'virtu_cart';
 const FREE_SHIPPING_THRESHOLD = 300;
 const VALID_COUPONS = { 'VIRTU10': 10, 'VIRTU20': 20, 'BEMVINDA': 15 };
 
-let discount    = 0;
+let discount      = 0;
 let appliedCoupon = null;
+let giftWrap      = false;
+let giftWrapPrice = 15; // valor padrão; sobrescrito pelo Supabase se disponível
+
+/* ── CARREGAR PREÇO DE EMBALAGEM DO SUPABASE ── */
+(async () => {
+  if (typeof supabaseClient === 'undefined') return;
+  try {
+    const { data: cfg } = await supabaseClient
+      .from('configuracoes')
+      .select('preco_embalagem_presente')
+      .eq('id', 1)
+      .maybeSingle();
+    if (cfg?.preco_embalagem_presente != null) {
+      giftWrapPrice = parseFloat(cfg.preco_embalagem_presente) || 15;
+      // Atualiza o label do preço no HTML
+      const label = document.getElementById('giftWrapPriceLabel');
+      if (label) label.textContent = `+ ${formatCurrency(giftWrapPrice)}`;
+    }
+  } catch { /* usa o padrão R$ 15,00 */ }
+})();
 
 function getCart() {
   try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
@@ -170,12 +190,19 @@ function renderCartItems() {
 
 /* ── RESUMO DO PEDIDO ──────────────────────────────────────── */
 function updateSummary() {
-  const items    = getCart();
-  const subtotal = items.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
-  const isFree   = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const shipping  = isFree ? 0 : (subtotal > 0 ? 25 : 0);
-  const total    = Math.max(0, subtotal - discount + shipping);
+  const items       = getCart();
+  const subtotal    = items.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
+  const isFree      = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const shipping    = isFree ? 0 : (subtotal > 0 ? 25 : 0);
+  const giftExtra   = giftWrap ? giftWrapPrice : 0;
+  const total       = Math.max(0, subtotal - discount + shipping + giftExtra);
   const installment = total / 6;
+
+  // Linha de embalagem para presente
+  const giftLine = document.getElementById('giftWrapLine');
+  const giftDD   = document.getElementById('summaryGiftWrap');
+  if (giftLine) giftLine.hidden = !giftWrap;
+  if (giftDD)   giftDD.textContent = formatCurrency(giftWrapPrice);
 
   // Totais por linha
   document.querySelectorAll('.cart-item').forEach(itemEl => {
@@ -373,6 +400,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       showFeedback('Cupom inválido ou expirado.', 'error');
     }
+  });
+
+  // Embalagem para presente
+  document.getElementById('giftWrapCheck')?.addEventListener('change', function () {
+    giftWrap = this.checked;
+    updateSummary();
   });
 
   // Sugestões
