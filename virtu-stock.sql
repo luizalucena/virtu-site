@@ -14,7 +14,7 @@
 
 CREATE TABLE IF NOT EXISTS variacoes (
   id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  produto_id    UUID        NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+  produto_id    TEXT        NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
   tamanho       TEXT        NOT NULL,          -- 'PP' | 'P' | 'M' | 'G' | 'GG' | 'U'
   cor_nome      TEXT        NOT NULL,          -- 'Preto', 'Bege', 'Branco'…
   cor_hex       TEXT        NOT NULL DEFAULT '#000000',
@@ -148,7 +148,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_estoque_atual INTEGER;
-  v_produto_id    UUID;
+  v_produto_id    TEXT;
 BEGIN
   -- Validação de entrada
   IF p_quantidade <= 0 THEN
@@ -299,7 +299,7 @@ $$;
 -- Retorna todas as variações ativas de um produto com o stock
 -- atual. Usada pelo site público ao carregar a página de produto.
 
-CREATE OR REPLACE FUNCTION stock_do_produto(p_produto_id UUID)
+CREATE OR REPLACE FUNCTION stock_do_produto(p_produto_id TEXT)
 RETURNS TABLE (
   variacao_id   UUID,
   tamanho       TEXT,

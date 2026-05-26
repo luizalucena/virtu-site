@@ -25,6 +25,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         Página Sobre
       </button>
+      <button class="admin-nav-btn" data-view="stock">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Stock
+      </button>
       <button class="admin-nav-btn" data-view="configuracoes">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Configurações
@@ -378,6 +382,31 @@
     </div>
 
     <!-- ══════════════════════════════════════
+         VIEW: STOCK
+    ══════════════════════════════════════ -->
+    <div class="admin-view admin-view--hidden" id="viewStock">
+      <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <label class="admin-label" style="display:block;margin-bottom:0.4rem;">Produto</label>
+          <select class="admin-input" id="stockProdutoSelect" style="width:100%;max-width:380px;">
+            <option value="">— Selecionar produto —</option>
+          </select>
+        </div>
+        <button class="admin-btn admin-btn--primary" id="btnCarregarStock" style="margin-top:1.4rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Carregar Stock
+        </button>
+      </div>
+
+      <div id="stockAdminContainer">
+        <div class="admin-empty-state" style="text-align:center;padding:3rem 0;color:var(--text-muted);">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3;margin-bottom:1rem;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <p>Selecione um produto para gerir o seu stock.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
          VIEW: CONFIGURAÇÕES
     ══════════════════════════════════════ -->
     <div class="admin-view admin-view--hidden" id="viewConfiguracoes">
@@ -577,5 +606,50 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
   <script src="admin.js"></script>
+  <script src="stock-admin.js"></script>
+  <script>
+    /* ── INTEGRAÇÃO STOCK NA VIEW ADMIN ─────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+      const select    = document.getElementById('stockProdutoSelect');
+      const btnCarregar = document.getElementById('btnCarregarStock');
+      const container = document.getElementById('stockAdminContainer');
+
+      // Popula o <select> com produtos do Supabase quando a view é aberta
+      async function carregarProdutosNoSelect() {
+        if (select.options.length > 1) return; // já carregado
+        try {
+          const { data, error } = await supabaseClient
+            .from('produtos')
+            .select('id, nome')
+            .order('nome');
+          if (error) throw error;
+          (data || []).forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.nome;
+            select.appendChild(opt);
+          });
+        } catch (err) {
+          console.error('[Admin Stock] Erro ao carregar produtos:', err.message);
+        }
+      }
+
+      // Botão "Carregar Stock"
+      btnCarregar?.addEventListener('click', async () => {
+        const produtoId = select.value;
+        if (!produtoId) { alert('Selecione um produto primeiro.'); return; }
+        if (typeof VirtuStockAdmin !== 'undefined') {
+          await VirtuStockAdmin.renderTabelaStock(produtoId, 'stockAdminContainer');
+        } else {
+          container.innerHTML = '<p style="color:red;padding:1rem">VirtuStockAdmin não carregado.</p>';
+        }
+      });
+
+      // Ouve cliques no nav para carregar produtos quando "Stock" for clicado
+      document.querySelectorAll('.admin-nav-btn[data-view="stock"]').forEach(btn => {
+        btn.addEventListener('click', () => carregarProdutosNoSelect());
+      });
+    });
+  </script>
 </body>
 </html>

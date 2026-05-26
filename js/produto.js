@@ -354,4 +354,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const firstColor = document.querySelector('.produto-cor');
   if (firstColor) firstColor.click();
 
+  // ── VIRTU STOCK — Integração com Supabase ──
+  // Inicializa o sistema de stock se ?id=UUID estiver na URL
+  const _produtoId = new URLSearchParams(window.location.search).get('id');
+
+  if (_produtoId && typeof VirtuStock !== 'undefined') {
+    VirtuStock.init(_produtoId, (resultado, variacao) => {
+      // Após compra bem-sucedida: feedback visual + redireciona para o carrinho
+      const btnComprar = document.getElementById('btnComprar');
+      if (btnComprar) {
+        btnComprar.textContent = '✓ Adicionado! A ir para o carrinho…';
+        btnComprar.style.background = 'var(--color-navy)';
+      }
+      setTimeout(() => {
+        window.location.href = 'carrinho.html';
+      }, 1200);
+    }).catch(err => {
+      console.warn('[Produto] Erro ao inicializar stock:', err);
+    });
+  } else if (!_produtoId) {
+    // Modo demonstração (sem ID na URL) — mantém os botões estáticos
+    console.info('[Produto] ID do produto não encontrado na URL. Adicione ?id=UUID para carregar stock real.');
+  }
+
 });
