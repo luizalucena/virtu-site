@@ -109,10 +109,110 @@ async function carregarProduto(produtoId) {
       }
     }
 
+    // Compre Junto — carrega peças reais do Supabase
+    const secCompreJunto = document.querySelector('.compre-junto');
+    if (secCompreJunto) {
+      const ids = p.compre_junto;
+      if (Array.isArray(ids) && ids.length > 0) {
+        await renderCompreJunto(p, ids);
+      } else {
+        secCompreJunto.style.display = 'none'; // sem sugestões → oculta a secção
+      }
+    }
+
     return p;
   } catch (err) {
     console.error('[Produto] Erro ao carregar produto:', err);
     return null;
+  }
+}
+
+/* ── COMPRE JUNTO — renderização dinâmica ───── */
+async function renderCompreJunto(produtoPrincipal, sugestoesIds) {
+  try {
+    const { data: sugestoes } = await supabaseClient
+      .from('produtos')
+      .select('id, nome, preco_original, preco_desconto, imagem_url, imagem_placeholder')
+      .in('id', sugestoesIds)
+      .eq('ativo', true);
+
+    if (!sugestoes || sugestoes.length === 0) {
+      document.querySelector('.compre-junto')?.style.setProperty('display', 'none');
+      return;
+    }
+
+    const fmt  = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const bg   = p => p.imagem_url
+      ? `url('${p.imagem_url}') center/cover no-repeat`
+      : (p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)');
+
+    const precoPrincipal = produtoPrincipal.preco_desconto ?? produtoPrincipal.preco_original;
+    let total = precoPrincipal;
+
+    const cardHTML = (p, tag) => {
+      const preco = p.preco_desconto ?? p.preco_original;
+      return `
+        <div class="compre-junto__card">
+          <a href="produto.html?id=${p.id}" style="display:block">
+            <div class="compre-junto__img" style="background:${bg(p)}"></div>
+          </a>
+          <div class="compre-junto__tag">${tag}</div>
+          <p class="compre-junto__name">${p.nome}</p>
+          <p class="compre-junto__price">${fmt(preco)}</p>
+        </div>`;
+    };
+
+    let mainHTML = cardHTML(produtoPrincipal, 'Este produto');
+    sugestoes.forEach(s => {
+      total += s.preco_desconto ?? s.preco_original;
+      mainHTML += `<span class="compre-junto__plus" aria-hidden="true">+</span>` + cardHTML(s, 'Sugestão');
+    });
+
+    const qtd = 1 + sugestoes.length;
+    const mainEl  = document.querySelector('.compre-junto__main');
+    const totalEl = document.querySelector('.compre-junto__total');
+    const labelEl = document.querySelector('.compre-junto__total-label');
+    const addBtn  = document.getElementById('addAllBtn');
+    const econEl  = document.querySelector('.compre-junto__economia');
+
+    if (mainEl)  mainEl.innerHTML = mainHTML;
+    if (totalEl) totalEl.textContent = fmt(total);
+    if (labelEl) labelEl.textContent = `Total dos ${qtd} itens`;
+    if (addBtn)  addBtn.textContent  = `Adicionar os ${qtd} ao carrinho`;
+    if (econEl)  econEl.style.display = 'none'; // economia calculada futuramente
+
+    // Clicar em "Adicionar os X ao carrinho" → adiciona todos ao localStorage
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        const CART_KEY = 'virtu_cart';
+        let cart = [];
+        try { cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch {}
+
+        const toAdd = [produtoPrincipal, ...sugestoes];
+        toAdd.forEach(item => {
+          const preco = item.preco_desconto ?? item.preco_original;
+          const existing = cart.findIndex(c => c.id === item.id);
+          if (existing >= 0) {
+            cart[existing].qty = (cart[existing].qty || 1) + 1;
+          } else {
+            cart.push({ id: item.id, nome: item.nome, preco, tamanho: '', cor_nome: '', qty: 1 });
+          }
+        });
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+        const totalQty = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        const badge = document.getElementById('cartBadge');
+        if (badge) { badge.textContent = totalQty; badge.hidden = false; }
+
+        const orig = addBtn.textContent;
+        addBtn.textContent = `✓ ${qtd} peças adicionadas!`;
+        addBtn.disabled = true;
+        setTimeout(() => { addBtn.textContent = orig; addBtn.disabled = false; }, 2000);
+      });
+    }
+
+  } catch (err) {
+    console.warn('[Produto] Erro ao carregar Compre Junto:', err);
   }
 }
 

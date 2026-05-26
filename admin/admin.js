@@ -328,6 +328,7 @@ function openModal(id) {
     document.getElementById('formPlaceholder').value      = p.imagem_placeholder || '';
     document.getElementById('formDescricao').value        = p.descricao || '';
     document.getElementById('formComposicao').value       = p.composicao || '';
+    document.getElementById('formCompreJunto').value      = (p.compre_junto || []).join(', ');
     document.getElementById('formDestaque').checked       = !!p.destaque;
     document.getElementById('formNovidade').checked       = !!p.novidade;
     document.getElementById('formAtivo').checked          = p.ativo !== false;
@@ -359,7 +360,7 @@ function closeModal() {
 
 function resetForm() {
   ['formId','formNome','formPrecoOriginal','formPrecoDesconto','formEstoque',
-   'formImagem','formPlaceholder','formDescricao','formComposicao']
+   'formImagem','formPlaceholder','formDescricao','formComposicao','formCompreJunto']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('formCategoria').value  = 'vestidos';
   document.getElementById('formBadge').value      = '';
@@ -414,7 +415,9 @@ async function saveProduct() {
     destaque:           document.getElementById('formDestaque')?.checked,
     novidade:           document.getElementById('formNovidade')?.checked,
     ativo:              document.getElementById('formAtivo')?.checked,
-    estoque:            parseInt(document.getElementById('formEstoque')?.value) || 0
+    estoque:            parseInt(document.getElementById('formEstoque')?.value) || 0,
+    compre_junto:       (document.getElementById('formCompreJunto')?.value || '')
+                          .split(',').map(s => s.trim()).filter(Boolean)
   };
 
   try {
