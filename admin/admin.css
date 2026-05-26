@@ -562,6 +562,287 @@ body {
   padding: 1rem;
 }
 
+/* ── STOCK ADMIN — MODAL ─────────────────── */
+
+/* Container principal do modal (fixed overlay) */
+#stockModal {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#stockModal[hidden] { display: none; }
+
+/* Backdrop escuro */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+/* Caixa branca centralizada */
+.modal-box {
+  position: relative;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--navy);
+  color: #fff;
+}
+
+.modal-title {
+  font-family: var(--font-disp);
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #fff;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  transition: color 0.15s;
+}
+.modal-close:hover { color: #fff; }
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-body .form-group {
+  margin-bottom: 1rem;
+}
+.modal-body .form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+}
+.modal-body .form-control {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.modal-body .form-control:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(43,63,84,0.08);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--off-white);
+}
+
+.btn-modal-salvar {
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 1.25rem;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-modal-salvar:hover { background: var(--navy-dark); }
+
+/* ── STOCK ADMIN — TOAST ─────────────────── */
+.admin-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  padding: 0.8rem 1.25rem;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  animation: toastIn 0.3s ease, toastOut 0.4s ease 3.1s forwards;
+  pointer-events: none;
+}
+.admin-toast--sucesso {
+  background: #1a6b3a;
+  color: #fff;
+}
+.admin-toast--erro {
+  background: #8b2635;
+  color: #fff;
+}
+@keyframes toastIn  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(12px); } }
+
+/* ── STOCK ADMIN — EMPTY STATE ───────────── */
+.admin-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-light);
+}
+.admin-empty p { margin-bottom: 1rem; font-size: 0.95rem; }
+.admin-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* ── STOCK ADMIN — BADGES ────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.badge--ok      { background: #d4edda; color: #155724; }
+.badge--urgente { background: #fff3cd; color: #856404; }
+.badge--esgotado{ background: #f8d7da; color: #721c24; }
+
+/* ── STOCK ADMIN — TABELA ────────────────── */
+.stock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.stock-title {
+  font-family: var(--font-disp);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--navy);
+}
+.stock-table { width: 100%; border-collapse: collapse; }
+.stock-table th, .stock-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+.stock-table th {
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  background: var(--off-white);
+}
+.stock-table tr:last-child td { border-bottom: none; }
+.row--inativo td { opacity: 0.45; }
+.row--changed   { background: rgba(196,147,74,0.1) !important; transition: background 2s ease; }
+
+/* ── STOCK ADMIN — CONTROLES INLINE ──────── */
+.stock-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-stock {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn-stock:hover { background: var(--gold-light); border-color: var(--gold); }
+.btn-stock--minus:hover { background: #fde8ea; border-color: #d46b6b; }
+.stock-input {
+  width: 60px;
+  text-align: center;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.stock-input:focus { outline: none; border-color: var(--navy); }
+
+/* ── STOCK ADMIN — COR E TAMANHO ─────────── */
+.color-dot {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.size-tag {
+  display: inline-block;
+  background: var(--navy);
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ── STOCK ADMIN — BOTÕES ÍCONE ──────────── */
+.btn-icon {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: var(--text-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  margin-right: 2px;
+}
+.btn-icon:hover         { background: var(--off-white); color: var(--text); }
+.btn-icon--danger:hover { background: #fde8ea; color: #8b2635; border-color: #d46b6b; }
+
 /* ── RESPONSIVE ──────────────────────────── */
 @media (max-width: 1200px) {
   .admin-config-grid { grid-template-columns: 1fr 1fr; }

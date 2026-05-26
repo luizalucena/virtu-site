@@ -13,6 +13,12 @@
 
 const VirtuStockAdmin = (() => {
 
+  /* ── ESTADO DO MÓDULO ────────────────────────────────────── */
+  // Guarda o produto e container ativos para poder re-renderizar
+  // depois de qualquer operação de escrita.
+  let _produtoAtual   = null;
+  let _containerAtual = null;
+
   /* ── UTILITÁRIOS ─────────────────────────────────────────── */
   const TAMANHOS_ORDEM = ['PP', 'P', 'M', 'G', 'GG', 'U'];
 
@@ -36,11 +42,13 @@ const VirtuStockAdmin = (() => {
     setTimeout(() => t.remove(), 3500);
   }
 
+  function reRenderTabela() {
+    if (_produtoAtual && _containerAtual) {
+      renderTabelaStock(_produtoAtual, _containerAtual);
+    }
+  }
+
   /* ── 1. CARREGAR VARIAÇÕES DO PRODUTO ───────────────────── */
-  /**
-   * Busca todas as variações (ativas e inativas) de um produto.
-   * Retorna array ordenado por tamanho e cor.
-   */
   async function carregarVariacoes(produtoId) {
     const { data, error } = await supabaseClient
       .from('variacoes')
@@ -62,15 +70,13 @@ const VirtuStockAdmin = (() => {
   }
 
   /* ── 2. RENDERIZAR TABELA DE STOCK ──────────────────────── */
-  /**
-   * Gera e injeta a tabela de gestão de stock no elemento destino.
-   *
-   * @param {string} produtoId    - UUID do produto
-   * @param {string} containerId  - ID do elemento HTML de destino
-   */
   async function renderTabelaStock(produtoId, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    // Guarda estado para re-render posterior
+    _produtoAtual   = produtoId;
+    _containerAtual = containerId;
 
     container.innerHTML = '<p class="admin-loading">A carregar variações…</p>';
 
@@ -150,11 +156,6 @@ const VirtuStockAdmin = (() => {
   }
 
   /* ── 3. AJUSTE INLINE DE STOCK ──────────────────────────── */
-
-  /**
-   * Adiciona ou remove unidades via RPC ajustar_estoque.
-   * Chame com delta positivo (entrada) ou negativo (saída).
-   */
   async function ajustarInline(variacaoId, delta) {
     const inputEl = document.getElementById(`stock-input-${variacaoId}`);
     const cellEl  = document.getElementById(`estoque-cell-${variacaoId}`);
@@ -176,9 +177,6 @@ const VirtuStockAdmin = (() => {
     showToast(`Stock atualizado: ${novo} unidade${novo !== 1 ? 's' : ''}.`);
   }
 
-  /**
-   * Define o stock com o valor absoluto do input.
-   */
   async function definirInline(variacaoId) {
     const inputEl = document.getElementById(`stock-input-${variacaoId}`);
     const cellEl  = document.getElementById(`estoque-cell-${variacaoId}`);
@@ -207,21 +205,18 @@ const VirtuStockAdmin = (() => {
   async function toggleAtivo(variacaoId, ativoAtual) {
     const novoAtivo = !ativoAtual;
 
-    const { error } = await supabaseClient
-      .from('variacoes')
-      .update({ ativo: novoAtivo })
-      .eq('id', variacaoId);
+    const { data, error } = await supabaseClient.rpc('toggle_ativo_variacao', {
+      p_variacao_id: variacaoId,
+      p_ativo:       novoAtivo
+    });
 
-    if (error) {
-      showToast('Erro ao alterar estado da variação.', 'erro');
+    if (error || !data?.sucesso) {
+      showToast(data?.erro || error?.message || 'Erro ao alterar estado da variação.', 'erro');
       return;
     }
 
     showToast(novoAtivo ? 'Variação ativada.' : 'Variação desativada.');
-
-    // Re-renderiza a tabela para refletir o novo estado
-    const tabela = document.querySelector('[data-produto-id-stock]');
-    if (tabela) renderTabelaStock(tabela.dataset.produtoIdStock, tabela.id);
+    reRenderTabela();
   }
 
   /* ── 5. MODAL: NOVA VARIAÇÃO ─────────────────────────────── */
@@ -269,29 +264,26 @@ const VirtuStockAdmin = (() => {
       showToast('Preencha todos os campos obrigatórios.', 'erro'); return;
     }
 
-    const { error } = await supabaseClient.from('variacoes').insert({
-      produto_id: produtoId,
-      tamanho:    dados.tamanho.trim(),
-      cor_nome:   dados.cor_nome.trim(),
-      cor_hex:    dados.cor_hex.trim(),
-      estoque:    isNaN(estoque) ? 0 : estoque
+    // Usa RPC SECURITY DEFINER para contornar RLS sem expor service_role key
+    const { data, error } = await supabaseClient.rpc('criar_variacao', {
+      p_produto_id: produtoId,
+      p_tamanho:    dados.tamanho.trim(),
+      p_cor_nome:   dados.cor_nome.trim(),
+      p_cor_hex:    dados.cor_hex.trim(),
+      p_estoque:    isNaN(estoque) ? 0 : estoque
     });
 
-    if (error) {
-      showToast(
-        error.code === '23505'
-          ? 'Já existe uma variação com este tamanho e cor.'
-          : error.message,
-        'erro'
-      );
+    if (error || !data?.sucesso) {
+      const msg = data?.code === '23505' || data?.erro?.includes('unique')
+        ? 'Já existe uma variação com este tamanho e cor.'
+        : (data?.erro || error?.message || 'Erro ao criar variação.');
+      showToast(msg, 'erro');
       return;
     }
 
     modal.hidden = true;
     showToast('Variação criada com sucesso!');
-
-    const tabela = document.querySelector('[data-produto-id-stock]');
-    if (tabela) renderTabelaStock(tabela.dataset.produtoIdStock, tabela.id);
+    reRenderTabela();
   }
 
   /* ── 6. MODAL: EDITAR VARIAÇÃO ───────────────────────────── */
@@ -340,20 +332,23 @@ const VirtuStockAdmin = (() => {
     const dados   = Object.fromEntries(new FormData(form));
     const estoque = parseInt(dados.estoque, 10);
 
-    const { error } = await supabaseClient.from('variacoes').update({
-      tamanho:  dados.tamanho.trim(),
-      cor_nome: dados.cor_nome.trim(),
-      cor_hex:  dados.cor_hex.trim(),
-      estoque:  isNaN(estoque) ? 0 : estoque
-    }).eq('id', variacaoId);
+    // Usa RPC SECURITY DEFINER para contornar RLS
+    const { data, error } = await supabaseClient.rpc('atualizar_variacao', {
+      p_variacao_id: variacaoId,
+      p_tamanho:     dados.tamanho.trim(),
+      p_cor_nome:    dados.cor_nome.trim(),
+      p_cor_hex:     dados.cor_hex.trim(),
+      p_estoque:     isNaN(estoque) ? 0 : estoque
+    });
 
-    if (error) { showToast(error.message, 'erro'); return; }
+    if (error || !data?.sucesso) {
+      showToast(data?.erro || error?.message || 'Erro ao atualizar variação.', 'erro');
+      return;
+    }
 
     modal.hidden = true;
     showToast('Variação atualizada!');
-
-    const tabela = document.querySelector('[data-produto-id-stock]');
-    if (tabela) renderTabelaStock(tabela.dataset.produtoIdStock, tabela.id);
+    reRenderTabela();
   }
 
   /* ── 7. MODAL BASE (criado dinamicamente) ────────────────── */
@@ -382,10 +377,6 @@ const VirtuStockAdmin = (() => {
   }
 
   /* ── 8. REALTIME NO ADMIN ───────────────────────────────── */
-  /**
-   * O admin também recebe atualizações em tempo real.
-   * Útil para ver compras a acontecer ao vivo no painel.
-   */
   function iniciarRealtimeAdmin(produtoId) {
     return supabaseClient
       .channel(`admin-stock-${produtoId}`)
@@ -402,7 +393,6 @@ const VirtuStockAdmin = (() => {
         if (inputEl) inputEl.value = v.estoque;
         if (cellEl)  cellEl.innerHTML = formatEstoque(v.estoque);
 
-        // Destaque visual para mostrar que mudou
         const row = document.querySelector(`[data-variacao-id="${v.id}"]`);
         if (row) {
           row.classList.add('row--changed');
