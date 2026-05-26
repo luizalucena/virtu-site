@@ -512,6 +512,13 @@ function populateConfig() {
   set('cfgEditText',     e.texto);
   set('cfgEditCta',      e.cta_texto);
   set('cfgEditCtaLink',  e.cta_link);
+  // Barra de anúncios
+  const anuncioEl = document.getElementById('cfgAnuncio');
+  if (anuncioEl) {
+    anuncioEl.value = Array.isArray(cfg.anuncio_bar)
+      ? cfg.anuncio_bar.join('\n')
+      : (cfg.anuncio_bar || '');
+  }
 }
 
 async function saveConfig() {
@@ -537,7 +544,11 @@ async function saveConfig() {
       texto:     document.getElementById('cfgEditText')?.value.trim(),
       cta_texto: document.getElementById('cfgEditCta')?.value.trim(),
       cta_link:  document.getElementById('cfgEditCtaLink')?.value.trim()
-    }
+    },
+    anuncio_bar: (document.getElementById('cfgAnuncio')?.value || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean)
   };
 
   try {
