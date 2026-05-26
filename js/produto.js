@@ -120,10 +120,102 @@ async function carregarProduto(produtoId) {
       }
     }
 
+    // Peças Relacionadas — carrega automaticamente da mesma categoria
+    await renderPecasRelacionadas(produtoId, p.categoria);
+
     return p;
   } catch (err) {
     console.error('[Produto] Erro ao carregar produto:', err);
     return null;
+  }
+}
+
+/* ── PEÇAS RELACIONADAS — renderização dinâmica ── */
+async function renderPecasRelacionadas(currentId, categoria) {
+  try {
+    const secao  = document.querySelector('.voce-gosta');
+    const grid   = secao?.querySelector('.destaques__grid');
+    if (!secao || !grid) return;
+
+    const fmt = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const heartSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+
+    // 1) Busca até 4 da mesma categoria, excluindo o atual
+    let { data: rel } = await supabaseClient
+      .from('produtos')
+      .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, nova_colecao, destaque')
+      .eq('ativo', true)
+      .eq('categoria', categoria)
+      .neq('id', currentId)
+      .limit(4);
+
+    rel = rel || [];
+
+    // 2) Se menos de 4, completa com outros produtos
+    if (rel.length < 4) {
+      const excludeIds = [currentId, ...rel.map(p => p.id)];
+      const { data: extra } = await supabaseClient
+        .from('produtos')
+        .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, nova_colecao, destaque')
+        .eq('ativo', true)
+        .not('id', 'in', `(${excludeIds.map(i => `"${i}"`).join(',')})`)
+        .limit(4 - rel.length);
+      if (extra) rel = [...rel, ...extra];
+    }
+
+    if (rel.length === 0) { secao.style.display = 'none'; return; }
+
+    const cardHTML = p => {
+      const preco  = p.preco_desconto ?? p.preco_original;
+      const bg     = p.imagem_url
+        ? `url('${p.imagem_url}') center/cover no-repeat`
+        : (p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)');
+      const badge  = p.nova_colecao
+        ? `<span class="product-card__badge">Novo</span>`
+        : p.destaque
+          ? `<span class="product-card__badge">Mais Vendido</span>`
+          : '';
+      const cat = p.categoria ? p.categoria.charAt(0).toUpperCase() + p.categoria.slice(1) : '';
+      const label = p.imagem_url ? '' : `<span style="font-family:var(--font-display);font-size:12px;color:rgba(0,0,0,0.2);letter-spacing:2px;text-transform:uppercase;">foto</span>`;
+      return `
+        <article class="product-card">
+          <div class="product-card__image-wrap">
+            <div class="product-card__placeholder" style="background:${bg};width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${label}</div>
+            ${badge}
+            <button class="product-card__wishlist" aria-label="Favoritar">${heartSVG}</button>
+            <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
+          </div>
+          <div class="product-card__info">
+            <p class="product-card__category">${cat}</p>
+            <h3 class="product-card__name"><a href="produto.html?id=${p.id}">${p.nome}</a></h3>
+            <div class="product-card__price"><span class="product-card__price-current">${fmt(preco)}</span></div>
+          </div>
+        </article>`;
+    };
+
+    grid.innerHTML = rel.map(cardHTML).join('');
+
+    // Handlers dinâmicos — wishlist e quick-add
+    grid.querySelectorAll('.product-card__wishlist').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        btn.classList.toggle('active');
+      });
+    });
+    grid.querySelectorAll('.product-card__quick-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Adicionado!';
+        btn.style.cssText = 'background:var(--color-navy);color:white;';
+        const badge = document.getElementById('cartBadge');
+        if (badge) { badge.textContent = (parseInt(badge.textContent) || 0) + 1; badge.hidden = false; }
+        setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1400);
+      });
+    });
+
+  } catch (err) {
+    console.warn('[Produto] Erro ao carregar peças relacionadas:', err);
   }
 }
 
