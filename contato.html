@@ -163,7 +163,7 @@
             </div>
             <div>
               <h3 class="contato-info__title">E-mail</h3>
-              <a href="mailto:oi@virtu.com.br" class="contato-info__link">oi@virtu.com.br</a>
+              <a id="contatoEmailLink" href="mailto:oi@virtu.com.br" class="contato-info__link">oi@virtu.com.br</a>
               <p class="contato-info__note">Resposta em até 24h úteis</p>
             </div>
           </div>
@@ -174,8 +174,8 @@
             </div>
             <div>
               <h3 class="contato-info__title">WhatsApp</h3>
-              <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" class="contato-info__link">(11) 99999-9999</a>
-              <p class="contato-info__note">Seg–Sex, 9h–18h</p>
+              <a id="contatoWhatsappLink" href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" class="contato-info__link">(11) 99999-9999</a>
+              <p id="contatoWhatsappNote" class="contato-info__note">Seg–Sex, 9h–18h</p>
             </div>
           </div>
 
@@ -185,8 +185,8 @@
             </div>
             <div>
               <h3 class="contato-info__title">Horário de atendimento</h3>
-              <p class="contato-info__note">Segunda a Sexta, 9h às 18h</p>
-              <p class="contato-info__note">Sábado, 9h às 13h</p>
+              <p id="contatoHorarioSemana" class="contato-info__note">Segunda a Sexta, 9h às 18h</p>
+              <p id="contatoHorarioSabado" class="contato-info__note">Sábado, 9h às 13h</p>
             </div>
           </div>
 
@@ -286,45 +286,47 @@
 
   <!-- FOOTER -->
   <footer class="footer" role="contentinfo">
-    <div class="footer__inner">
-      <div class="footer__brand">
-        <div class="footer__logo">
-          <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" style="filter:brightness(0) invert(1);opacity:0.85" />
-          <span>VIRTÙ</span>
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__brand-logo">
+            <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" style="filter:brightness(0) invert(1);opacity:0.85" />
+            <span class="footer__logo-text">VIRTÙ</span>
+          </div>
+          <p class="footer__tagline">há virtude no vestir</p>
+          <div class="footer__socials" style="margin-top:var(--space-5)">
+            <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" class="footer__social-btn" aria-label="Instagram @wear.virtu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            </a>
+          </div>
         </div>
-        <p class="footer__tagline">há virtude no vestir</p>
-        <div class="footer__social">
-          <a href="https://instagram.com/wear.virtu" target="_blank" rel="noopener noreferrer" aria-label="Instagram @wear.virtu">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-          </a>
+        <div>
+          <p class="footer__col-title">Loja</p>
+          <nav class="footer__links" aria-label="Links da loja">
+            <a href="catalogo.html" class="footer__link">Catálogo</a>
+            <a href="catalogo.html?cat=novidades" class="footer__link">Novidades</a>
+            <a href="catalogo.html?cat=sale" class="footer__link">Sale</a>
+          </nav>
+        </div>
+        <div>
+          <p class="footer__col-title">Institucional</p>
+          <nav class="footer__links" aria-label="Links institucionais">
+            <a href="sobre.html" class="footer__link">Sobre a Virtù</a>
+            <a href="contato.html" class="footer__link">Contato</a>
+          </nav>
+        </div>
+        <div>
+          <p class="footer__col-title">Atendimento</p>
+          <nav class="footer__links" aria-label="Links de atendimento">
+            <a href="#" class="footer__link">Trocas e devoluções</a>
+            <a href="#" class="footer__link">Guia de tamanhos</a>
+            <a href="#" class="footer__link">Política de privacidade</a>
+          </nav>
         </div>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Loja</h4>
-        <ul>
-          <li><a href="catalogo.html">Catálogo</a></li>
-          <li><a href="catalogo.html?cat=novidades">Novidades</a></li>
-          <li><a href="catalogo.html?cat=sale">Sale</a></li>
-        </ul>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Virtù. Todos os direitos reservados.</p>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Institucional</h4>
-        <ul>
-          <li><a href="sobre.html">Sobre a Virtù</a></li>
-          <li><a href="contato.html">Contato</a></li>
-        </ul>
-      </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Atendimento</h4>
-        <ul>
-          <li><a href="#">Trocas e devoluções</a></li>
-          <li><a href="#">Guia de tamanhos</a></li>
-          <li><a href="#">Política de privacidade</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer__bottom">
-      <p>© 2025 Virtù. Todos os direitos reservados.</p>
     </div>
   </footer>
 

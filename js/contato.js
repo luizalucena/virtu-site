@@ -2,6 +2,38 @@
    VIRTÙ — Contato JavaScript
    ============================================================ */
 
+/* ── CARREGAR INFOS DE CONTATO DO SUPABASE ── */
+(async () => {
+  if (typeof supabaseClient === 'undefined') return;
+  try {
+    const { data: cfg } = await supabaseClient
+      .from('configuracoes')
+      .select('email_contato, whatsapp_numero, whatsapp_link, horario_semana, horario_sabado')
+      .eq('id', 1)
+      .maybeSingle();
+    if (!cfg) return;
+
+    const emailLink = document.getElementById('contatoEmailLink');
+    if (emailLink && cfg.email_contato) {
+      emailLink.textContent = cfg.email_contato;
+      emailLink.href = `mailto:${cfg.email_contato}`;
+    }
+
+    const waLink = document.getElementById('contatoWhatsappLink');
+    if (waLink && cfg.whatsapp_numero) {
+      waLink.textContent = cfg.whatsapp_numero;
+      if (cfg.whatsapp_link) waLink.href = cfg.whatsapp_link;
+    }
+
+    const horSemana = document.getElementById('contatoHorarioSemana');
+    if (horSemana && cfg.horario_semana) horSemana.textContent = cfg.horario_semana;
+
+    const horSabado = document.getElementById('contatoHorarioSabado');
+    if (horSabado && cfg.horario_sabado) horSabado.textContent = cfg.horario_sabado;
+
+  } catch { /* mantém valores estáticos como fallback */ }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── NAVBAR SCROLL ──────────────────────────

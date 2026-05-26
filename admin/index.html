@@ -496,6 +496,35 @@
           </div>
         </div>
 
+        <!-- CONTATO -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">Informações de Contato</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1rem;line-height:1.5">
+            Aparece na página de Contato do site.
+          </p>
+          <div class="admin-form-group">
+            <label class="admin-label">E-mail de atendimento</label>
+            <input type="email" class="admin-input" id="cfgEmailContato" placeholder="oi@virtu.com.br" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Número do WhatsApp (exibido)</label>
+            <input type="text" class="admin-input" id="cfgWhatsappNumero" placeholder="(11) 99999-9999" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Link do WhatsApp</label>
+            <input type="url" class="admin-input" id="cfgWhatsappLink" placeholder="https://wa.me/5511999999999" />
+            <p class="admin-hint">Use o formato wa.me/55 + DDD + número (sem espaços)</p>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Horário — dias úteis</label>
+            <input type="text" class="admin-input" id="cfgHorarioSemana" placeholder="Segunda a Sexta, 9h às 18h" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Horário — sábado</label>
+            <input type="text" class="admin-input" id="cfgHorarioSabado" placeholder="Sábado, 9h às 13h" />
+          </div>
+        </div>
+
       </div>
       <div style="margin-top:1.5rem">
         <button class="admin-btn admin-btn--primary" id="btnSaveConfig">Salvar Configurações</button>

@@ -522,6 +522,12 @@ function populateConfig() {
       ? cfg.anuncio_bar.join('\n')
       : (cfg.anuncio_bar || '');
   }
+  // Informações de contato
+  set('cfgEmailContato',    cfg.email_contato);
+  set('cfgWhatsappNumero',  cfg.whatsapp_numero);
+  set('cfgWhatsappLink',    cfg.whatsapp_link);
+  set('cfgHorarioSemana',   cfg.horario_semana);
+  set('cfgHorarioSabado',   cfg.horario_sabado);
 }
 
 async function saveConfig() {
@@ -551,7 +557,12 @@ async function saveConfig() {
     anuncio_bar: (document.getElementById('cfgAnuncio')?.value || '')
       .split('\n')
       .map(s => s.trim())
-      .filter(Boolean)
+      .filter(Boolean),
+    email_contato:   document.getElementById('cfgEmailContato')?.value.trim()   || null,
+    whatsapp_numero: document.getElementById('cfgWhatsappNumero')?.value.trim() || null,
+    whatsapp_link:   document.getElementById('cfgWhatsappLink')?.value.trim()   || null,
+    horario_semana:  document.getElementById('cfgHorarioSemana')?.value.trim()  || null,
+    horario_sabado:  document.getElementById('cfgHorarioSabado')?.value.trim()  || null
   };
 
   try {
