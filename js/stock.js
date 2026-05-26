@@ -240,6 +240,10 @@ const VirtuStock = (() => {
    *   #stockInfo             → texto de stock disponível
    */
   function atualizarUI() {
+    // Se não há dados de stock configurados, não interferir na UI —
+    // produto.js trata da seleção de tamanho/cor/carrinho nesse caso.
+    if (_variacoes.size === 0) return;
+
     // ── Tamanhos ─────────────────────────────────────────
     document.querySelectorAll('[data-tam]').forEach(btn => {
       const tam  = btn.getAttribute('data-tam');
@@ -330,85 +334,103 @@ const VirtuStock = (() => {
       atualizarUI();
     });
 
-    // 4. Bind dos cliques de tamanho
-    document.querySelectorAll('[data-tam]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selecionarTamanho(btn.getAttribute('data-tam'));
-        atualizarUI();
-      });
-    });
-
-    // 5. Bind dos cliques de cor
-    document.querySelectorAll('[data-cor]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!btn.disabled) {
-          selecionarCor(btn.getAttribute('data-cor'));
+    // 4. Bind dos cliques de tamanho (só quando há stock configurado)
+    if (_variacoes.size > 0) {
+      document.querySelectorAll('[data-tam]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selecionarTamanho(btn.getAttribute('data-tam'));
           atualizarUI();
-        }
+        });
       });
-    });
 
-    // 6. Bind do botão de compra
-    const btnComprar = document.getElementById('btnComprar');
-    if (btnComprar) {
-      btnComprar.addEventListener('click', async () => {
-        const variacao = variacaoSelecionada();
-        if (!variacao) return;
-
-        // Estado de loading
-        const textoOriginal    = btnComprar.textContent;
-        btnComprar.textContent = 'A processar…';
-        btnComprar.disabled    = true;
-
-        const resultado = await comprar(variacao.variacao_id);
-
-        if (resultado?.sucesso) {
-          // Adiciona ao carrinho local (localStorage)
-          adicionarAoCarrinhoLocal(variacao, produtoId);
-
-          if (typeof onCompra === 'function') onCompra(resultado, variacao);
-        } else {
-          // Mostra erro ao utilizador
-          const msgEl = document.getElementById('stockMensagem');
-          if (msgEl) {
-            msgEl.textContent = resultado?.erro || 'Não foi possível concluir. Tente novamente.';
-            msgEl.className   = 'stock-mensagem stock-mensagem--erro';
-            setTimeout(() => { msgEl.textContent = ''; }, 4000);
+      // 5. Bind dos cliques de cor
+      document.querySelectorAll('[data-cor]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!btn.disabled) {
+            selecionarCor(btn.getAttribute('data-cor'));
+            atualizarUI();
           }
-          btnComprar.textContent = textoOriginal;
-          btnComprar.disabled    = false;
-        }
-
-        // Atualiza UI com novo estado
-        atualizarUI();
+        });
       });
+
+      // 6. Bind do botão de compra (só quando há stock configurado no Supabase)
+      const btnComprar = document.getElementById('btnComprar');
+      if (btnComprar) {
+        btnComprar.addEventListener('click', async () => {
+          const variacao = variacaoSelecionada();
+          if (!variacao) return;
+
+          // Estado de loading
+          const textoOriginal    = btnComprar.textContent;
+          btnComprar.textContent = 'A processar…';
+          btnComprar.disabled    = true;
+
+          const resultado = await comprar(variacao.variacao_id);
+
+          if (resultado?.sucesso) {
+            // Adiciona ao carrinho local (localStorage)
+            adicionarAoCarrinhoLocal(variacao, produtoId);
+
+            if (typeof onCompra === 'function') onCompra(resultado, variacao);
+          } else {
+            // Mostra erro ao utilizador
+            const msgEl = document.getElementById('stockMensagem');
+            if (msgEl) {
+              msgEl.textContent = resultado?.erro || 'Não foi possível concluir. Tente novamente.';
+              msgEl.className   = 'stock-mensagem stock-mensagem--erro';
+              setTimeout(() => { msgEl.textContent = ''; }, 4000);
+            }
+            btnComprar.textContent = textoOriginal;
+            btnComprar.disabled    = false;
+          }
+
+          // Atualiza UI com novo estado
+          atualizarUI();
+        });
+      }
     }
+    // Quando _variacoes.size === 0, produto.js trata de toda a lógica
+    // de seleção e carrinho via event delegation + validateAndAdd.
 
     log(`Init completo para produto ${produtoId}`);
   }
 
   /* ── 8. INTEGRAÇÃO COM CARRINHO (localStorage) ──────────── */
   function adicionarAoCarrinhoLocal(variacao, produtoId) {
-    if (typeof VirtuCart === 'undefined') return;
+    const CART_KEY = 'virtu_cart';
+    const nome  = document.querySelector('[data-produto-nome]')?.textContent?.trim() || 'Produto';
+    const preco = parseFloat(document.querySelector('[data-preco]')?.getAttribute('data-preco') || 0);
+    const imgBg = document.getElementById('mainPlaceholder')?.style?.background || '';
 
-    // Busca os dados do produto do cache VirtuProducts (se disponível)
-    const produto = {
-      id:                  produtoId,
-      nome:                document.querySelector('[data-produto-nome]')?.textContent?.trim() || 'Produto',
-      categoria:           document.querySelector('[data-produto-categoria]')?.textContent?.trim() || '',
-      preco_original:      parseFloat(document.querySelector('[data-preco]')?.getAttribute('data-preco') || 0),
-      preco_desconto:      null,
-      imagem_url:          document.querySelector('[data-produto-imagem]')?.src || '',
-      imagem_placeholder:  ''
-    };
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch {}
 
-    const totalCart = VirtuCart.add(produto, variacao.tamanho, variacao.cor_nome, variacao.cor_hex);
-    log(`Adicionado ao carrinho. Total de itens: ${totalCart}`);
+    const idx = cart.findIndex(i =>
+      i.id === produtoId && i.tamanho === variacao.tamanho && i.cor_nome === variacao.cor_nome
+    );
+    if (idx >= 0) {
+      cart[idx].qty = (cart[idx].qty || 1) + 1;
+    } else {
+      cart.push({
+        id:                 produtoId,
+        nome,
+        tamanho:            variacao.tamanho,
+        cor_nome:           variacao.cor_nome,
+        cor_hex:            variacao.cor_hex || '',
+        preco,
+        imagem_placeholder: imgBg,
+        qty:                1
+      });
+    }
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+    const totalQty = cart.reduce((s, i) => s + (i.qty || 1), 0);
+    log(`Adicionado ao carrinho. Total de itens: ${totalQty}`);
 
     // Feedback visual no badge da navbar
     const badge = document.getElementById('cartBadge');
     if (badge) {
-      badge.textContent = totalCart;
+      badge.textContent = totalQty;
       badge.hidden      = false;
       badge.classList.add('pulse');
       setTimeout(() => badge.classList.remove('pulse'), 600);

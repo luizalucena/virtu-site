@@ -346,7 +346,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     return true;
   }
 
-  addToCartBtn?.addEventListener('click', () => validateAndAdd(false));
+  // Quando VirtuStock está ativo com stock configurado ele trata o btnComprar.
+  // Nesses casos produto.js não adiciona listener extra para evitar duplicação.
+  addToCartBtn?.addEventListener('click', () => {
+    if (typeof VirtuStock !== 'undefined' && VirtuStock.getVariacoes().size > 0) return;
+    validateAndAdd(false);
+  });
   buyNowBtn?.addEventListener('click', () => validateAndAdd(true));
   stickyAddBtn?.addEventListener('click', () => validateAndAdd(true));
 
