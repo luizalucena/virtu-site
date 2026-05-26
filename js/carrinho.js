@@ -4,31 +4,38 @@
    ============================================================ */
 
 /* ── CART STORAGE ──────────────────────────────────────────── */
-const CART_KEY = 'virtu_cart';
-const FREE_SHIPPING_THRESHOLD = 300;
+const CART_KEY    = 'virtu_cart';
 const VALID_COUPONS = { 'VIRTU10': 10, 'VIRTU20': 20, 'BEMVINDA': 15 };
 
-let discount      = 0;
-let appliedCoupon = null;
-let giftWrap      = false;
-let giftWrapPrice = 15; // valor padrão; sobrescrito pelo Supabase se disponível
+let freeShippingThreshold = 300;  // sobrescrito pelo Supabase
+let discount              = 0;
+let appliedCoupon         = null;
+let giftWrap              = false;
+let giftWrapPrice         = 15;   // sobrescrito pelo Supabase
 
-/* ── CARREGAR PREÇO DE EMBALAGEM DO SUPABASE ── */
+/* ── CARREGAR CONFIGURAÇÕES DO SUPABASE ── */
 (async () => {
   if (typeof supabaseClient === 'undefined') return;
   try {
     const { data: cfg } = await supabaseClient
       .from('configuracoes')
-      .select('preco_embalagem_presente')
+      .select('frete_gratis_acima, preco_embalagem_presente')
       .eq('id', 1)
       .maybeSingle();
-    if (cfg?.preco_embalagem_presente != null) {
+    if (!cfg) return;
+
+    if (cfg.frete_gratis_acima != null) {
+      freeShippingThreshold = parseFloat(cfg.frete_gratis_acima) || 300;
+    }
+    if (cfg.preco_embalagem_presente != null) {
       giftWrapPrice = parseFloat(cfg.preco_embalagem_presente) || 15;
-      // Atualiza o label do preço no HTML
       const label = document.getElementById('giftWrapPriceLabel');
       if (label) label.textContent = `+ ${formatCurrency(giftWrapPrice)}`;
     }
-  } catch { /* usa o padrão R$ 15,00 */ }
+
+    // Re-renderiza o resumo com os valores corretos do admin
+    updateSummary();
+  } catch { /* mantém os valores padrão */ }
 })();
 
 function getCart() {
@@ -194,7 +201,7 @@ function updateSummary() {
   const subtotal    = items.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
   const giftExtra   = giftWrap ? giftWrapPrice : 0;
   const baseParaFrete = subtotal + giftExtra;          // embalagem conta para frete grátis
-  const isFree      = baseParaFrete >= FREE_SHIPPING_THRESHOLD;
+  const isFree      = baseParaFrete >= freeShippingThreshold;
   const shipping    = isFree ? 0 : (baseParaFrete > 0 ? 25 : 0);
   const total       = Math.max(0, subtotal - discount + shipping + giftExtra);
   const installment = total / 6;
@@ -235,14 +242,14 @@ function updateSummary() {
   // Barra de frete grátis
   const fill = document.getElementById('freeShippingFill');
   const text = document.getElementById('freeShippingText');
-  const pct  = Math.min(100, (baseParaFrete / FREE_SHIPPING_THRESHOLD) * 100);
+  const pct  = Math.min(100, (baseParaFrete / freeShippingThreshold) * 100);
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
     if (isFree && baseParaFrete > 0) {
       text.textContent = '🎉 Você ganhou frete grátis!';
       text.style.color = '#2e7d32';
     } else if (baseParaFrete > 0) {
-      const remaining = FREE_SHIPPING_THRESHOLD - baseParaFrete;
+      const remaining = freeShippingThreshold - baseParaFrete;
       text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis`;
       text.style.color = '';
     } else {
