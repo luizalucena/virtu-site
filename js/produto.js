@@ -123,6 +123,10 @@ async function carregarProduto(produtoId) {
     // Peças Relacionadas — carrega automaticamente da mesma categoria
     await renderPecasRelacionadas(produtoId, p.categoria);
 
+    // Revela o layout com fade-in (elimina flash do conteúdo hardcoded)
+    const layout = document.getElementById('produtoLayout');
+    if (layout) requestAnimationFrame(() => { layout.style.opacity = '1'; });
+
     return p;
   } catch (err) {
     console.error('[Produto] Erro ao carregar produto:', err);

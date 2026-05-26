@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Vestido Athena — Virtù. Elegância que atravessa estações." />
-  <title>Vestido Athena — Virtù</title>
+  <meta name="description" content="Virtù — Produto" />
+  <title>Virtù</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/produto.css" />
 </head>
@@ -97,13 +97,13 @@
         <span class="breadcrumb__sep" aria-hidden="true">›</span>
         <a href="catalogo.html" class="breadcrumb__link">Vestidos</a>
         <span class="breadcrumb__sep" aria-hidden="true">›</span>
-        <span class="breadcrumb__current">Vestido Athena</span>
+        <span class="breadcrumb__current"></span>
       </nav>
     </div>
 
     <!-- PRODUTO PRINCIPAL -->
     <section class="produto-section container" aria-label="Detalhes do produto">
-      <div class="produto-layout">
+      <div class="produto-layout" id="produtoLayout" style="opacity:0;transition:opacity 0.3s ease">
 
         <!-- GALERIA -->
         <div class="produto-galeria" aria-label="Galeria de fotos do produto">
@@ -149,17 +149,17 @@
         <div class="produto-info" aria-label="Informações e compra">
 
           <div class="produto-info__top">
-            <p class="overline" data-produto-categoria>Vestidos · Nova Coleção</p>
+            <p class="overline" data-produto-categoria></p>
             <button class="produto-wishlist" id="wishlistBtn" aria-label="Adicionar aos favoritos" aria-pressed="false">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </button>
           </div>
 
-          <h1 class="produto-info__nome display-lg" data-produto-nome>Vestido Athena</h1>
+          <h1 class="produto-info__nome display-lg" data-produto-nome></h1>
 
           <div class="produto-info__preco">
-            <span class="produto-preco-atual" data-preco="420.00">R$ 420,00</span>
-            <span class="produto-parcelamento">ou 6x de R$ 70,00 sem juros</span>
+            <span class="produto-preco-atual" data-preco="0"></span>
+            <span class="produto-parcelamento"></span>
           </div>
 
           <hr class="divider" style="margin-block: var(--space-5);" />
@@ -168,12 +168,9 @@
           <div class="produto-opcao">
             <div class="produto-opcao__header">
               <span class="produto-opcao__label">Cor:</span>
-              <span class="produto-opcao__value" id="selectedColor">Azul Âncora</span>
+              <span class="produto-opcao__value" id="selectedColor"></span>
             </div>
             <div class="produto-cores" id="coresContainer">
-              <button class="produto-cor produto-cor--active" data-cor="Azul Âncora" style="background:#2B3F54;" aria-label="Azul Âncora" aria-pressed="true"></button>
-              <button class="produto-cor" data-cor="Off-white" style="background:#F9F7F4; border:1px solid #ddd;" aria-label="Off-white" aria-pressed="false"></button>
-              <button class="produto-cor" data-cor="Cinza" style="background:#6E6660;" aria-label="Cinza" aria-pressed="false"></button>
             </div>
           </div>
 
@@ -235,16 +232,7 @@
                 Descrição
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
-              <div class="accordion-content" id="acc-desc">
-                <p>O Vestido Athena é uma peça que celebra a elegância no cotidiano. Com corte midi levemente evasê, ele favorece diferentes silhuetas e transita com facilidade do dia à noite.</p>
-                <p style="margin-top:var(--space-3);">Produzido em tecido de viscose premium com leve toque cetinado, a peça oferece caimento fluido e conforto durante todo o dia.</p>
-                <ul style="margin-top:var(--space-3); padding-left:var(--space-5); display:flex; flex-direction:column; gap:var(--space-2);">
-                  <li>Comprimento midi (abaixo do joelho)</li>
-                  <li>Decote V suave</li>
-                  <li>Manga curta com babado</li>
-                  <li>Forro interno</li>
-                </ul>
-              </div>
+              <div class="accordion-content" id="acc-desc"></div>
             </div>
 
             <div class="accordion-item">
@@ -334,34 +322,13 @@
           <h2 id="compre-junto-title" class="display-lg display-italic">Compre Junto</h2>
         </div>
         <div class="compre-junto__layout">
-          <!-- Produto principal resumido -->
-          <div class="compre-junto__main">
-            <div class="compre-junto__card">
-              <div class="compre-junto__img" style="background:linear-gradient(135deg,#E8E0D5,#D4CCC0);"></div>
-              <div class="compre-junto__tag">Este produto</div>
-              <p class="compre-junto__name">Vestido Athena</p>
-              <p class="compre-junto__price">R$ 420,00</p>
-            </div>
-            <span class="compre-junto__plus" aria-hidden="true">+</span>
-            <div class="compre-junto__card">
-              <div class="compre-junto__img" style="background:linear-gradient(135deg,#E8D5B5,#D4BF98);"></div>
-              <div class="compre-junto__tag">Sugestão</div>
-              <p class="compre-junto__name">Body Serena</p>
-              <p class="compre-junto__price">R$ 145,00</p>
-            </div>
-            <span class="compre-junto__plus" aria-hidden="true">+</span>
-            <div class="compre-junto__card">
-              <div class="compre-junto__img" style="background:linear-gradient(135deg,#C4934A,#9A7038);"></div>
-              <div class="compre-junto__tag">Sugestão</div>
-              <p class="compre-junto__name">Blusa Íris</p>
-              <p class="compre-junto__price">R$ 230,00</p>
-            </div>
-          </div>
+          <!-- Preenchido dinamicamente por produto.js (renderCompreJunto) -->
+          <div class="compre-junto__main"></div>
           <div class="compre-junto__cta">
-            <p class="compre-junto__total-label">Total dos 3 itens</p>
-            <p class="compre-junto__total">R$ 795,00</p>
-            <p class="compre-junto__economia">Você economiza R$ 40,00 comprando juntos</p>
-            <button class="btn btn--primary btn--full" id="addAllBtn">Adicionar os 3 ao carrinho</button>
+            <p class="compre-junto__total-label"></p>
+            <p class="compre-junto__total"></p>
+            <p class="compre-junto__economia" style="display:none"></p>
+            <button class="btn btn--primary btn--full" id="addAllBtn"></button>
             <a href="catalogo.html" class="btn btn--ghost btn--full" style="margin-top:var(--space-3);">Ver mais sugestões</a>
           </div>
         </div>
@@ -375,59 +342,17 @@
           <p class="overline">Você também pode gostar</p>
           <h2 id="voce-gosta-title" class="display-lg display-italic">Peças Relacionadas</h2>
         </div>
+        <!-- Preenchido dinamicamente por produto.js (renderPecasRelacionadas) -->
         <div class="destaques__grid">
 
           <article class="product-card">
             <div class="product-card__image-wrap">
-              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#C8C0B8,#B8B0A8); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
-              <span class="product-card__badge">Novo</span>
-              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
+              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#E8E0D5,#D4CCC0);width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
             </div>
             <div class="product-card__info">
-              <p class="product-card__category">Vestidos</p>
-              <h3 class="product-card__name"><a href="produto.html">Vestido Sofía</a></h3>
-              <div class="product-card__price"><span class="product-card__price-current">R$ 390,00</span></div>
-            </div>
-          </article>
-
-          <article class="product-card">
-            <div class="product-card__image-wrap">
-              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#E8E0D5,#D5CAC0); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(0,0,0,0.2);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
-              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
-            </div>
-            <div class="product-card__info">
-              <p class="product-card__category">Vestidos</p>
-              <h3 class="product-card__name"><a href="produto.html">Vestido Hera</a></h3>
-              <div class="product-card__price"><span class="product-card__price-current">R$ 480,00</span></div>
-            </div>
-          </article>
-
-          <article class="product-card">
-            <div class="product-card__image-wrap">
-              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#1E2E3E,#2B3F54); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
-              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
-            </div>
-            <div class="product-card__info">
-              <p class="product-card__category">Vestidos</p>
-              <h3 class="product-card__name"><a href="produto.html">Vestido Perséfone</a></h3>
-              <div class="product-card__price"><span class="product-card__price-current">R$ 520,00</span></div>
-            </div>
-          </article>
-
-          <article class="product-card">
-            <div class="product-card__image-wrap">
-              <div class="product-card__placeholder" style="background:linear-gradient(135deg,#D5C8BA,#C4B8A8); width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-display);font-size:12px;color:rgba(0,0,0,0.2);letter-spacing:2px;text-transform:uppercase;">foto</span></div>
-              <span class="product-card__badge">Mais Vendido</span>
-              <button class="product-card__wishlist" aria-label="Favoritar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-              <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
-            </div>
-            <div class="product-card__info">
-              <p class="product-card__category">Blusas</p>
-              <h3 class="product-card__name"><a href="produto.html">Blusa Helena</a></h3>
-              <div class="product-card__price"><span class="product-card__price-current">R$ 195,00</span></div>
+              <p class="product-card__category"></p>
+              <h3 class="product-card__name"></h3>
+              <div class="product-card__price"><span class="product-card__price-current"></span></div>
             </div>
           </article>
 
@@ -495,8 +420,8 @@
   <!-- STICKY BAR MOBILE -->
   <div class="sticky-buy-bar" id="stickyBar" aria-label="Barra de compra rápida">
     <div class="sticky-buy-bar__info">
-      <p class="sticky-buy-bar__name">Vestido Athena</p>
-      <p class="sticky-buy-bar__price">R$ 420,00</p>
+      <p class="sticky-buy-bar__name"></p>
+      <p class="sticky-buy-bar__price"></p>
     </div>
     <button class="btn btn--primary" id="stickyAddBtn">Adicionar ao carrinho</button>
   </div>
