@@ -364,36 +364,15 @@ const VirtuStock = (() => {
       // 6. Bind do botão de compra (só quando há stock configurado no Supabase)
       const btnComprar = document.getElementById('btnComprar');
       if (btnComprar) {
-        btnComprar.addEventListener('click', async () => {
+        btnComprar.addEventListener('click', () => {
           const variacao = variacaoSelecionada();
           if (!variacao) return;
 
-          // Estado de loading
-          const textoOriginal    = btnComprar.textContent;
-          btnComprar.textContent = 'A processar…';
-          btnComprar.disabled    = true;
+          // Adiciona ao carrinho local (localStorage) imediatamente.
+          // O decremento real do stock ocorre apenas na finalização do pedido.
+          adicionarAoCarrinhoLocal(variacao, produtoId);
 
-          const resultado = await comprar(variacao.variacao_id);
-
-          if (resultado?.sucesso) {
-            // Adiciona ao carrinho local (localStorage)
-            adicionarAoCarrinhoLocal(variacao, produtoId);
-
-            if (typeof onCompra === 'function') onCompra(resultado, variacao);
-          } else {
-            // Mostra erro ao utilizador
-            const msgEl = document.getElementById('stockMensagem');
-            if (msgEl) {
-              msgEl.textContent = resultado?.erro || 'Não foi possível concluir. Tente novamente.';
-              msgEl.className   = 'stock-mensagem stock-mensagem--erro';
-              setTimeout(() => { msgEl.textContent = ''; }, 4000);
-            }
-            btnComprar.textContent = textoOriginal;
-            btnComprar.disabled    = false;
-          }
-
-          // Atualiza UI com novo estado
-          atualizarUI();
+          if (typeof onCompra === 'function') onCompra({ sucesso: true }, variacao);
         });
       }
     }

@@ -697,13 +697,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── VIRTU STOCK — Integração com Supabase ──
   if (_urlId && typeof VirtuStock !== 'undefined') {
-    VirtuStock.init(_urlId, (resultado, variacao) => {
-      const btnComprar = document.getElementById('btnComprar');
-      if (btnComprar) {
-        btnComprar.textContent = '✓ Adicionado! A ir para o carrinho…';
-        btnComprar.style.background = 'var(--color-navy)';
+    VirtuStock.init(_urlId, (_resultado, _variacao) => {
+      // Item já foi salvo no localStorage pelo stock.js.
+      // Dá feedback visual e vai para o carrinho.
+      const btn = document.getElementById('btnComprar');
+      if (btn) {
+        btn.textContent = '✓ Adicionado ao carrinho!';
+        btn.style.background = 'var(--color-navy)';
+        btn.disabled = true;
       }
-      setTimeout(() => { window.location.href = 'carrinho.html'; }, 1200);
+      setTimeout(() => { window.location.href = 'carrinho.html'; }, 900);
     })
     .then(() => {
       // Após carregar variações, reconstruir botões de cor a partir
