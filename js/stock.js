@@ -343,15 +343,23 @@ const VirtuStock = (() => {
         });
       });
 
-      // 5. Bind dos cliques de cor
-      document.querySelectorAll('[data-cor]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (!btn.disabled) {
-            selecionarCor(btn.getAttribute('data-cor'));
-            atualizarUI();
-          }
+      // 5. Bind dos cliques de cor — event delegation no container para
+      //    funcionar mesmo após os botões serem reconstruídos dinamicamente
+      const coresContainerEl = document.getElementById('coresContainer');
+      if (coresContainerEl) {
+        coresContainerEl.addEventListener('click', e => {
+          const btn = e.target.closest('[data-cor]');
+          if (!btn || btn.disabled) return;
+          selecionarCor(btn.getAttribute('data-cor'));
+          atualizarUI();
         });
-      });
+      } else {
+        document.querySelectorAll('[data-cor]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (!btn.disabled) { selecionarCor(btn.getAttribute('data-cor')); atualizarUI(); }
+          });
+        });
+      }
 
       // 6. Bind do botão de compra (só quando há stock configurado no Supabase)
       const btnComprar = document.getElementById('btnComprar');

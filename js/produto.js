@@ -508,7 +508,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnComprar.style.background = 'var(--color-navy)';
       }
       setTimeout(() => { window.location.href = 'carrinho.html'; }, 1200);
-    }).catch(err => {
+    })
+    .then(() => {
+      // Após carregar variações, reconstruir botões de cor a partir
+      // do stock — garante sincronização automática com o admin.
+      const variacoes = VirtuStock.getVariacoes();
+      if (variacoes.size === 0) return;
+
+      // Extrai cores únicas (preserva ordem de inserção)
+      const coresMap = new Map(); // cor_nome → cor_hex
+      variacoes.forEach(v => {
+        if (!coresMap.has(v.cor_nome)) coresMap.set(v.cor_nome, v.cor_hex);
+      });
+
+      const coresContainer = document.getElementById('coresContainer');
+      if (!coresContainer || coresMap.size === 0) return;
+
+      let isFirst = true;
+      coresContainer.innerHTML = [...coresMap.entries()].map(([nome, hex]) => {
+        const isLight = /off.?wh|branco|white|creme|marfim/i.test(nome);
+        const btn = `<button class="produto-cor${isFirst ? ' produto-cor--active' : ''}"
+                             data-cor="${nome}"
+                             style="background:${hex}${isLight ? ';border:1px solid #ddd' : ''}"
+                             aria-label="${nome}"
+                             aria-pressed="${isFirst ? 'true' : 'false'}"></button>`;
+        if (isFirst) {
+          // Sincroniza variável local e label de cor
+          selectedColor = nome;
+          if (selectedColorLabel) selectedColorLabel.textContent = nome;
+          // Pré-seleciona no VirtuStock para o botão comprar ficar pronto
+          // quando o utilizador só precisar escolher o tamanho
+          VirtuStock.selecionarCor(nome);
+        }
+        isFirst = false;
+        return btn;
+      }).join('');
+
+      // Atualiza estado visual (habilita/desabilita com base no tamanho)
+      VirtuStock.atualizarUI();
+    })
+    .catch(err => {
       console.warn('[Produto] Erro ao inicializar stock:', err);
     });
   }
