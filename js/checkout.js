@@ -462,39 +462,21 @@ document.addEventListener('DOMContentLoaded', () => {
       endereco,
     };
 
-    // ── Cartão: tokeniza via MP SDK antes de enviar ──────
+    // ── Cartão: envia dados ao servidor para tokenizar (evita CORS) ──────
     if (!isPix) {
-      if (!mpInstance) {
-        alert('SDK do Mercado Pago não carregou. Recarregue a página.');
-        btn.innerHTML = '🔒 Finalizar Pedido';
-        btn.disabled = false;
-        return;
-      }
-
       const expiry   = document.getElementById('cardExpiry')?.value.split('/') || [];
-      const expiryMM = expiry[0] || '';
-      const expiryYY = expiry[1] ? '20' + expiry[1] : '';
+      const expiryMM = (expiry[0] || '').trim();
+      const expiryYY = expiry[1] ? '20' + expiry[1].trim() : '';
 
-      try {
-        const tokenResult = await mpInstance.createCardToken({
-          cardNumber:          document.getElementById('cardNumber')?.value.replace(/\s/g, ''),
-          cardExpirationMonth: expiryMM,
-          cardExpirationYear:  expiryYY,
-          securityCode:        document.getElementById('cardCvv')?.value.trim(),
-          cardholderName:      document.getElementById('cardName')?.value.trim(),
-          identificationType:  'CPF',
-          identificationNumber: cliente.cpf.replace(/\D/g, ''),
-        });
-
-        if (tokenResult.error) throw new Error(tokenResult.error.message);
-        payload.token     = tokenResult.id;
-        payload.parcelas  = parseInt(document.getElementById('installments')?.value || '1', 10);
-      } catch (err) {
-        alert(`Erro no cartão: ${err.message || 'Verifique os dados do cartão.'}`);
-        btn.innerHTML = '🔒 Finalizar Pedido';
-        btn.disabled  = false;
-        return;
-      }
+      payload.dadosCartao = {
+        numero: document.getElementById('cardNumber')?.value.replace(/\s/g, ''),
+        mes:    expiryMM,
+        ano:    expiryYY,
+        cvv:    document.getElementById('cardCvv')?.value.trim(),
+        nome:   document.getElementById('cardName')?.value.trim(),
+        cpf:    cliente.cpf.replace(/\D/g, ''),
+      };
+      payload.parcelas = parseInt(document.getElementById('installments')?.value || '1', 10);
     }
 
     // ── Chama Edge Function ──────────────────────

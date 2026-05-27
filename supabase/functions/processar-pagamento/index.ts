@@ -35,6 +35,8 @@ Deno.serve(async (req) => {
       // apenas para cartão:
       token,       // string — token gerado pelo MP SDK no frontend
       parcelas,    // number — 1..12
+      // apenas para cartão (enviado pelo frontend):
+      dadosCartao,  // { numero, mes, ano, cvv, nome, cpf }
     } = body;
 
     // ── Validações básicas ──────────────────────────────
@@ -71,11 +73,39 @@ Deno.serve(async (req) => {
       paymentBody.payment_type_id   = 'bank_transfer';
 
     } else if (tipo === 'cartao') {
-      if (!token) return json({ erro: 'Token do cartão ausente.' }, 400);
-      paymentBody.token             = token;
-      paymentBody.payment_type_id   = 'credit_card';
-      paymentBody.installments      = Number(parcelas) || 1;
-      // payment_method_id é detectado automaticamente pelo token
+      if (!dadosCartao) return json({ erro: 'Dados do cartão ausentes.' }, 400);
+
+      // Tokeniza o cartão no servidor (evita CORS no browser)
+      const tokenRes = await fetch('https://api.mercadopago.com/v1/card_tokens', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${MP_TOKEN}`,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({
+          card_number:       dadosCartao.numero.replace(/\s/g, ''),
+          expiration_month:  Number(dadosCartao.mes),
+          expiration_year:   Number(dadosCartao.ano),
+          security_code:     dadosCartao.cvv,
+          cardholder: {
+            name: dadosCartao.nome,
+            identification: {
+              type:   'CPF',
+              number: (dadosCartao.cpf || cliente.cpf || '').replace(/\D/g, ''),
+            },
+          },
+        }),
+      });
+
+      const tokenData = await tokenRes.json();
+      if (!tokenRes.ok || !tokenData.id) {
+        console.error('[MP Token Error]', JSON.stringify(tokenData));
+        return json({ erro: tokenData.cause?.[0]?.description || 'Erro ao validar cartão.' }, 400);
+      }
+
+      paymentBody.token          = tokenData.id;
+      paymentBody.payment_type_id = 'credit_card';
+      paymentBody.installments    = Number(parcelas) || 1;
     } else {
       return json({ erro: 'Tipo de pagamento inválido.' }, 400);
     }
