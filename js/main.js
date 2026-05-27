@@ -182,9 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ──────────────────────────────────────────
   // 8. QUICK ADD TO CART
   // ──────────────────────────────────────────
-  let cartCount = 0;
-  const cartBadge = document.getElementById('cartBadge');
-
   document.querySelectorAll('.product-card__quick-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -196,9 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.style.background = 'var(--color-navy)';
       btn.style.color = 'white';
 
-      // Atualiza contador do carrinho
-      cartCount++;
-      if (cartBadge) cartBadge.textContent = cartCount;
+      // Atualiza badge lendo o localStorage (via cart-badge.js)
+      if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
 
       setTimeout(() => {
         btn.innerHTML = originalText;
