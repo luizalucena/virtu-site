@@ -293,11 +293,30 @@
   color: white;
 }
 
-.produto-tamanho--esgotado {
-  opacity: 0.35;
+.produto-tamanho--esgotado,
+.produto-tamanho.esgotado {
+  opacity: 0.45;
   cursor: not-allowed;
   position: relative;
-  text-decoration: line-through;
+  color: var(--color-text-light, #999);
+  border-color: #ccc;
+}
+
+/* Tarja diagonal cruzando o botão */
+.produto-tamanho--esgotado::after,
+.produto-tamanho.esgotado::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.7px),
+    #bbb calc(50% - 0.7px),
+    #bbb calc(50% + 0.7px),
+    transparent calc(50% + 0.7px)
+  );
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .produto-estoque {
