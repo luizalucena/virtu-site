@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financeiro — Virtù Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* ── CARDS KPI ─────────────────────────────────────── */
+    .fin-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .fin-kpi {
+      background: var(--bg-card, #fff);
+      border: 1px solid var(--border, #e8e2d9);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+    }
+    .fin-kpi__label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted, #999);
+      margin-bottom: 0.35rem;
+    }
+    .fin-kpi__value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem;
+      font-weight: 500;
+      color: var(--text-main, #1a1a2e);
+    }
+    .fin-kpi__value--entrada { color: #2e7d32; }
+    .fin-kpi__value--saida   { color: #c62828; }
+    .fin-kpi__value--saldo-pos { color: #2e7d32; }
+    .fin-kpi__value--saldo-neg { color: #c62828; }
+    .fin-kpi__sub {
+      font-size: 0.75rem;
+      color: var(--text-muted, #999);
+      margin-top: 0.2rem;
+    }
+
+    /* ── FILTROS ───────────────────────────────────────── */
+    .fin-filtros {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .fin-filtros select,
+    .fin-filtros input[type="month"] {
+      padding: 0.45rem 0.75rem;
+      border: 1px solid var(--border, #e8e2d9);
+      border-radius: 6px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.83rem;
+      background: #fff;
+      color: var(--text-main, #1a1a2e);
+    }
+    .fin-filtros__spacer { flex: 1; }
+
+    /* ── TABELA ────────────────────────────────────────── */
+    .fin-table-wrap {
+      background: var(--bg-card, #fff);
+      border: 1px solid var(--border, #e8e2d9);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .fin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+    .fin-table th {
+      background: var(--bg-sidebar, #1a1a2e);
+      color: rgba(255,255,255,0.75);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    .fin-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border, #e8e2d9);
+      color: var(--text-main, #333);
+      vertical-align: middle;
+    }
+    .fin-table tr:last-child td { border-bottom: none; }
+    .fin-table tr:hover td { background: #faf8f5; }
+
+    .fin-badge {
+      display: inline-block;
+      padding: 0.18rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .fin-badge--entrada { background: #e8f5e9; color: #2e7d32; }
+    .fin-badge--saida   { background: #ffebee; color: #c62828; }
+    .fin-badge--site    { background: #e3f2fd; color: #1565c0; }
+    .fin-badge--manual  { background: #f3e5f5; color: #6a1b9a; }
+    .fin-badge--planilha{ background: #fff3e0; color: #e65100; }
+
+    .fin-valor--entrada { color: #2e7d32; font-weight: 600; }
+    .fin-valor--saida   { color: #c62828; font-weight: 600; }
+
+    .fin-empty {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted, #999);
+      font-size: 0.85rem;
+    }
+
+    /* ── MODAL BASE ─────────────────────────────────────── */
+    .fin-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .fin-modal-overlay.open { display: flex; }
+    .fin-modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      width: min(520px, 95vw);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .fin-modal__title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      color: var(--text-main, #1a1a2e);
+    }
+    .fin-modal__close {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #999;
+      margin-top: -4px;
+    }
+    .fin-form-group {
+      margin-bottom: 1rem;
+    }
+    .fin-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted, #888);
+      margin-bottom: 0.35rem;
+    }
+    .fin-input, .fin-select, .fin-textarea {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.88rem;
+      color: var(--text-main, #1a1a2e);
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .fin-input:focus, .fin-select:focus, .fin-textarea:focus {
+      outline: none;
+      border-color: var(--color-gold, #c9a96e);
+    }
+    .fin-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .fin-modal__actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    /* ── CSV PREVIEW ────────────────────────────────────── */
+    .csv-preview {
+      margin-top: 1rem;
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    .csv-preview table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .csv-preview th { background: #f5f5f5; padding: 0.4rem 0.6rem; text-align: left; font-weight: 600; }
+    .csv-preview td { padding: 0.35rem 0.6rem; border-top: 1px solid #f0f0f0; }
+    .csv-info {
+      font-size: 0.78rem;
+      color: #666;
+      margin-top: 0.5rem;
+      padding: 0.6rem 0.8rem;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+    .csv-col-map {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+
+    /* ── PAGINAÇÃO ──────────────────────────────────────── */
+    .fin-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      font-size: 0.82rem;
+      color: #666;
+    }
+    .fin-pagination button {
+      padding: 0.3rem 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #fff;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.8rem;
+    }
+    .fin-pagination button:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── DELETE BTN ─────────────────────────────────────── */
+    .fin-delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #bbb;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: color 0.2s;
+    }
+    .fin-delete-btn:hover { color: #c62828; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <span class="admin-sidebar__virtu">VIRTÙ</span>
+      <span class="admin-sidebar__tag">Admin</span>
+    </div>
+    <nav class="admin-sidebar__nav">
+      <a href="index.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Produtos
+      </a>
+      <a href="index.html#sobre" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Página Sobre
+      </a>
+      <a href="index.html#stock" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Stock
+      </a>
+      <a href="financeiro.html" class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Financeiro
+      </a>
+      <a href="index.html#configuracoes" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Configurações
+      </a>
+    </nav>
+    <div class="admin-sidebar__footer">
+      <p>Virtù Admin v1.1</p>
+      <button class="admin-logout-btn" id="btnLogout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <h1 class="admin-topbar__title">Fluxo de Caixa</h1>
+        <span class="admin-topbar__count" id="fcCount"></span>
+      </div>
+      <div class="admin-topbar__actions">
+        <button class="admin-btn admin-btn--ghost" id="btnSyncPlanilha">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Sincronizar Planilha
+        </button>
+        <button class="admin-btn admin-btn--gold" id="btnNovoLancamento">
+          + Novo Lançamento
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content" style="padding:2rem">
+
+      <!-- KPIs -->
+      <div class="fin-kpi-grid">
+        <div class="fin-kpi">
+          <div class="fin-kpi__label">Entradas (mês)</div>
+          <div class="fin-kpi__value fin-kpi__value--entrada" id="kpiEntradas">—</div>
+          <div class="fin-kpi__sub" id="kpiEntradasCount">— transações</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi__label">Saídas (mês)</div>
+          <div class="fin-kpi__value fin-kpi__value--saida" id="kpiSaidas">—</div>
+          <div class="fin-kpi__sub" id="kpiSaidasCount">— transações</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi__label">Saldo (mês)</div>
+          <div class="fin-kpi__value" id="kpiSaldo">—</div>
+          <div class="fin-kpi__sub">Entradas − Saídas</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi__label">Saldo Acumulado</div>
+          <div class="fin-kpi__value" id="kpiSaldoTotal">—</div>
+          <div class="fin-kpi__sub">Todos os períodos</div>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="fin-filtros">
+        <input type="month" id="filtroMes" />
+        <select id="filtroTipo">
+          <option value="">Tipo: todos</option>
+          <option value="entrada">Entradas</option>
+          <option value="saida">Saídas</option>
+        </select>
+        <select id="filtroOrigem">
+          <option value="">Origem: todas</option>
+          <option value="site">Site</option>
+          <option value="manual">Manual</option>
+          <option value="planilha">Planilha</option>
+        </select>
+        <select id="filtroCategoria">
+          <option value="">Categoria: todas</option>
+        </select>
+        <div class="fin-filtros__spacer"></div>
+        <button class="admin-btn admin-btn--ghost" id="btnExportarCSV" title="Exportar tabela como CSV">
+          ↓ Exportar CSV
+        </button>
+      </div>
+
+      <!-- TABELA -->
+      <div class="fin-table-wrap">
+        <table class="fin-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Origem</th>
+              <th style="text-align:right">Valor</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="fcTableBody">
+            <tr><td colspan="7" class="fin-empty">Carregando…</td></tr>
+          </tbody>
+        </table>
+        <div class="fin-pagination" id="fcPagination"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       MODAL — NOVO LANÇAMENTO MANUAL
+  ════════════════════════════════════════════════ -->
+  <div class="fin-modal-overlay" id="modalLancamento">
+    <div class="fin-modal">
+      <h2 class="fin-modal__title">
+        Novo Lançamento
+        <button class="fin-modal__close" id="closeLancamento">✕</button>
+      </h2>
+
+      <form id="formLancamento" novalidate>
+        <div class="fin-form-row">
+          <div class="fin-form-group">
+            <label class="fin-label">Tipo *</label>
+            <select class="fin-select" id="lTipo" required>
+              <option value="saida">Saída (gasto)</option>
+              <option value="entrada">Entrada (receita)</option>
+            </select>
+          </div>
+          <div class="fin-form-group">
+            <label class="fin-label">Valor (R$) *</label>
+            <input type="number" class="fin-input" id="lValor" min="0.01" step="0.01" placeholder="0,00" required />
+          </div>
+        </div>
+
+        <div class="fin-form-group">
+          <label class="fin-label">Descrição *</label>
+          <input type="text" class="fin-input" id="lDescricao" placeholder="Ex: Fornecedor de Tecidos, Tráfego Pago…" required />
+        </div>
+
+        <div class="fin-form-row">
+          <div class="fin-form-group">
+            <label class="fin-label">Categoria *</label>
+            <select class="fin-select" id="lCategoria" required>
+              <optgroup label="Entradas">
+                <option value="Venda Site">Venda Site</option>
+                <option value="Venda Física">Venda Física</option>
+                <option value="Outros Ingressos">Outros Ingressos</option>
+              </optgroup>
+              <optgroup label="Saídas">
+                <option value="Fornecedor" selected>Fornecedor</option>
+                <option value="Tráfego Pago">Tráfego Pago</option>
+                <option value="Frete / Logística">Frete / Logística</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Plataformas">Plataformas</option>
+                <option value="Pessoal">Pessoal</option>
+                <option value="Impostos">Impostos</option>
+                <option value="Outros">Outros</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="fin-form-group">
+            <label class="fin-label">Data *</label>
+            <input type="date" class="fin-input" id="lData" required />
+          </div>
+        </div>
+
+        <div class="fin-modal__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" id="cancelLancamento">Cancelar</button>
+          <button type="submit" class="admin-btn admin-btn--gold" id="submitLancamento">Salvar Lançamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       MODAL — SINCRONIZAR PLANILHA (CSV)
+  ════════════════════════════════════════════════ -->
+  <div class="fin-modal-overlay" id="modalPlanilha">
+    <div class="fin-modal">
+      <h2 class="fin-modal__title">
+        Sincronizar Planilha
+        <button class="fin-modal__close" id="closePlanilha">✕</button>
+      </h2>
+
+      <!-- PASSO 1: UPLOAD / URL -->
+      <div id="planStep1">
+        <p style="font-size:0.85rem;color:#666;line-height:1.6;margin-bottom:1rem">
+          Exporte sua planilha do Google Sheets como <strong>CSV</strong> (Arquivo → Download → CSV) e selecione o arquivo abaixo.<br>
+          Ou compartilhe a planilha publicamente e cole o link de exportação.
+        </p>
+
+        <div class="fin-form-group">
+          <label class="fin-label">Arquivo CSV</label>
+          <input type="file" class="fin-input" id="csvFile" accept=".csv,text/csv" />
+        </div>
+
+        <div style="text-align:center;color:#aaa;margin:0.5rem 0;font-size:0.8rem">— ou —</div>
+
+        <div class="fin-form-group">
+          <label class="fin-label">URL pública do Google Sheets (CSV)</label>
+          <input type="url" class="fin-input" id="csvUrl"
+            placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv" />
+          <p style="font-size:0.72rem;color:#999;margin-top:0.3rem">
+            No Google Sheets: Arquivo → Compartilhar → "Qualquer pessoa com o link pode ver" → Arquivo → Download → CSV e copie a URL final.
+          </p>
+        </div>
+
+        <div class="fin-modal__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" id="cancelPlanilha">Cancelar</button>
+          <button type="button" class="admin-btn admin-btn--gold" id="btnPreviewCSV">Carregar e Mapear →</button>
+        </div>
+      </div>
+
+      <!-- PASSO 2: MAPEAMENTO DE COLUNAS -->
+      <div id="planStep2" hidden>
+        <p style="font-size:0.85rem;color:#666;margin-bottom:0.75rem">
+          Indique qual coluna da sua planilha corresponde a cada campo:
+        </p>
+        <div class="csv-col-map" id="colMapGrid"></div>
+
+        <div class="csv-preview" id="csvPreviewTable"></div>
+        <p class="csv-info" id="csvInfo"></p>
+
+        <div class="fin-modal__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" id="btnVoltarStep1">← Voltar</button>
+          <button type="button" class="admin-btn admin-btn--gold" id="btnImportarCSV">
+            Importar registros →
+          </button>
+        </div>
+      </div>
+
+      <!-- PASSO 3: RESULTADO -->
+      <div id="planStep3" hidden>
+        <div style="text-align:center;padding:2rem 1rem">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem">✓</div>
+          <p style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#2e7d32" id="csvResultMsg"></p>
+          <p style="font-size:0.82rem;color:#888;margin-top:0.4rem" id="csvResultSub"></p>
+        </div>
+        <div class="fin-modal__actions" style="justify-content:center">
+          <button type="button" class="admin-btn admin-btn--gold" id="btnFecharResultado">Fechar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="financeiro.js"></script>
+</body>
+</html>
