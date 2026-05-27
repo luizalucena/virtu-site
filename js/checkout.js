@@ -1,10 +1,31 @@
 /* ============================================================
    VIRTÙ — Checkout JavaScript
+   Frete: João Pessoa only (CEP 58000–58099)
+   Pagamento: Mercado Pago via Supabase Edge Function
    ============================================================ */
+
+// ── MERCADO PAGO PUBLIC KEY ──────────────────────────────────
+// Substitua pelo seu Public Key do Mercado Pago (sandbox ou produção)
+// Este valor é SEGURO no frontend — apenas o Access Token é secreto.
+const MP_PUBLIC_KEY = 'TEST-00000000-0000-0000-0000-000000000000'; // ← troque aqui
+
+// URL da Edge Function do Supabase
+// Substitua pela sua URL real (Supabase > Edge Functions > processar-pagamento)
+const EDGE_FUNCTION_URL = 'https://SEU-PROJETO.supabase.co/functions/v1/processar-pagamento';
+
+// ── CONSTANTES DE FRETE ──────────────────────────────────────
+const FRETE_STANDARD  = 10.00;  // Entrega padrão em João Pessoa
+const FRETE_MOTOBOY   = 15.00;  // Motoboy em João Pessoa
+const CEP_JP_MIN      = 58000000;
+const CEP_JP_MAX      = 58099999;
+
+// ── ESTADO GLOBAL DO CHECKOUT ───────────────────────────────
+let freteValorSelecionado = FRETE_STANDARD;
+let baseTotal             = 0;   // subtotal + gift wrap, sem frete
+let mpInstance            = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── CARRINHO DINÂMICO + THRESHOLD DO FRETE ─────────
   const CART_KEY = 'virtu_cart';
 
   function formatCurrency(v) {
@@ -15,23 +36,33 @@ document.addEventListener('DOMContentLoaded', () => {
     try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
   }
 
-  function renderOrderSummary(cart, freteGratis, freteValor) {
-    const itemsEl       = document.getElementById('checkoutItems');
-    const subtotalEl    = document.getElementById('checkoutSubtotal');
-    const freteEl       = document.getElementById('checkoutFreteLabel');
-    const totalEl       = document.getElementById('checkoutTotal');
-    const installEl     = document.getElementById('checkoutInstallments');
-    const freeOption    = document.getElementById('shippingFreeOption');
+  // ── INICIALIZA MERCADO PAGO SDK ──────────────────────────
+  try {
+    if (typeof MercadoPago !== 'undefined') {
+      mpInstance = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
+    }
+  } catch (e) {
+    console.warn('[MP SDK] Não inicializado:', e.message);
+  }
+
+  // ── RENDERIZA RESUMO DO PEDIDO ───────────────────────────
+  function renderOrderSummary(cart, freteGratis = 300) {
+    const itemsEl    = document.getElementById('checkoutItems');
+    const subtotalEl = document.getElementById('checkoutSubtotal');
+    const freteEl    = document.getElementById('checkoutFreteLabel');
+    const totalEl    = document.getElementById('checkoutTotal');
+    const installEl  = document.getElementById('checkoutInstallments');
 
     if (!cart.length) return;
 
-    // Renderiza itens
     if (itemsEl) {
       itemsEl.innerHTML = cart.map(item => {
-        const bgStyle = item.imagem_placeholder ? `background:${item.imagem_placeholder}` : 'background:linear-gradient(135deg,#E8E0D5,#D4CCC0)';
+        const bg = item.imagem_placeholder
+          ? `background:${item.imagem_placeholder}`
+          : 'background:linear-gradient(135deg,#E8E0D5,#D4CCC0)';
         return `
           <div class="checkout-order-item">
-            <div class="checkout-order-item__img" style="${bgStyle}"></div>
+            <div class="checkout-order-item__img" style="${bg}"></div>
             <div class="checkout-order-item__info">
               <p class="checkout-order-item__name">${item.nome || 'Produto'}</p>
               <p class="checkout-order-item__meta">${[item.cor_nome, item.tamanho].filter(Boolean).join(' · ')} · Qtd: ${item.qty || 1}</p>
@@ -43,82 +74,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const subtotal = cart.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
 
-    // Verifica embalagem de presente do localStorage do carrinho
     let giftExtra = 0;
     try {
-      const giftData = JSON.parse(localStorage.getItem('virtu_gift') || 'null');
-      if (giftData?.ativo) giftExtra = parseFloat(giftData.preco) || 0;
+      const gd = JSON.parse(localStorage.getItem('virtu_gift') || 'null');
+      if (gd?.ativo) giftExtra = parseFloat(gd.preco) || 0;
     } catch {}
 
-    const base       = subtotal + giftExtra;
-    const isFree     = base >= freteGratis;
-    const frete      = isFree ? 0 : (base > 0 ? freteValor : 0);
-    const total      = base + frete;
+    baseTotal = subtotal + giftExtra;
+
+    // Frete ainda não calculado (aguarda CEP)
+    const frete   = 0;
+    const total   = baseTotal + frete;
 
     if (subtotalEl) subtotalEl.textContent = formatCurrency(subtotal);
+    if (freteEl)    { freteEl.textContent = '—'; freteEl.classList.remove('checkout-order-summary__free'); }
+    if (totalEl)    { totalEl.textContent = formatCurrency(total); totalEl.dataset.baseTotal = total; }
+    if (installEl)  updateInstallments(total);
+  }
+
+  // ── ATUALIZA TOTAL COM FRETE ─────────────────────────────
+  function updateTotalWithFrete(freteValor) {
+    freteValorSelecionado = freteValor;
+    const total    = baseTotal + freteValor;
+    const totalEl  = document.getElementById('checkoutTotal');
+    const freteEl  = document.getElementById('checkoutFreteLabel');
+    const installEl = document.getElementById('checkoutInstallments');
 
     if (freteEl) {
-      if (isFree) {
-        freteEl.textContent = 'Grátis';
-        freteEl.classList.add('checkout-order-summary__free');
-      } else {
-        freteEl.textContent = formatCurrency(frete);
-        freteEl.classList.remove('checkout-order-summary__free');
-      }
+      freteEl.textContent = freteValor === 0 ? 'Grátis' : formatCurrency(freteValor);
+      freteEl.classList.toggle('checkout-order-summary__free', freteValor === 0);
     }
-
     if (totalEl) { totalEl.textContent = formatCurrency(total); totalEl.dataset.baseTotal = total; }
+    if (installEl) updateInstallments(total);
+  }
 
-    if (installEl && total > 0) {
-      const parcela = total / 6;
-      installEl.textContent = `ou 6x de ${formatCurrency(parcela)} sem juros`;
-    }
-
-    // Mostra/oculta opção "Frete Grátis" com base no threshold
-    if (freeOption) {
-      if (isFree) {
-        freeOption.style.display = '';
-      } else {
-        freeOption.style.display = 'none';
-        // Garante que não fique selecionada
-        const freeRadio = document.getElementById('shippingFreeRadio');
-        if (freeRadio?.checked) {
-          const expressRadio = document.querySelector('input[name="shipping"][value="express"]');
-          if (expressRadio) expressRadio.checked = true;
-        }
-      }
+  // ── PARCELAS DINÂMICAS ───────────────────────────────────
+  function updateInstallments(total) {
+    const sel = document.getElementById('installments');
+    if (!sel) return;
+    const maxSemJuros = 6;
+    sel.innerHTML = '';
+    for (let i = 1; i <= maxSemJuros; i++) {
+      const parcela = total / i;
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i}x de ${formatCurrency(parcela)} (sem juros)`;
+      if (i === 1) opt.selected = true;
+      sel.appendChild(opt);
     }
   }
 
-  // Carrega threshold do Supabase e renderiza
+  // ── CARREGA DADOS INICIAIS DO SUPABASE ───────────────────
   (async () => {
     let freteGratis = 300;
-    let freteValor  = 25;
     try {
       if (typeof supabaseClient !== 'undefined') {
         const { data: cfg } = await supabaseClient
-          .from('configuracoes')
-          .select('frete_gratis_acima, frete_padrao')
-          .eq('id', 1)
-          .maybeSingle();
+          .from('configuracoes').select('frete_gratis_acima').eq('id', 1).maybeSingle();
         if (cfg?.frete_gratis_acima != null) freteGratis = parseFloat(cfg.frete_gratis_acima) || 300;
-        if (cfg?.frete_padrao       != null) freteValor  = parseFloat(cfg.frete_padrao)       || 25;
       }
     } catch {}
-    renderOrderSummary(getCart(), freteGratis, freteValor);
+    renderOrderSummary(getCart(), freteGratis);
   })();
 
-  // ── STEPS ──────────────────────────────────
+  // ── STEPS ───────────────────────────────────────────────
   let currentStep = 1;
 
   function goToStep(step) {
     for (let i = 1; i <= 3; i++) {
-      const section = document.getElementById(`step${i}`);
-      const content = document.getElementById(`step${i}Content`);
-      const summary = document.getElementById(`step${i}Summary`);
-      const stepEl  = document.querySelector(`[data-step="${i}"]`);
-      const editBtn = document.getElementById(`editStep${i}`);
-
+      const section  = document.getElementById(`step${i}`);
+      const content  = document.getElementById(`step${i}Content`);
+      const summary  = document.getElementById(`step${i}Summary`);
+      const stepEl   = document.querySelector(`[data-step="${i}"]`);
+      const editBtn  = document.getElementById(`editStep${i}`);
       if (!section) continue;
 
       if (i === step) {
@@ -149,53 +177,83 @@ document.addEventListener('DOMContentLoaded', () => {
     currentStep = step;
   }
 
-  // ── STEP 1: IDENTIFICAÇÃO ──────────────────
+  // ── STEP 1: IDENTIFICAÇÃO ────────────────────────────────
   document.getElementById('nextStep1')?.addEventListener('click', () => {
     const firstName = document.getElementById('firstName')?.value.trim();
+    const lastName  = document.getElementById('lastName')?.value.trim();
     const email     = document.getElementById('email')?.value.trim();
-    const phone     = document.getElementById('phone')?.value.trim();
     const cpf       = document.getElementById('cpf')?.value.trim();
+    const phone     = document.getElementById('phone')?.value.trim();
 
-    if (!firstName || !email || !phone || !cpf) {
-      highlightEmptyFields(['firstName', 'lastName', 'email', 'phone', 'cpf']);
+    if (!firstName || !email || !cpf || !phone) {
+      highlightEmptyFields(['firstName', 'email', 'cpf', 'phone']);
       return;
     }
 
-    // Preenche resumo da etapa 1
-    const lastName = document.getElementById('lastName')?.value.trim();
     const sumEl = document.getElementById('step1SummaryText');
-    if (sumEl) sumEl.textContent = `${firstName} ${lastName} · ${email} · ${phone}`;
-
+    if (sumEl) sumEl.textContent = `${firstName} ${lastName} · ${email} · ${cpf}`;
     goToStep(2);
   });
 
   document.getElementById('editStep1')?.addEventListener('click', () => goToStep(1));
 
-  // ── STEP 2: ENTREGA ────────────────────────
+  // ── STEP 2: ENTREGA + FRETE ──────────────────────────────
   document.getElementById('nextStep2')?.addEventListener('click', () => {
-    const cep  = document.getElementById('cep')?.value.trim();
+    const cepRaw = document.getElementById('cep')?.value.replace(/\D/g, '');
     const street = document.getElementById('street')?.value.trim();
     const number = document.getElementById('number')?.value.trim();
+    const city   = document.getElementById('city')?.value.trim();
 
-    if (!cep || !street || !number) {
+    if (!cepRaw || !street || !number || !city) {
       highlightEmptyFields(['cep', 'street', 'number', 'city', 'neighborhood']);
       return;
     }
 
-    const city  = document.getElementById('city')?.value.trim();
+    // Garante que o frete foi calculado
+    if (document.getElementById('freteResult')?.style.display === 'none') {
+      showFreteMsg('Clique em "Buscar" para calcular o frete antes de continuar.', 'error');
+      document.getElementById('lookupCep')?.focus();
+      return;
+    }
+
     const state = document.getElementById('state')?.value;
-    const selectedShipping = document.querySelector('input[name="shipping"]:checked')?.closest('.shipping-option');
-    const shippingName = selectedShipping?.querySelector('.shipping-option__name')?.textContent || 'Frete Grátis';
+    const shippingName = document.querySelector('input[name="shipping"]:checked')
+      ?.closest('.shipping-option')?.querySelector('.shipping-option__name')?.textContent || 'Entrega padrão';
 
     const sumEl = document.getElementById('step2SummaryText');
-    if (sumEl) sumEl.textContent = `${street}, ${number} · ${city}/${state} · ${cep} · ${shippingName}`;
-
+    if (sumEl) sumEl.textContent = `${street}, ${number} · ${city}/${state} · ${document.getElementById('cep')?.value} · ${shippingName}`;
     goToStep(3);
   });
 
   document.getElementById('editStep2')?.addEventListener('click', () => goToStep(2));
 
-  // ── BUSCA CEP (simulação) ──────────────────
+  // ── CEP: VALIDAÇÃO JOÃO PESSOA + VIACEP ─────────────────
+  function showFreteMsg(msg, type = 'error') {
+    const el = document.getElementById('freteMsg');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+    el.style.color = type === 'error' ? 'var(--color-error, #c62828)' : 'var(--color-success, #2e7d32)';
+  }
+
+  async function calcularFrete(cep) {
+    const num = parseInt(cep.replace(/\D/g, ''), 10);
+    const freteResult = document.getElementById('freteResult');
+    const freteMsg    = document.getElementById('freteMsg');
+
+    if (num >= CEP_JP_MIN && num <= CEP_JP_MAX) {
+      // CEP de João Pessoa ✓
+      freteResult.style.display = 'block';
+      freteMsg.style.display    = 'none';
+      updateTotalWithFrete(FRETE_STANDARD); // padrão selecionado por default
+    } else {
+      // Fora de João Pessoa ✗
+      freteResult.style.display = 'none';
+      showFreteMsg('No momento, entregamos apenas em João Pessoa (PB).', 'error');
+      updateTotalWithFrete(0);
+    }
+  }
+
   document.getElementById('lookupCep')?.addEventListener('click', async () => {
     const cepInput = document.getElementById('cep');
     const cep = cepInput?.value.replace(/\D/g, '');
@@ -208,35 +266,50 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res  = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
       const data = await res.json();
-
       if (data.erro) throw new Error('CEP não encontrado');
 
-      const set = (id, val) => { const el = document.getElementById(id); if (el && val) { el.value = val; el.classList.add('success'); } };
+      const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val) { el.value = val; el.classList.add('success'); }
+      };
       set('street',       data.logradouro);
       set('neighborhood', data.bairro);
       set('city',         data.localidade);
-
       const stateEl = document.getElementById('state');
       if (stateEl && data.uf) stateEl.value = data.uf;
 
       document.getElementById('number')?.focus();
     } catch {
       cepInput?.classList.add('error');
+      showFreteMsg('CEP não encontrado. Verifique e tente novamente.', 'error');
     } finally {
       btn.textContent = 'Buscar';
       btn.disabled = false;
     }
+
+    await calcularFrete(cep);
   });
 
-  // Formata CEP ao digitar
+  // Atualiza frete ao trocar opção de envio
+  document.addEventListener('change', e => {
+    if (e.target.name === 'shipping') {
+      const val = e.target.value;
+      updateTotalWithFrete(val === 'motoboy' ? FRETE_MOTOBOY : FRETE_STANDARD);
+    }
+  });
+
+  // Formata CEP
   document.getElementById('cep')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').slice(0, 8);
     if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
     this.value = v;
     this.classList.remove('error', 'success');
+    // Esconde frete anterior ao digitar novo CEP
+    document.getElementById('freteResult').style.display = 'none';
+    document.getElementById('freteMsg').style.display    = 'none';
   });
 
-  // ── HIGHLIGHT CAMPOS VAZIOS ────────────────
+  // ── HIGHLIGHT CAMPOS VAZIOS ──────────────────────────────
   function highlightEmptyFields(ids) {
     ids.forEach(id => {
       const el = document.getElementById(id);
@@ -245,13 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('input', () => el.classList.remove('error'), { once: true });
       }
     });
-
-    const firstEmpty = ids.map(id => document.getElementById(id)).find(el => el && !el.value.trim());
-    firstEmpty?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    firstEmpty?.focus();
+    const first = ids.map(id => document.getElementById(id)).find(el => el && !el.value.trim());
+    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    first?.focus();
   }
 
-  // ── PAYMENT TABS ───────────────────────────
+  // ── PAYMENT TABS ─────────────────────────────────────────
   document.querySelectorAll('.payment-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.payment-tab').forEach(t => {
@@ -259,92 +331,82 @@ document.addEventListener('DOMContentLoaded', () => {
         t.setAttribute('aria-selected', 'false');
       });
       document.querySelectorAll('.payment-panel').forEach(p => p.classList.add('payment-panel--hidden'));
-
       tab.classList.add('payment-tab--active');
       tab.setAttribute('aria-selected', 'true');
-      const panelId = tab.getAttribute('aria-controls');
-      document.getElementById(panelId)?.classList.remove('payment-panel--hidden');
+      document.getElementById(tab.getAttribute('aria-controls'))?.classList.remove('payment-panel--hidden');
 
-      // Ajusta total para Pix (5% desconto)
+      // Desconto 5% no Pix
       const totalEl = document.getElementById('checkoutTotal');
       if (totalEl) {
-        const currentTotal = parseFloat(totalEl.dataset.baseTotal || totalEl.textContent.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-        if (tab.dataset.tab === 'pix') {
-          const withDiscount = currentTotal * 0.95;
-          totalEl.textContent = `R$ ${withDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-          totalEl.title = '5% desconto Pix';
-        } else {
-          const base = parseFloat(totalEl.dataset.baseTotal || 0);
-          if (base > 0) {
-            totalEl.textContent = `R$ ${base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-          }
-          totalEl.title = '';
+        const base = parseFloat(totalEl.dataset.baseTotal || 0);
+        if (base > 0) {
+          const val = tab.dataset.tab === 'pix' ? base * 0.95 : base;
+          totalEl.textContent = formatCurrency(val);
+          totalEl.title = tab.dataset.tab === 'pix' ? '5% desconto Pix aplicado' : '';
+          if (tab.dataset.tab === 'pix') updateInstallments(val);
         }
       }
     });
   });
 
-  // ── CARD PREVIEW ───────────────────────────
-  const cardNumber = document.getElementById('cardNumber');
-  const cardName   = document.getElementById('cardName');
-  const cardExpiry = document.getElementById('cardExpiry');
-
-  cardNumber?.addEventListener('input', function () {
+  // ── CARD PREVIEW ─────────────────────────────────────────
+  document.getElementById('cardNumber')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').slice(0, 16);
     v = v.replace(/(.{4})/g, '$1 ').trim();
     this.value = v;
-    const preview = document.getElementById('previewNumber');
-    if (preview) preview.textContent = v || '•••• •••• •••• ••••';
-
-    // Detecta bandeira
+    const num = v.replace(/\s/g, '');
+    document.getElementById('previewNumber').textContent = v || '•••• •••• •••• ••••';
     const brand = document.getElementById('previewBrand');
     if (brand) {
-      const num = v.replace(/\s/g, '');
-      if (num.startsWith('4')) brand.textContent = 'VISA';
-      else if (/^5[1-5]/.test(num)) brand.textContent = 'MASTERCARD';
-      else if (num.startsWith('3')) brand.textContent = 'AMEX';
-      else brand.textContent = 'CARTÃO';
+      if (num.startsWith('4'))        brand.textContent = 'VISA';
+      else if (/^5[1-5]/.test(num))  brand.textContent = 'MASTERCARD';
+      else if (num.startsWith('3'))   brand.textContent = 'AMEX';
+      else                            brand.textContent = 'CARTÃO';
     }
   });
 
-  cardName?.addEventListener('input', function () {
-    const preview = document.getElementById('previewName');
-    if (preview) preview.textContent = this.value.toUpperCase() || 'SEU NOME';
+  document.getElementById('cardName')?.addEventListener('input', function () {
+    document.getElementById('previewName').textContent = this.value.toUpperCase() || 'SEU NOME';
   });
 
-  cardExpiry?.addEventListener('input', function () {
+  document.getElementById('cardExpiry')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').slice(0, 4);
     if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
     this.value = v;
-    const preview = document.getElementById('previewExpiry');
-    if (preview) preview.textContent = v || 'MM/AA';
+    document.getElementById('previewExpiry').textContent = v || 'MM/AA';
   });
 
-  // Formata CPF
+  // Formata CPF e telefone
   document.getElementById('cpf')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').slice(0, 11);
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     this.value = v;
   });
-
-  // Formata telefone
   document.getElementById('phone')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').slice(0, 11);
-    v = v.replace(/^(\d{2})(\d)/, '($1) $2');
-    v = v.replace(/(\d{5})(\d)/, '$1-$2');
+    v = v.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
     this.value = v;
   });
 
-  // ── SUBMIT PEDIDO ───────────────────────────
-  document.getElementById('submitOrder')?.addEventListener('click', async () => {
-    const firstName = document.getElementById('firstName')?.value.trim();
-    const activeTab = document.querySelector('.payment-tab--active')?.dataset.tab;
+  // ── BOTÃO COPIAR PIX ─────────────────────────────────────
+  document.getElementById('copiarPix')?.addEventListener('click', () => {
+    const input = document.getElementById('pixCopiaECola');
+    if (!input) return;
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = document.getElementById('copiarPix');
+      btn.textContent = '✓ Copiado!';
+      setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+    });
+  });
 
-    // Validação básica do cartão
+  // ── SUBMIT PEDIDO ─────────────────────────────────────────
+  document.getElementById('submitOrder')?.addEventListener('click', async () => {
+    const activeTab = document.querySelector('.payment-tab--active')?.dataset.tab;
+    const btn = document.getElementById('submitOrder');
+
+    // Validação cartão
     if (activeTab === 'cartao') {
-      const num = document.getElementById('cardNumber')?.value.trim();
+      const num  = document.getElementById('cardNumber')?.value.trim();
       const name = document.getElementById('cardName')?.value.trim();
       const exp  = document.getElementById('cardExpiry')?.value.trim();
       const cvv  = document.getElementById('cardCvv')?.value.trim();
@@ -354,57 +416,181 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Anima botão
-    const btn = document.getElementById('submitOrder');
-    if (btn) {
-      btn.innerHTML = 'Processando…';
-      btn.disabled = true;
+    // Garante que o frete foi calculado
+    const cepRaw = document.getElementById('cep')?.value.replace(/\D/g, '');
+    if (!cepRaw) { alert('Informe o CEP de entrega.'); goToStep(2); return; }
+    const cepNum = parseInt(cepRaw, 10);
+    if (cepNum < CEP_JP_MIN || cepNum > CEP_JP_MAX) {
+      alert('Só entregamos em João Pessoa (PB).'); goToStep(2); return;
     }
 
-    // ── Decrementa estoque no Supabase para cada item do carrinho ──
-    const cart = getCart();
-    if (typeof supabaseClient !== 'undefined' && cart.length) {
-      const decrements = cart
-        .filter(item => item.variacao_id)
-        .map(item =>
-          supabaseClient.rpc('comprar_variacao', {
-            p_variacao_id: item.variacao_id,
-            p_quantidade:  item.qty || 1
-          }).then(({ data, error }) => {
-            if (error) console.warn(`[Checkout] Estoque: ${error.message}`, item);
-          })
-        );
-      try { await Promise.allSettled(decrements); } catch {}
+    btn.innerHTML = 'Processando…';
+    btn.disabled  = true;
+
+    // Monta dados do cliente e endereço
+    const cart     = getCart();
+    const totalEl  = document.getElementById('checkoutTotal');
+    const total    = parseFloat(totalEl?.dataset.baseTotal || 0) + freteValorSelecionado;
+    const isPix    = activeTab === 'pix';
+    const finalTotal = isPix ? +(total * 0.95).toFixed(2) : +total.toFixed(2);
+
+    const cliente = {
+      nome:     `${document.getElementById('firstName')?.value.trim()} ${document.getElementById('lastName')?.value.trim()}`.trim(),
+      email:    document.getElementById('email')?.value.trim(),
+      cpf:      document.getElementById('cpf')?.value.trim(),
+      telefone: document.getElementById('phone')?.value.trim(),
+    };
+
+    const endereco = {
+      cep:         document.getElementById('cep')?.value.trim(),
+      rua:         document.getElementById('street')?.value.trim(),
+      numero:      document.getElementById('number')?.value.trim(),
+      complemento: document.getElementById('complement')?.value.trim(),
+      bairro:      document.getElementById('neighborhood')?.value.trim(),
+      cidade:      document.getElementById('city')?.value.trim(),
+      estado:      document.getElementById('state')?.value,
+    };
+
+    // ── Monta payload base ───────────────────────
+    const payload = {
+      tipo:      isPix ? 'pix' : 'cartao',
+      total:     finalTotal,
+      subtotal:  baseTotal,
+      frete:     freteValorSelecionado,
+      desconto:  isPix ? +(baseTotal * 0.05).toFixed(2) : 0,
+      itens:     cart,
+      cliente,
+      endereco,
+    };
+
+    // ── Cartão: tokeniza via MP SDK antes de enviar ──────
+    if (!isPix) {
+      if (!mpInstance) {
+        alert('SDK do Mercado Pago não carregou. Recarregue a página.');
+        btn.innerHTML = '🔒 Finalizar Pedido';
+        btn.disabled = false;
+        return;
+      }
+
+      const expiry   = document.getElementById('cardExpiry')?.value.split('/') || [];
+      const expiryMM = expiry[0] || '';
+      const expiryYY = expiry[1] ? '20' + expiry[1] : '';
+
+      try {
+        const tokenResult = await mpInstance.createCardToken({
+          cardNumber:          document.getElementById('cardNumber')?.value.replace(/\s/g, ''),
+          cardExpirationMonth: expiryMM,
+          cardExpirationYear:  expiryYY,
+          securityCode:        document.getElementById('cardCvv')?.value.trim(),
+          cardholderName:      document.getElementById('cardName')?.value.trim(),
+          identificationType:  'CPF',
+          identificationNumber: cliente.cpf.replace(/\D/g, ''),
+        });
+
+        if (tokenResult.error) throw new Error(tokenResult.error.message);
+        payload.token     = tokenResult.id;
+        payload.parcelas  = parseInt(document.getElementById('installments')?.value || '1', 10);
+      } catch (err) {
+        alert(`Erro no cartão: ${err.message || 'Verifique os dados do cartão.'}`);
+        btn.innerHTML = '🔒 Finalizar Pedido';
+        btn.disabled  = false;
+        return;
+      }
     }
 
-    // Limpa carrinho e embalagem do localStorage
-    localStorage.removeItem('virtu_cart');
-    localStorage.removeItem('virtu_gift');
-    if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
+    // ── Chama Edge Function ──────────────────────
+    try {
+      const res = await fetch(EDGE_FUNCTION_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
 
-    // Exibe modal de sucesso
-    setTimeout(() => {
-      const modal = document.getElementById('successModal');
-      const nameEl = document.getElementById('successName');
-      const orderEl = document.getElementById('successOrder');
+      const result = await res.json();
 
-      if (nameEl) nameEl.textContent = firstName || 'cliente';
-      if (orderEl) orderEl.textContent = Math.floor(100000 + Math.random() * 900000);
+      if (!res.ok || result.erro) {
+        throw new Error(result.erro || `Erro ${res.status}`);
+      }
 
-      modal?.classList.add('open');
-      modal?.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }, 800);
+      // Decrementa estoque (independente do gateway)
+      if (typeof supabaseClient !== 'undefined' && cart.length) {
+        const decrements = cart
+          .filter(i => i.variacao_id)
+          .map(i => supabaseClient.rpc('comprar_variacao', {
+            p_variacao_id: i.variacao_id,
+            p_quantidade:  i.qty || 1,
+          }));
+        await Promise.allSettled(decrements);
+      }
+
+      // Limpa carrinho
+      localStorage.removeItem('virtu_cart');
+      localStorage.removeItem('virtu_gift');
+      if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
+
+      // ── PIX: exibe QR Code ───────────────────────
+      if (isPix) {
+        document.getElementById('pixPending').style.display = 'none';
+        document.getElementById('pixGerado').style.display  = 'block';
+
+        const qrImg = document.getElementById('pixQrImg');
+        if (qrImg && result.qr_code_base64) {
+          qrImg.src = `data:image/png;base64,${result.qr_code_base64}`;
+        }
+
+        const pixInput = document.getElementById('pixCopiaECola');
+        if (pixInput && result.qr_code) pixInput.value = result.qr_code;
+
+        if (result.expires_at) {
+          const exp = new Date(result.expires_at);
+          document.getElementById('pixExpira').textContent =
+            `Expira em: ${exp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        btn.innerHTML = '✓ QR Code gerado!';
+        btn.disabled  = false;
+        return; // Não fecha — aguarda pagamento
+      }
+
+      // ── Cartão: feedback de aprovação ────────────
+      if (result.status === 'approved') {
+        exibirSucesso(cliente.nome.split(' ')[0], result.pedido_id);
+      } else if (result.status === 'rejected') {
+        btn.innerHTML = '🔒 Finalizar Pedido';
+        btn.disabled  = false;
+        alert(`Pagamento recusado: ${result.mensagem || 'Verifique os dados do cartão.'}`);
+      } else {
+        // in_process — cartão em análise
+        exibirSucesso(cliente.nome.split(' ')[0], result.pedido_id, true);
+      }
+
+    } catch (err) {
+      console.error('[Checkout]', err);
+      btn.innerHTML = '🔒 Finalizar Pedido';
+      btn.disabled  = false;
+      alert(`Erro ao processar pagamento: ${err.message}\nTente novamente ou entre em contato.`);
+    }
   });
 
-  // Fecha modal de sucesso ao clicar fora (não necessário mas boa UX)
-  document.getElementById('successModal')?.addEventListener('click', e => {
-    if (e.target === document.getElementById('successModal')) {
-      // Não fecha — leva para catálogo pelo botão
-    }
-  });
+  // ── MODAL DE SUCESSO ──────────────────────────────────────
+  function exibirSucesso(nome, pedidoId, emAnalise = false) {
+    const modal   = document.getElementById('successModal');
+    const nameEl  = document.getElementById('successName');
+    const orderEl = document.getElementById('successOrder');
 
-  // ── INIT ────────────────────────────────────
+    if (nameEl)  nameEl.textContent  = nome || 'cliente';
+    if (orderEl) orderEl.textContent = pedidoId || Math.floor(100000 + Math.random() * 900000);
+
+    if (emAnalise) {
+      const txt = modal?.querySelector('.success-modal__text');
+      if (txt) txt.textContent = 'Seu pedido está em análise. Você receberá a confirmação por e-mail.';
+    }
+
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // ── INIT ──────────────────────────────────────────────────
   goToStep(1);
-
 });
