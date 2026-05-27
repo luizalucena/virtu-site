@@ -7,7 +7,7 @@
 // ── MERCADO PAGO PUBLIC KEY ──────────────────────────────────
 // Substitua pelo seu Public Key do Mercado Pago (sandbox ou produção)
 // Este valor é SEGURO no frontend — apenas o Access Token é secreto.
-const MP_PUBLIC_KEY = 'APP_USR-004402bb-0619-46f3-817c-d425ce3f566c';
+const MP_PUBLIC_KEY = 'TEST-1e075ed3-c232-489a-9200-7350ae24bc48';
 
 // URL da Edge Function do Supabase
 const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/processar-pagamento';
