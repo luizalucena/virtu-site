@@ -4,6 +4,110 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── CARRINHO DINÂMICO + THRESHOLD DO FRETE ─────────
+  const CART_KEY = 'virtu_cart';
+
+  function formatCurrency(v) {
+    return `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  }
+
+  function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
+  }
+
+  function renderOrderSummary(cart, freteGratis, freteValor) {
+    const itemsEl       = document.getElementById('checkoutItems');
+    const subtotalEl    = document.getElementById('checkoutSubtotal');
+    const freteEl       = document.getElementById('checkoutFreteLabel');
+    const totalEl       = document.getElementById('checkoutTotal');
+    const installEl     = document.getElementById('checkoutInstallments');
+    const freeOption    = document.getElementById('shippingFreeOption');
+
+    if (!cart.length) return;
+
+    // Renderiza itens
+    if (itemsEl) {
+      itemsEl.innerHTML = cart.map(item => {
+        const bgStyle = item.imagem_placeholder ? `background:${item.imagem_placeholder}` : 'background:linear-gradient(135deg,#E8E0D5,#D4CCC0)';
+        return `
+          <div class="checkout-order-item">
+            <div class="checkout-order-item__img" style="${bgStyle}"></div>
+            <div class="checkout-order-item__info">
+              <p class="checkout-order-item__name">${item.nome || 'Produto'}</p>
+              <p class="checkout-order-item__meta">${[item.cor_nome, item.tamanho].filter(Boolean).join(' · ')} · Qtd: ${item.qty || 1}</p>
+            </div>
+            <p class="checkout-order-item__price">${formatCurrency((item.preco || 0) * (item.qty || 1))}</p>
+          </div>`;
+      }).join('');
+    }
+
+    const subtotal = cart.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
+
+    // Verifica embalagem de presente do localStorage do carrinho
+    let giftExtra = 0;
+    try {
+      const giftData = JSON.parse(localStorage.getItem('virtu_gift') || 'null');
+      if (giftData?.ativo) giftExtra = parseFloat(giftData.preco) || 0;
+    } catch {}
+
+    const base       = subtotal + giftExtra;
+    const isFree     = base >= freteGratis;
+    const frete      = isFree ? 0 : (base > 0 ? freteValor : 0);
+    const total      = base + frete;
+
+    if (subtotalEl) subtotalEl.textContent = formatCurrency(subtotal);
+
+    if (freteEl) {
+      if (isFree) {
+        freteEl.textContent = 'Grátis';
+        freteEl.classList.add('checkout-order-summary__free');
+      } else {
+        freteEl.textContent = formatCurrency(frete);
+        freteEl.classList.remove('checkout-order-summary__free');
+      }
+    }
+
+    if (totalEl) { totalEl.textContent = formatCurrency(total); totalEl.dataset.baseTotal = total; }
+
+    if (installEl && total > 0) {
+      const parcela = total / 6;
+      installEl.textContent = `ou 6x de ${formatCurrency(parcela)} sem juros`;
+    }
+
+    // Mostra/oculta opção "Frete Grátis" com base no threshold
+    if (freeOption) {
+      if (isFree) {
+        freeOption.style.display = '';
+      } else {
+        freeOption.style.display = 'none';
+        // Garante que não fique selecionada
+        const freeRadio = document.getElementById('shippingFreeRadio');
+        if (freeRadio?.checked) {
+          const expressRadio = document.querySelector('input[name="shipping"][value="express"]');
+          if (expressRadio) expressRadio.checked = true;
+        }
+      }
+    }
+  }
+
+  // Carrega threshold do Supabase e renderiza
+  (async () => {
+    let freteGratis = 300;
+    let freteValor  = 25;
+    try {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: cfg } = await supabaseClient
+          .from('configuracoes')
+          .select('frete_gratis_acima, frete_padrao')
+          .eq('id', 1)
+          .maybeSingle();
+        if (cfg?.frete_gratis_acima != null) freteGratis = parseFloat(cfg.frete_gratis_acima) || 300;
+        if (cfg?.frete_padrao       != null) freteValor  = parseFloat(cfg.frete_padrao)       || 25;
+      }
+    } catch {}
+    renderOrderSummary(getCart(), freteGratis, freteValor);
+  })();
+
   // ── STEPS ──────────────────────────────────
   let currentStep = 1;
 
@@ -164,11 +268,16 @@ document.addEventListener('DOMContentLoaded', () => {
       // Ajusta total para Pix (5% desconto)
       const totalEl = document.getElementById('checkoutTotal');
       if (totalEl) {
+        const currentTotal = parseFloat(totalEl.dataset.baseTotal || totalEl.textContent.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
         if (tab.dataset.tab === 'pix') {
-          totalEl.textContent = 'R$ 574,75';
+          const withDiscount = currentTotal * 0.95;
+          totalEl.textContent = `R$ ${withDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
           totalEl.title = '5% desconto Pix';
         } else {
-          totalEl.textContent = 'R$ 605,00';
+          const base = parseFloat(totalEl.dataset.baseTotal || 0);
+          if (base > 0) {
+            totalEl.textContent = `R$ ${base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          }
           totalEl.title = '';
         }
       }

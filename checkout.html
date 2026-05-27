@@ -158,8 +158,8 @@
             <!-- OPÇÕES DE FRETE -->
             <fieldset class="shipping-options" aria-label="Escolha o método de entrega">
               <legend class="shipping-options__legend">Método de entrega</legend>
-              <label class="shipping-option">
-                <input type="radio" name="shipping" value="free" checked class="shipping-option__radio" />
+              <label class="shipping-option" id="shippingFreeOption">
+                <input type="radio" name="shipping" value="free" checked class="shipping-option__radio" id="shippingFreeRadio" />
                 <div class="shipping-option__info">
                   <span class="shipping-option__name">Frete Grátis</span>
                   <span class="shipping-option__time">7–12 dias úteis</span>
@@ -308,7 +308,7 @@
       <aside class="checkout-order-summary" aria-label="Resumo do pedido">
         <h2 class="checkout-order-summary__title">Resumo</h2>
 
-        <div class="checkout-order-summary__items">
+        <div class="checkout-order-summary__items" id="checkoutItems">
           <div class="checkout-order-item">
             <div class="checkout-order-item__img" style="background:linear-gradient(135deg,#D4C4B5,#8B7D6B)"></div>
             <div class="checkout-order-item__info">
@@ -329,18 +329,18 @@
 
         <dl class="checkout-order-summary__lines">
           <div class="checkout-order-summary__line">
-            <dt>Subtotal</dt><dd>R$ 605,00</dd>
+            <dt>Subtotal</dt><dd id="checkoutSubtotal">R$ 0,00</dd>
           </div>
           <div class="checkout-order-summary__line">
-            <dt>Frete</dt><dd class="checkout-order-summary__free">Grátis</dd>
+            <dt>Frete</dt><dd id="checkoutFreteLabel" class="checkout-order-summary__free">Grátis</dd>
           </div>
         </dl>
 
         <div class="checkout-order-summary__total">
           <span>Total</span>
-          <strong id="checkoutTotal">R$ 605,00</strong>
+          <strong id="checkoutTotal">R$ 0,00</strong>
         </div>
-        <p class="checkout-order-summary__installments">ou 6x de R$ 100,83 sem juros</p>
+        <p class="checkout-order-summary__installments" id="checkoutInstallments"></p>
 
         <div class="checkout-order-summary__trust">
           <span>🔒 SSL Seguro</span>
@@ -363,6 +363,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
   <script src="js/checkout.js"></script>
 </body>
 </html>

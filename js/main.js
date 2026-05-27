@@ -186,21 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      // Feedback visual
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '✓ Adicionado!';
-      btn.style.background = 'var(--color-navy)';
-      btn.style.color = 'white';
-
-      // Atualiza badge lendo o localStorage (via cart-badge.js)
-      if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
-
-      setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = '';
-        btn.style.color = '';
-      }, 1400);
+      // Redireciona para a página do produto para escolher cor e tamanho
+      const prodId = btn.dataset.id || btn.closest('[data-id]')?.dataset.id;
+      if (prodId) window.location.href = `produto.html?id=${prodId}`;
     });
   });
 

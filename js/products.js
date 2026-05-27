@@ -14,14 +14,32 @@ const VirtuProducts = (() => {
     if (_cache) return _cache;
 
     try {
-      // Busca produtos e configurações em paralelo
-      const [{ data: produtos, error: e1 }, { data: cfg, error: e2 }] = await Promise.all([
+      // Busca produtos, configurações e variações em paralelo
+      const [
+        { data: produtos, error: e1 },
+        { data: cfg,      error: e2 },
+        { data: variacoes           }
+      ] = await Promise.all([
         supabaseClient.from('produtos').select('*').order('criado_em', { ascending: false }),
-        supabaseClient.from('configuracoes').select('*').eq('id', 1).maybeSingle()
+        supabaseClient.from('configuracoes').select('*').eq('id', 1).maybeSingle(),
+        supabaseClient.from('variacoes').select('produto_id, cor_nome, cor_hex').gt('estoque', 0)
       ]);
 
       if (e1) throw new Error(`Produtos: ${e1.message}`);
-      // e2 ignorado se cfg for null (configurações ainda não criadas)
+
+      // Monta mapa de cores reais por produto (a partir das variações em estoque)
+      const coresPorProduto = {};
+      (variacoes || []).forEach(v => {
+        if (!v.cor_hex) return;
+        if (!coresPorProduto[v.produto_id]) coresPorProduto[v.produto_id] = [];
+        const jaExiste = coresPorProduto[v.produto_id].some(c => c.hex === v.cor_hex);
+        if (!jaExiste) coresPorProduto[v.produto_id].push({ nome: v.cor_nome || '', hex: v.cor_hex });
+      });
+
+      // Sobrescreve cores de cada produto com as cores reais das variações
+      (produtos || []).forEach(p => {
+        if (coresPorProduto[p.id]?.length) p.cores = coresPorProduto[p.id];
+      });
 
       _cache = {
         produtos:       produtos || [],
@@ -31,7 +49,6 @@ const VirtuProducts = (() => {
       return _cache;
     } catch (err) {
       console.error('[VirtuProducts] Erro ao buscar dados do Supabase:', err.message);
-      // Retorna estrutura vazia para não quebrar a UI
       return { produtos: [], configuracoes: {} };
     }
   }
@@ -209,13 +226,9 @@ const VirtuProducts = (() => {
     container.querySelectorAll('.product-card__quick-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
-        const orig = btn.innerHTML;
-        btn.innerHTML = '✓ Adicionado!';
-        btn.style.cssText = 'background:var(--color-navy);color:white;';
-        // Atualiza badge do carrinho
-        const badge = document.getElementById('cartBadge');
-        if (badge) { badge.hidden = false; badge.textContent = parseInt(badge.textContent || 0) + 1; }
-        setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1400);
+        // Redireciona para a página do produto para escolher cor e tamanho
+        const prodId = btn.dataset.id || btn.closest('[data-id]')?.dataset.id;
+        if (prodId) window.location.href = `produto.html?id=${prodId}`;
       });
     });
 
