@@ -498,12 +498,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Chama Edge Function ──────────────────────
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 25000);
     try {
       const res = await fetch(EDGE_FUNCTION_URL, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${SUPABASE_KEY}` },
         body:    JSON.stringify(payload),
+        signal:  controller.signal,
       });
+      clearTimeout(timeoutId);
 
       const result = await res.json();
 
@@ -564,10 +569,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('[Checkout]', err);
       btn.innerHTML = '🔒 Finalizar Pedido';
       btn.disabled  = false;
-      alert(`Erro ao processar pagamento: ${err.message}\nTente novamente ou entre em contato.`);
+      const msg = err.name === 'AbortError'
+        ? 'Tempo esgotado (25s). Verifique sua conexão e tente novamente.'
+        : (err.message || 'Erro desconhecido.');
+      alert(`Erro ao processar pagamento: ${msg}\nTente novamente ou entre em contato.`);
     }
   });
 
