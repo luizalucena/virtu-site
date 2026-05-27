@@ -70,10 +70,16 @@
   </div>
 
   <!-- SEARCH OVERLAY -->
-  <div class="search-overlay" id="searchOverlay" role="dialog" aria-label="Busca" aria-modal="true" aria-hidden="true">
+  <div class="search-overlay" id="searchOverlay" role="search" aria-hidden="true">
     <div class="search-overlay__inner">
-      <input type="search" class="search-overlay__input" placeholder="Buscar peças…" aria-label="Campo de busca" />
       <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">✕</button>
+      <form class="search-overlay__form" role="search">
+        <input type="search" class="search-overlay__input" placeholder="O que você procura?" aria-label="Campo de busca" />
+        <button type="submit" class="search-overlay__btn" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+      </form>
+      <p class="search-overlay__hint">Sugestões: Vestidos, Blusas, Calças, Novidades</p>
     </div>
   </div>
 
@@ -194,7 +200,7 @@
           <!-- FAQ RÁPIDO -->
           <div class="contato-faq">
             <h3 class="contato-faq__title">Perguntas frequentes</h3>
-            <div class="contato-faq__items">
+            <div class="contato-faq__items" id="faqItemsWrap">
               <details class="contato-faq__item">
                 <summary class="contato-faq__question">Como funciona a troca?</summary>
                 <p class="contato-faq__answer">Você tem 30 dias a partir do recebimento para solicitar troca ou devolução. O frete de retorno é por nossa conta.</p>
@@ -224,10 +230,10 @@
       <div class="newsletter-section__inner">
         <div class="newsletter-section__text">
           <p class="section-eyebrow" style="color:var(--color-gold-light)">Newsletter</p>
-          <h2 class="newsletter-section__title" id="newsletterTitle">
+          <h2 class="newsletter-section__title" id="contatoNewsletterTitulo">
             Seja a primeira<br/>a saber
           </h2>
-          <p class="newsletter-section__sub">
+          <p class="newsletter-section__sub" id="contatoNewsletterSub">
             Novidades, lançamentos exclusivos, conteúdo sobre moda intencional
             e ofertas especiais direto no seu e-mail. Sem spam, prometemos.
           </p>
@@ -265,20 +271,11 @@
             </p>
           </form>
 
-          <div class="newsletter-section__perks">
-            <div class="nl-perk">
-              <span class="nl-perk__icon">🎁</span>
-              <span>10% off na primeira compra</span>
-            </div>
-            <div class="nl-perk">
-              <span class="nl-perk__icon">✨</span>
-              <span>Acesso antecipado a lançamentos</span>
-            </div>
-            <div class="nl-perk">
-              <span class="nl-perk__icon">📦</span>
-              <span>Frete grátis em datas especiais</span>
-            </div>
-          </div>
+          <ul class="newsletter-section__perks" id="contatoNewsletterBeneficios">
+            <li>✦ 10% off na primeira compra</li>
+            <li>✦ Acesso antecipado a lançamentos</li>
+            <li>✦ Frete grátis em datas especiais</li>
+          </ul>
         </div>
       </div>
     </section>

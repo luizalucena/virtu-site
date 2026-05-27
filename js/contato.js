@@ -8,7 +8,7 @@
   try {
     const { data: cfg } = await supabaseClient
       .from('configuracoes')
-      .select('email_contato, whatsapp_numero, whatsapp_link, horario_semana, horario_sabado')
+      .select('email_contato, whatsapp_numero, whatsapp_link, horario_semana, horario_sabado, faq_items, newsletter_titulo, newsletter_subtitulo, newsletter_beneficios')
       .eq('id', 1)
       .maybeSingle();
     if (!cfg) return;
@@ -30,6 +30,32 @@
 
     const horSabado = document.getElementById('contatoHorarioSabado');
     if (horSabado && cfg.horario_sabado) horSabado.textContent = cfg.horario_sabado;
+
+    // FAQ dinâmico
+    const faqWrap = document.getElementById('faqItemsWrap');
+    if (faqWrap && Array.isArray(cfg.faq_items) && cfg.faq_items.length) {
+      faqWrap.innerHTML = cfg.faq_items.map(f => {
+        if (f.link) {
+          return `<div class="contato-faq__item contato-faq__item--link">
+            <a href="${f.link}" class="contato-faq__question contato-faq__question--link">${f.pergunta} <span>→</span></a>
+          </div>`;
+        }
+        return `<details class="contato-faq__item">
+          <summary class="contato-faq__question">${f.pergunta}</summary>
+          <p class="contato-faq__answer">${f.resposta}</p>
+        </details>`;
+      }).join('');
+    }
+
+    // Newsletter
+    const nTit = document.getElementById('contatoNewsletterTitulo');
+    const nSub = document.getElementById('contatoNewsletterSub');
+    if (nTit && cfg.newsletter_titulo)    nTit.textContent = cfg.newsletter_titulo;
+    if (nSub && cfg.newsletter_subtitulo) nSub.textContent = cfg.newsletter_subtitulo;
+    const nBen = document.getElementById('contatoNewsletterBeneficios');
+    if (nBen && Array.isArray(cfg.newsletter_beneficios)) {
+      nBen.innerHTML = cfg.newsletter_beneficios.map(b => `<li>✦ ${b}</li>`).join('');
+    }
 
   } catch { /* mantém valores estáticos como fallback */ }
 })();

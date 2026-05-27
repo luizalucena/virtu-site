@@ -530,6 +530,51 @@
           </div>
         </div>
 
+        <!-- DIFERENCIAIS -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">Diferenciais (Frete, Parcelamento, Trocas, Atendimento)</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1rem;line-height:1.5">4 cards exibidos abaixo do banner na Home.</p>
+          <div id="cfgDiferenciaisWrap"></div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">Perguntas Frequentes (FAQ)</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1rem;line-height:1.5">Aparece na página de Contato. Deixe o campo "Link" em branco para expandir a resposta ao clicar.</p>
+          <div id="cfgFaqWrap"></div>
+        </div>
+
+        <!-- NEWSLETTER -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">Newsletter</h3>
+          <div class="admin-form-group">
+            <label class="admin-label">Título</label>
+            <input type="text" class="admin-input" id="cfgNewsletterTitulo" placeholder="Seja a primeira a saber" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Subtítulo</label>
+            <textarea class="admin-input admin-textarea" id="cfgNewsletterSub" rows="3"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Benefícios (um por linha)</label>
+            <textarea class="admin-input admin-textarea" id="cfgNewsletterBeneficios" rows="4" placeholder="10% off na primeira compra&#10;Acesso antecipado a lançamentos&#10;Frete grátis em datas especiais"></textarea>
+          </div>
+        </div>
+
+        <!-- PEDIDO CONFIRMADO -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">Mensagem de Pedido Confirmado</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1rem;line-height:1.5">Use <code>{nome}</code> para incluir o nome do cliente automaticamente.</p>
+          <div class="admin-form-group">
+            <label class="admin-label">Título</label>
+            <input type="text" class="admin-input" id="cfgPedidoTitulo" placeholder="Pedido Confirmado!" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Mensagem</label>
+            <textarea class="admin-input admin-textarea" id="cfgPedidoCorpo" rows="3" placeholder="Obrigada pela sua compra, {nome}!..."></textarea>
+          </div>
+        </div>
+
       </div>
       <div style="margin-top:1.5rem">
         <button class="admin-btn admin-btn--primary" id="btnSaveConfig">Salvar Configurações</button>

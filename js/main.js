@@ -259,6 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Aplica textos editáveis do banner (home)
     VirtuProducts.applyHomeBanners();
+    // Aplica diferenciais e newsletter editáveis
+    VirtuProducts.applyHomeExtras();
   }
 
 });

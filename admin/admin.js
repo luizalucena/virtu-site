@@ -529,6 +529,62 @@ function populateConfig() {
   set('cfgWhatsappLink',    cfg.whatsapp_link);
   set('cfgHorarioSemana',   cfg.horario_semana);
   set('cfgHorarioSabado',   cfg.horario_sabado);
+
+  // Diferenciais
+  const difs = cfg.diferenciais || [
+    {titulo:'Frete Grátis',descricao:'Nas compras acima de R$399'},
+    {titulo:'Parcelamento',descricao:'Até 6x sem juros no cartão'},
+    {titulo:'Trocas Fáceis',descricao:'Até 30 dias para trocar'},
+    {titulo:'Atendimento',descricao:'Via WhatsApp, de seg. a sáb.'},
+  ];
+  const difWrap = document.getElementById('cfgDiferenciaisWrap');
+  if (difWrap) {
+    difWrap.innerHTML = difs.map((d, i) => `
+      <div style="border:1px solid #eee;border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem">
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.5rem">Card ${i+1}</p>
+        <div class="admin-form-group">
+          <label class="admin-label">Título</label>
+          <input type="text" class="admin-input" id="cfgDif${i}Titulo" value="${d.titulo||''}" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Descrição</label>
+          <input type="text" class="admin-input" id="cfgDif${i}Desc" value="${d.descricao||''}" />
+        </div>
+      </div>`).join('');
+  }
+
+  // FAQ
+  const faqs = cfg.faq_items || [];
+  const faqWrap = document.getElementById('cfgFaqWrap');
+  if (faqWrap) {
+    faqWrap.innerHTML = faqs.map((f, i) => `
+      <div style="border:1px solid #eee;border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem">
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.5rem">Pergunta ${i+1}</p>
+        <div class="admin-form-group">
+          <label class="admin-label">Pergunta</label>
+          <input type="text" class="admin-input" id="cfgFaq${i}P" value="${f.pergunta||''}" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Resposta</label>
+          <textarea class="admin-input admin-textarea" id="cfgFaq${i}R" rows="2">${f.resposta||''}</textarea>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Link (opcional — deixe vazio para expandir)</label>
+          <input type="text" class="admin-input" id="cfgFaq${i}L" value="${f.link||''}" placeholder="https://..." />
+        </div>
+      </div>`).join('');
+  }
+
+  // Newsletter
+  set('cfgNewsletterTitulo', cfg.newsletter_titulo);
+  set('cfgNewsletterSub',    cfg.newsletter_subtitulo);
+  const benefEl = document.getElementById('cfgNewsletterBeneficios');
+  if (benefEl) benefEl.value = Array.isArray(cfg.newsletter_beneficios)
+    ? cfg.newsletter_beneficios.join('\n') : (cfg.newsletter_beneficios || '');
+
+  // Pedido confirmado
+  set('cfgPedidoTitulo', cfg.pedido_msg_titulo);
+  set('cfgPedidoCorpo',  cfg.pedido_msg_corpo);
 }
 
 async function saveConfig() {
@@ -564,7 +620,30 @@ async function saveConfig() {
     whatsapp_numero: document.getElementById('cfgWhatsappNumero')?.value.trim() || null,
     whatsapp_link:   document.getElementById('cfgWhatsappLink')?.value.trim()   || null,
     horario_semana:  document.getElementById('cfgHorarioSemana')?.value.trim()  || null,
-    horario_sabado:  document.getElementById('cfgHorarioSabado')?.value.trim()  || null
+    horario_sabado:  document.getElementById('cfgHorarioSabado')?.value.trim()  || null,
+    // Diferenciais
+    diferenciais: [0,1,2,3].map(i => ({
+      titulo:   document.getElementById(`cfgDif${i}Titulo`)?.value.trim() || '',
+      descricao: document.getElementById(`cfgDif${i}Desc`)?.value.trim()  || '',
+    })).filter(d => d.titulo),
+    // FAQ
+    faq_items: [0,1,2,3,4,5,6,7].map(i => {
+      const p = document.getElementById(`cfgFaq${i}P`);
+      if (!p) return null;
+      return {
+        pergunta: p.value.trim(),
+        resposta: document.getElementById(`cfgFaq${i}R`)?.value.trim() || '',
+        link:     document.getElementById(`cfgFaq${i}L`)?.value.trim() || '',
+      };
+    }).filter(Boolean).filter(f => f.pergunta),
+    // Newsletter
+    newsletter_titulo:     document.getElementById('cfgNewsletterTitulo')?.value.trim() || null,
+    newsletter_subtitulo:  document.getElementById('cfgNewsletterSub')?.value.trim()    || null,
+    newsletter_beneficios: (document.getElementById('cfgNewsletterBeneficios')?.value || '')
+      .split('\n').map(s => s.trim()).filter(Boolean),
+    // Pedido confirmado
+    pedido_msg_titulo: document.getElementById('cfgPedidoTitulo')?.value.trim() || null,
+    pedido_msg_corpo:  document.getElementById('cfgPedidoCorpo')?.value.trim()  || null,
   };
 
   try {

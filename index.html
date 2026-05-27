@@ -254,7 +254,7 @@
     <!-- ── DIFERENCIAIS ──────────────────────── -->
     <section class="diferenciais section--sm" aria-label="Diferenciais da loja">
       <div class="container">
-        <div class="diferenciais__grid">
+        <div class="diferenciais__grid" id="diferenciaisGrid">
           <div class="diferencial">
             <div class="diferencial__icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -263,8 +263,8 @@
               </svg>
             </div>
             <div class="diferencial__info">
-              <h3>Frete Grátis</h3>
-              <p>Nas compras acima de R$399</p>
+              <h3 id="dif0Titulo">Frete Grátis</h3>
+              <p id="dif0Desc">Nas compras acima de R$399</p>
             </div>
           </div>
           <div class="diferencial">
@@ -275,8 +275,8 @@
               </svg>
             </div>
             <div class="diferencial__info">
-              <h3>Parcelamento</h3>
-              <p>Até 6x sem juros no cartão</p>
+              <h3 id="dif1Titulo">Parcelamento</h3>
+              <p id="dif1Desc">Até 6x sem juros no cartão</p>
             </div>
           </div>
           <div class="diferencial">
@@ -287,8 +287,8 @@
               </svg>
             </div>
             <div class="diferencial__info">
-              <h3>Trocas Fáceis</h3>
-              <p>Até 30 dias para trocar</p>
+              <h3 id="dif2Titulo">Trocas Fáceis</h3>
+              <p id="dif2Desc">Até 30 dias para trocar</p>
             </div>
           </div>
           <div class="diferencial">
@@ -298,8 +298,8 @@
               </svg>
             </div>
             <div class="diferencial__info">
-              <h3>Atendimento</h3>
-              <p>Via WhatsApp, de seg. a sáb.</p>
+              <h3 id="dif3Titulo">Atendimento</h3>
+              <p id="dif3Desc">Via WhatsApp, de seg. a sáb.</p>
             </div>
           </div>
         </div>
@@ -451,24 +451,12 @@
     <!-- ── NEWSLETTER ─────────────────────────── -->
     <section class="newsletter" aria-labelledby="newsletter-title">
       <div class="newsletter__inner">
-        <div class="newsletter__deco" aria-hidden="true">
-          <svg viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.12">
-            <ellipse cx="60" cy="80" rx="12" ry="10" fill="#C4934A"/>
-            <path d="M60 70 L60 20" stroke="#C4934A" stroke-width="5" stroke-linecap="round"/>
-            <path d="M60 70 L30 15" stroke="#C4934A" stroke-width="4" stroke-linecap="round"/>
-            <path d="M60 70 L90 15" stroke="#C4934A" stroke-width="4" stroke-linecap="round"/>
-            <path d="M60 70 L10 35" stroke="#C4934A" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M60 70 L110 35" stroke="#C4934A" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M60 70 L2 55" stroke="#C4934A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-            <path d="M60 70 L118 55" stroke="#C4934A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-          </svg>
-        </div>
         <div class="container newsletter__content">
           <p class="overline" style="color:var(--color-gold);">Fique por dentro</p>
           <h2 id="newsletter-title" class="display-lg display-italic" style="color:var(--color-white);">
-            Receba as novidades<br>em primeira mão
+            <span id="newsletterTitulo">Receba as novidades<br>em primeira mão</span>
           </h2>
-          <p style="color:rgba(255,255,255,0.65); font-size:var(--text-sm); margin-block:var(--space-4); max-width:400px; margin-inline:auto;">
+          <p id="newsletterSubtitulo" style="color:rgba(255,255,255,0.65); font-size:var(--text-sm); margin-block:var(--space-4); max-width:400px; margin-inline:auto;">
             Cadastre-se e receba lançamentos, promoções exclusivas e conteúdo especial da Virtù.
           </p>
           <form class="newsletter__form" id="newsletterForm" novalidate>

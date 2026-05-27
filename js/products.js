@@ -216,6 +216,34 @@ const VirtuProducts = (() => {
     if (ecta) { ecta.textContent = e.cta_texto; ecta.href = e.cta_link; }
   }
 
+  /* ── APLICA DIFERENCIAIS E NEWSLETTER NA HOME ─ */
+  async function applyHomeExtras() {
+    const cfg = await getConfig();
+    if (!cfg) return;
+
+    // Diferenciais
+    const difs = cfg.diferenciais;
+    if (Array.isArray(difs)) {
+      difs.forEach((d, i) => {
+        const t = document.getElementById(`dif${i}Titulo`);
+        const p = document.getElementById(`dif${i}Desc`);
+        if (t && d.titulo)   t.textContent = d.titulo;
+        if (p && d.descricao) p.textContent = d.descricao;
+      });
+    }
+
+    // Newsletter (index.html)
+    const nTit = document.getElementById('newsletterTitulo');
+    const nSub = document.getElementById('newsletterSubtitulo');
+    if (nTit && cfg.newsletter_titulo)    nTit.textContent = cfg.newsletter_titulo;
+    if (nSub && cfg.newsletter_subtitulo) nSub.textContent = cfg.newsletter_subtitulo;
+    const nBen = document.getElementById('newsletterBeneficios');
+    if (nBen && Array.isArray(cfg.newsletter_beneficios)) {
+      nBen.innerHTML = cfg.newsletter_beneficios
+        .map(b => `<li>${b}</li>`).join('');
+    }
+  }
+
   /* ── EVENTOS DOS CARDS ────────────────────── */
   function initCardEvents(container) {
     // Wishlist toggle
@@ -268,6 +296,6 @@ const VirtuProducts = (() => {
   }
 
   // API pública
-  return { fetchAll, renderGrid, renderCarousel, getConfig, applyHomeBanners, renderCard, formatCurrency };
+  return { fetchAll, renderGrid, renderCarousel, getConfig, applyHomeBanners, applyHomeExtras, renderCard, formatCurrency };
 
 })();

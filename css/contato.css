@@ -222,7 +222,8 @@
 /* ── NEWSLETTER ──────────────────────────── */
 .newsletter-section {
   background: var(--color-navy);
-  padding: 6rem var(--spacing-xl);
+  padding: 8rem var(--spacing-xl) 6rem;
+  margin-top: 2rem;
 }
 
 .newsletter-section__inner {

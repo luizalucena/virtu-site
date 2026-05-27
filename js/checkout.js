@@ -563,16 +563,45 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── MODAL DE SUCESSO ──────────────────────────────────────
-  function exibirSucesso(nome, pedidoId, emAnalise = false) {
+  async function exibirSucesso(nome, pedidoId, emAnalise = false) {
     const modal   = document.getElementById('successModal');
     const nameEl  = document.getElementById('successName');
     const orderEl = document.getElementById('successOrder');
+    const num     = pedidoId || Math.floor(100000 + Math.random() * 900000);
 
     if (nameEl)  nameEl.textContent  = nome || 'cliente';
-    if (orderEl) orderEl.textContent = pedidoId || Math.floor(100000 + Math.random() * 900000);
+    if (orderEl) orderEl.textContent = num;
+
+    // Carrega mensagem personalizada do admin
+    try {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: cfg } = await supabaseClient
+          .from('configuracoes')
+          .select('pedido_msg_titulo, pedido_msg_corpo')
+          .eq('id', 1)
+          .maybeSingle();
+
+        if (cfg) {
+          const titleEl = document.getElementById('successTitle');
+          const bodyEl  = document.getElementById('successMsgCorpo');
+
+          if (titleEl && cfg.pedido_msg_titulo) {
+            titleEl.textContent = cfg.pedido_msg_titulo;
+          }
+
+          if (bodyEl && cfg.pedido_msg_corpo) {
+            // Substitui placeholders: {nome} e {numero}
+            const corpo = cfg.pedido_msg_corpo
+              .replace(/\{nome\}/g, nome || 'cliente')
+              .replace(/\{numero\}/g, num);
+            bodyEl.innerHTML = corpo;
+          }
+        }
+      }
+    } catch { /* mantém texto estático como fallback */ }
 
     if (emAnalise) {
-      const txt = modal?.querySelector('.success-modal__text');
+      const txt = document.getElementById('successMsgCorpo');
       if (txt) txt.textContent = 'Seu pedido está em análise. Você receberá a confirmação por e-mail.';
     }
 
