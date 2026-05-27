@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── SUBMIT PEDIDO ───────────────────────────
-  document.getElementById('submitOrder')?.addEventListener('click', () => {
+  document.getElementById('submitOrder')?.addEventListener('click', async () => {
     const firstName = document.getElementById('firstName')?.value.trim();
     const activeTab = document.querySelector('.payment-tab--active')?.dataset.tab;
 
@@ -361,7 +361,28 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled = true;
     }
 
-    // Simula processamento
+    // ── Decrementa estoque no Supabase para cada item do carrinho ──
+    const cart = getCart();
+    if (typeof supabaseClient !== 'undefined' && cart.length) {
+      const decrements = cart
+        .filter(item => item.variacao_id)
+        .map(item =>
+          supabaseClient.rpc('comprar_variacao', {
+            p_variacao_id: item.variacao_id,
+            p_quantidade:  item.qty || 1
+          }).then(({ data, error }) => {
+            if (error) console.warn(`[Checkout] Estoque: ${error.message}`, item);
+          })
+        );
+      try { await Promise.allSettled(decrements); } catch {}
+    }
+
+    // Limpa carrinho e embalagem do localStorage
+    localStorage.removeItem('virtu_cart');
+    localStorage.removeItem('virtu_gift');
+    if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
+
+    // Exibe modal de sucesso
     setTimeout(() => {
       const modal = document.getElementById('successModal');
       const nameEl = document.getElementById('successName');
@@ -373,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modal?.classList.add('open');
       modal?.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-    }, 1800);
+    }, 800);
   });
 
   // Fecha modal de sucesso ao clicar fora (não necessário mas boa UX)

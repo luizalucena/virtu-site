@@ -602,6 +602,12 @@ h4 { font-size: var(--text-lg); }
   background: var(--color-gold);
 }
 
+.product-card__badge--esgotado {
+  background: var(--color-gray-400);
+  color: var(--color-white);
+  letter-spacing: 1px;
+}
+
 /* Quick add to cart */
 .product-card__quick-add {
   position: absolute;

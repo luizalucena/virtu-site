@@ -28,17 +28,20 @@ const VirtuProducts = (() => {
       if (e1) throw new Error(`Produtos: ${e1.message}`);
 
       // Monta mapa de cores reais por produto (a partir das variações em estoque)
-      const coresPorProduto = {};
+      const coresPorProduto     = {};
+      const produtosComEstoque  = new Set();
       (variacoes || []).forEach(v => {
+        produtosComEstoque.add(v.produto_id);
         if (!v.cor_hex) return;
         if (!coresPorProduto[v.produto_id]) coresPorProduto[v.produto_id] = [];
         const jaExiste = coresPorProduto[v.produto_id].some(c => c.hex === v.cor_hex);
         if (!jaExiste) coresPorProduto[v.produto_id].push({ nome: v.cor_nome || '', hex: v.cor_hex });
       });
 
-      // Sobrescreve cores de cada produto com as cores reais das variações
+      // Sobrescreve cores de cada produto; marca esgotado se sem estoque
       (produtos || []).forEach(p => {
         if (coresPorProduto[p.id]?.length) p.cores = coresPorProduto[p.id];
+        p._esgotado = !produtosComEstoque.has(p.id);
       });
 
       _cache = {
@@ -84,7 +87,9 @@ const VirtuProducts = (() => {
 
     // Badge
     let badgeHtml = '';
-    if (badge === 'Sale' || temDesconto) {
+    if (produto._esgotado) {
+      badgeHtml = `<span class="product-card__badge product-card__badge--esgotado">Esgotado</span>`;
+    } else if (badge === 'Sale' || temDesconto) {
       badgeHtml = `<span class="product-card__badge product-card__badge--sale">${pct > 0 ? `−${pct}%` : 'Sale'}</span>`;
     } else if (badge && badge !== 'Sale') {
       badgeHtml = `<span class="product-card__badge">${badge}</span>`;
@@ -115,7 +120,7 @@ const VirtuProducts = (() => {
               </svg>
             </button>
             <div class="product-card__quick-add">
-              <button class="product-card__quick-btn" data-id="${id}">+ Adicionar ao carrinho</button>
+              <button class="product-card__quick-btn" data-id="${id}" ${produto._esgotado ? 'disabled style="opacity:0.5;cursor:default"' : ''}>+ ${produto._esgotado ? 'Esgotado' : 'Adicionar ao carrinho'}</button>
             </div>
           </div>
         </a>

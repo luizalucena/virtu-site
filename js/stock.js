@@ -400,6 +400,7 @@ const VirtuStock = (() => {
     } else {
       cart.push({
         id:                 produtoId,
+        variacao_id:        variacao.variacao_id || null,
         nome,
         tamanho:            variacao.tamanho,
         cor_nome:           variacao.cor_nome,
