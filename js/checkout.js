@@ -7,11 +7,10 @@
 // ── MERCADO PAGO PUBLIC KEY ──────────────────────────────────
 // Substitua pelo seu Public Key do Mercado Pago (sandbox ou produção)
 // Este valor é SEGURO no frontend — apenas o Access Token é secreto.
-const MP_PUBLIC_KEY = 'TEST-00000000-0000-0000-0000-000000000000'; // ← troque aqui
+const MP_PUBLIC_KEY = 'APP_USR-004402bb-0619-46f3-817c-d425ce3f566c';
 
 // URL da Edge Function do Supabase
-// Substitua pela sua URL real (Supabase > Edge Functions > processar-pagamento)
-const EDGE_FUNCTION_URL = 'https://SEU-PROJETO.supabase.co/functions/v1/processar-pagamento';
+const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/processar-pagamento';
 
 // ── CONSTANTES DE FRETE ──────────────────────────────────────
 const FRETE_STANDARD  = 10.00;  // Entrega padrão em João Pessoa
