@@ -532,7 +532,7 @@ function populateConfig() {
 
   // Diferenciais
   const difs = cfg.diferenciais || [
-    {titulo:'Frete Grátis',descricao:'Nas compras acima de R$399'},
+    {titulo:'Frete Grátis',descricao:'Com o cupom FRETEGRATIS'},
     {titulo:'Parcelamento',descricao:'Até 6x sem juros no cartão'},
     {titulo:'Trocas Fáceis',descricao:'Até 30 dias para trocar'},
     {titulo:'Atendimento',descricao:'Via WhatsApp, de seg. a sáb.'},

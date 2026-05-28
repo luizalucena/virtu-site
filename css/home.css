@@ -659,3 +659,97 @@
 
   .carousel-arrow { display: none; }
 }
+
+/* ============================================================
+   FRETE STRIP — Faixa promocional do cupom FRETEGRATIS
+============================================================ */
+.frete-strip {
+  background: linear-gradient(90deg, #f5f0e8 0%, #faf7f2 50%, #f5f0e8 100%);
+  border-top: 1px solid rgba(196, 147, 74, 0.2);
+  border-bottom: 1px solid rgba(196, 147, 74, 0.2);
+  padding: var(--space-4) 0;
+}
+
+.frete-strip__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.frete-strip__icon {
+  color: var(--color-gold);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.frete-strip__text {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-navy);
+  margin: 0;
+  font-weight: 400;
+}
+
+.frete-strip__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-navy);
+  color: var(--color-white);
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  user-select: none;
+}
+
+.frete-strip__code:hover {
+  background: var(--color-gold);
+  transform: translateY(-1px);
+}
+
+.frete-strip__code.copied {
+  background: #27ae60;
+}
+
+.frete-strip__code svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.frete-strip__copied {
+  font-family: var(--font-body);
+  font-size: var(--text-xs, 0.75rem);
+  color: #27ae60;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+
+.frete-strip__copied.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (max-width: 600px) {
+  .frete-strip__inner {
+    gap: var(--space-2);
+  }
+  .frete-strip__text {
+    text-align: center;
+    width: 100%;
+  }
+  .frete-strip__icon {
+    display: none;
+  }
+}
