@@ -331,6 +331,7 @@ function openModal(id) {
     document.getElementById('formCompreJunto').value      = (p.compre_junto || []).join(', ');
     document.getElementById('formDestaque').checked       = !!p.destaque;
     document.getElementById('formNovidade').checked       = !!p.novidade;
+    document.getElementById('formEssencial').checked      = !!p.essencial;
     document.getElementById('formAtivo').checked          = p.ativo !== false;
 
     document.querySelectorAll('.admin-size-check input').forEach(cb => {
@@ -364,9 +365,10 @@ function resetForm() {
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('formCategoria').value  = 'vestidos';
   document.getElementById('formBadge').value      = '';
-  document.getElementById('formDestaque').checked = false;
-  document.getElementById('formNovidade').checked = false;
-  document.getElementById('formAtivo').checked    = true;
+  document.getElementById('formDestaque').checked  = false;
+  document.getElementById('formNovidade').checked  = false;
+  document.getElementById('formEssencial').checked = false;
+  document.getElementById('formAtivo').checked     = true;
   document.getElementById('formPctDesconto').value = 0;
   document.getElementById('colorPreview').style.background = '';
   document.getElementById('discountPreview').textContent   = '—';
@@ -414,6 +416,7 @@ async function saveProduct() {
     tamanhos_esgotados: [],
     destaque:           document.getElementById('formDestaque')?.checked,
     novidade:           document.getElementById('formNovidade')?.checked,
+    essencial:          document.getElementById('formEssencial')?.checked,
     ativo:              document.getElementById('formAtivo')?.checked,
     estoque:            parseInt(document.getElementById('formEstoque')?.value) || 0,
     compre_junto:       (document.getElementById('formCompreJunto')?.value || '')

@@ -135,9 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const price  = parseInt(product.getAttribute('data-price') || 0);
       const sizes  = (product.getAttribute('data-sizes')  || '').split(',').filter(Boolean);
       const colors = (product.getAttribute('data-colors') || '').split(',').filter(Boolean).map(c => c.toLowerCase());
-      const isSale = !!product.querySelector('.product-card__badge--sale');
+      const isSale      = !!product.querySelector('.product-card__badge--sale');
+      const isEssencial = product.getAttribute('data-essencial') === 'true' || cat === 'essenciais';
 
-      const matchCat   = activeCat === 'todas' || activeCat === cat || (activeCat === 'sale' && isSale);
+      const matchCat   = activeCat === 'todas'
+        || activeCat === cat
+        || (activeCat === 'sale'       && isSale)
+        || (activeCat === 'essenciais' && isEssencial);
       const matchPrice = price >= minPrice && price <= maxPrice;
       // Nenhum filtro de tamanho ativo → mostra tudo; senão verifica interseção
       const matchSize  = activeSizes.length === 0  || activeSizes.some(s  => sizes.includes(s));
