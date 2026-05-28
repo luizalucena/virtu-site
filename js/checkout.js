@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateInstallments(total) {
     const sel = document.getElementById('installments');
     if (!sel) return;
-    const maxSemJuros = 6;
+    const maxSemJuros = 12;
     sel.innerHTML = '';
     for (let i = 1; i <= maxSemJuros; i++) {
       const parcela = total / i;

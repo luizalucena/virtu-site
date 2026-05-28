@@ -203,7 +203,7 @@ function updateSummary() {
   const baseParaFrete = subtotal + giftExtra;          // embalagem conta para frete grátis
   const isFree      = baseParaFrete >= freeShippingThreshold;
   const total       = Math.max(0, subtotal - discount + giftExtra); // frete calculado no checkout
-  const installment = total / 6;
+  const installment = total / 12;
 
   // Totais por linha
   document.querySelectorAll('.cart-item').forEach(itemEl => {
@@ -218,7 +218,7 @@ function updateSummary() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('summarySubtotal',    formatCurrency(subtotal));
   set('summaryTotal',       formatCurrency(total));
-  set('summaryInstallments', total > 0 ? `ou 6x de ${formatCurrency(installment)} sem juros` : '');
+  set('summaryInstallments', total > 0 ? `ou 12x de ${formatCurrency(installment)} sem juros` : '');
 
   const discLine = document.getElementById('discountLine');
   const discEl   = document.getElementById('summaryDiscount');
