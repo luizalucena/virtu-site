@@ -292,6 +292,12 @@
   font-weight: 500;
 }
 
+.cart-summary__shipping-pending {
+  color: var(--color-text-light, #888);
+  font-style: italic;
+  font-size: 0.9em;
+}
+
 /* ── FRETE GRÁTIS PROGRESS ───────────────── */
 .cart-free-shipping {
   margin: 1rem 0;

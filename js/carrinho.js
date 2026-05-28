@@ -202,8 +202,7 @@ function updateSummary() {
   const giftExtra   = giftWrap ? giftWrapPrice : 0;
   const baseParaFrete = subtotal + giftExtra;          // embalagem conta para frete grátis
   const isFree      = baseParaFrete >= freeShippingThreshold;
-  const shipping    = isFree ? 0 : (baseParaFrete > 0 ? 25 : 0);
-  const total       = Math.max(0, subtotal - discount + shipping + giftExtra);
+  const total       = Math.max(0, subtotal - discount + giftExtra); // frete calculado no checkout
   const installment = total / 6;
 
   // Linha de embalagem para presente
@@ -234,9 +233,9 @@ function updateSummary() {
 
   const shippingEl = document.getElementById('summaryShipping');
   if (shippingEl) {
-    if (subtotal === 0) { shippingEl.textContent = 'Calculando…'; shippingEl.className = ''; }
+    if (subtotal === 0) { shippingEl.textContent = '—'; shippingEl.className = ''; }
     else if (isFree)   { shippingEl.textContent = 'Grátis ✦'; shippingEl.className = 'cart-summary__shipping-free'; }
-    else               { shippingEl.textContent = formatCurrency(25); shippingEl.className = ''; }
+    else               { shippingEl.textContent = 'A calcular'; shippingEl.className = 'cart-summary__shipping-pending'; }
   }
 
   // Barra de frete grátis
@@ -246,11 +245,11 @@ function updateSummary() {
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
     if (isFree && baseParaFrete > 0) {
-      text.textContent = '🎉 Você ganhou frete grátis!';
+      text.textContent = '🎉 Frete grátis para Grande João Pessoa!';
       text.style.color = '#2e7d32';
     } else if (baseParaFrete > 0) {
       const remaining = freeShippingThreshold - baseParaFrete;
-      text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis`;
+      text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis (Grande JP)`;
       text.style.color = '';
     } else {
       text.textContent = '';
