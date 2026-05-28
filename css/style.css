@@ -1274,3 +1274,73 @@ h4 { font-size: var(--text-lg); }
   .btn { padding: 12px 24px; }
   .btn--lg { padding: 14px 32px; }
 }
+
+/* ── SEARCH OVERLAY (global — usado em todas as páginas) ──────────── */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(249,247,244,0.97);
+  backdrop-filter: blur(8px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base, 0.2s ease);
+}
+.search-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.search-overlay__inner {
+  width: min(600px, 90vw);
+  text-align: center;
+  position: relative;
+}
+.search-overlay__close {
+  position: absolute;
+  top: -56px;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--color-navy);
+  cursor: pointer;
+  padding: var(--space-2, 0.5rem);
+  transition: color var(--transition-fast, 0.15s ease);
+}
+.search-overlay__close:hover { color: var(--color-gold); }
+.search-overlay__form {
+  display: flex;
+  border-bottom: 2px solid var(--color-navy);
+  margin-bottom: var(--space-4, 1rem);
+}
+.search-overlay__input {
+  flex: 1;
+  background: none;
+  border: none;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 300;
+  color: var(--color-navy);
+  padding: var(--space-4, 1rem) 0;
+  outline: none;
+}
+.search-overlay__input::placeholder { color: var(--color-text-light, #999); opacity: 0.7; }
+.search-overlay__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-navy);
+  padding: 0 var(--space-2, 0.5rem);
+  transition: color var(--transition-fast, 0.15s ease);
+}
+.search-overlay__btn:hover { color: var(--color-gold); }
+.search-overlay__hint {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-light, #999);
+  text-transform: uppercase;
+}

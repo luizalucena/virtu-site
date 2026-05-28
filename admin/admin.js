@@ -586,6 +586,25 @@ function populateConfig() {
   set('cfgPedidoTitulo', cfg.pedido_msg_titulo);
   set('cfgPedidoCorpo',  cfg.pedido_msg_corpo);
 
+  // Guia de Tamanhos
+  set('cfgGuiaTamanhoObs', cfg.guia_tamanhos_obs);
+  renderGuiaTamanhos(cfg.guia_tamanhos || [
+    {tamanho:'PP',busto:'80–84',cintura:'60–64',quadril:'86–90'},
+    {tamanho:'P', busto:'84–88',cintura:'64–68',quadril:'90–94'},
+    {tamanho:'M', busto:'88–92',cintura:'68–72',quadril:'94–98'},
+    {tamanho:'G', busto:'92–96',cintura:'72–76',quadril:'98–102'},
+    {tamanho:'GG',busto:'96–100',cintura:'76–80',quadril:'102–106'},
+  ]);
+  // Bind botão "+ Linha"
+  const btnAddRow = document.getElementById('btnAddTamanhoRow');
+  if (btnAddRow && !btnAddRow._bound) {
+    btnAddRow._bound = true;
+    btnAddRow.addEventListener('click', () => {
+      const tbody = document.getElementById('guiaTamanhosTbody');
+      if (tbody) tbody.insertAdjacentHTML('beforeend', guiaTamanhoRow({tamanho:'',busto:'',cintura:'',quadril:''}));
+    });
+  }
+
   // Políticas
   set('cfgPolComoFunciona',    cfg.pol_como_funciona);
   set('cfgPolTrocas',          cfg.pol_trocas);
@@ -593,6 +612,34 @@ function populateConfig() {
   set('cfgPolPrivacidade',     cfg.pol_privacidade);
   set('cfgPolSustentabilidade',cfg.pol_sustentabilidade);
   set('cfgPolTrabalheConosco', cfg.pol_trabalhe_conosco);
+}
+
+function guiaTamanhoRow(r) {
+  const td = (name, val) =>
+    `<td style="padding:0.35rem 0.5rem"><input type="text" class="admin-input" data-gt="${name}" value="${val||''}" style="min-width:70px" /></td>`;
+  return `<tr>
+    ${td('tamanho', r.tamanho)}
+    ${td('busto',   r.busto)}
+    ${td('cintura', r.cintura)}
+    ${td('quadril', r.quadril)}
+    <td style="padding:0.35rem 0.5rem;text-align:center">
+      <button type="button" onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:1rem" title="Remover">✕</button>
+    </td>
+  </tr>`;
+}
+
+function renderGuiaTamanhos(rows) {
+  const tbody = document.getElementById('guiaTamanhosTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(guiaTamanhoRow).join('');
+}
+
+function collectGuiaTamanhos() {
+  const rows = document.querySelectorAll('#guiaTamanhosTbody tr');
+  return Array.from(rows).map(tr => {
+    const get = name => tr.querySelector(`[data-gt="${name}"]`)?.value.trim() || '';
+    return { tamanho: get('tamanho'), busto: get('busto'), cintura: get('cintura'), quadril: get('quadril') };
+  }).filter(r => r.tamanho);
 }
 
 async function saveConfig() {
@@ -652,6 +699,9 @@ async function saveConfig() {
     // Pedido confirmado
     pedido_msg_titulo: document.getElementById('cfgPedidoTitulo')?.value.trim() || null,
     pedido_msg_corpo:  document.getElementById('cfgPedidoCorpo')?.value.trim()  || null,
+    // Guia de Tamanhos
+    guia_tamanhos:     collectGuiaTamanhos(),
+    guia_tamanhos_obs: document.getElementById('cfgGuiaTamanhoObs')?.value.trim() || null,
     // Políticas
     pol_como_funciona:    document.getElementById('cfgPolComoFunciona')?.value.trim()    || null,
     pol_trocas:           document.getElementById('cfgPolTrocas')?.value.trim()           || null,

@@ -579,6 +579,39 @@
           </div>
         </div>
 
+        <!-- GUIA DE TAMANHOS -->
+        <div class="admin-card" style="grid-column:1/-1">
+          <h3 class="admin-card__title">Guia de Tamanhos</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1.5rem;line-height:1.5">
+            Edite as medidas por tamanho. Clique em <strong>+ Linha</strong> para adicionar tamanhos extras. Salvo com as demais configurações.
+          </p>
+
+          <div class="admin-form-group" style="margin-bottom:1rem">
+            <label class="admin-label">Observação (exibida acima da tabela)</label>
+            <input type="text" class="admin-input" id="cfgGuiaTamanhoObs" placeholder="Medidas em centímetros..." />
+          </div>
+
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:0.85rem" id="guiaTamanhosTable">
+              <thead>
+                <tr style="background:var(--bg-sidebar,#1a1a2e);color:#fff">
+                  <th style="padding:0.5rem 0.75rem;text-align:left;font-weight:500">Tamanho</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:left;font-weight:500">Busto (cm)</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:left;font-weight:500">Cintura (cm)</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:left;font-weight:500">Quadril (cm)</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:center;font-weight:500">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="guiaTamanhosTbody">
+                <!-- linhas injetadas via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:0.75rem">
+            <button type="button" class="admin-btn" id="btnAddTamanhoRow" style="font-size:0.82rem">+ Linha</button>
+          </div>
+        </div>
+
         <!-- POLÍTICAS -->
         <div class="admin-card" style="grid-column:1/-1">
           <h3 class="admin-card__title">Políticas & Informações (página /politicas.html)</h3>
