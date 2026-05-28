@@ -67,7 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── FILTRO POR CATEGORIA (PILLS) ───────────
+  // ── FILTRO POR CATEGORIA (PILLS + SIDEBAR CHECKBOXES) ──
+  // Mapa texto do checkbox → data-cat do pill
+  const catMap = {
+    'Todas': 'todas', 'Vestidos': 'vestidos',
+    'Blusas': 'blusas', 'Calças': 'calcas', 'Essenciais': 'essenciais'
+  };
+
+  // Sincroniza sidebar checkboxes com o pill ativo
+  function syncSidebarCheckboxes(activeCatValue) {
+    document.querySelectorAll('#filtro-cat .filter-option input[type="checkbox"]').forEach(cb => {
+      const label = cb.closest('.filter-option')?.querySelector('span')?.textContent.trim();
+      cb.checked = (catMap[label] || 'todas') === activeCatValue;
+    });
+  }
+
   const catPills = document.querySelectorAll('.cat-pill');
   catPills.forEach(pill => {
     pill.addEventListener('click', () => {
@@ -78,6 +92,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const breadcrumb = document.getElementById('breadcrumbCurrent');
       if (catTitle)   catTitle.textContent   = cat === 'todas' ? 'Todas as Peças' : pill.textContent.replace(' ✦','');
       if (breadcrumb) breadcrumb.textContent = cat === 'todas' ? 'Todas as peças' : pill.textContent.replace(' ✦','');
+      syncSidebarCheckboxes(cat);
+      applyFilters();
+    });
+  });
+
+  // Sidebar checkboxes → ativam o pill correspondente (comportamento radio)
+  document.querySelectorAll('#filtro-cat .filter-option input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (!cb.checked) { cb.checked = true; return; } // não deixa desmarcar
+      const label    = cb.closest('.filter-option')?.querySelector('span')?.textContent.trim();
+      const catValue = catMap[label] || 'todas';
+      // Ativa o pill correspondente (dispara evento e sincroniza tudo)
+      const targetPill = document.querySelector(`.cat-pill[data-cat="${catValue}"]`);
+      if (targetPill) { targetPill.click(); return; }
+      // Fallback: aplica direto se não encontrar pill
+      catPills.forEach(p => p.classList.remove('cat-pill--active'));
+      syncSidebarCheckboxes(catValue);
       applyFilters();
     });
   });
@@ -171,9 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priceMax) priceMax.value = 800;
     document.querySelectorAll('#sizeGrid  .size-btn').forEach(b  => b.classList.remove('size-btn--active'));
     document.querySelectorAll('#colorGrid .color-btn').forEach(b => b.classList.remove('color-btn--active'));
-    document.querySelectorAll('.filter-option input').forEach(cb => cb.checked = false);
-    const firstCb = document.querySelector('.filter-option input');
-    if (firstCb) firstCb.checked = true;
+    syncSidebarCheckboxes('todas');
     updatePriceRange();
     applyFilters();
   }
