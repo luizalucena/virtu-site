@@ -31,18 +31,32 @@
         <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
-        <button class="navbar__action-btn" id="searchToggle" aria-label="Buscar">
+        <!-- Lupa: só no mobile -->
+        <button class="navbar__action-btn navbar__search-mobile" id="searchToggle" aria-label="Buscar">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
+        <!-- Dropdown categorias: só no desktop -->
+        <div class="navbar__cats-wrap">
+          <button class="navbar__cats-btn" id="catsToggle" aria-label="Categorias" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="navbar__cats-dropdown" id="catsDropdown" aria-label="Categorias do catálogo">
+            <a href="catalogo.html" class="navbar__cats-link navbar__cats-link--all">Catálogo completo</a>
+            <a href="catalogo.html?cat=blusas"     class="navbar__cats-link">Blusas</a>
+            <a href="catalogo.html?cat=calcas"     class="navbar__cats-link">Calças</a>
+            <a href="catalogo.html?cat=vestidos"   class="navbar__cats-link">Vestidos</a>
+            <a href="catalogo.html?cat=essenciais" class="navbar__cats-link">Essenciais</a>
+          </nav>
+        </div>
       </div>
       <a href="index.html" class="navbar__logo" aria-label="Virtù — página inicial">
         <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" aria-hidden="true" />
         <span class="navbar__logo-text">VIRTÙ</span>
       </a>
       <nav class="navbar__nav">
-        <a href="catalogo.html" class="navbar__link">Coleções</a>
-        <a href="catalogo.html" class="navbar__link">Novidades</a>
-        <a href="catalogo.html" class="navbar__link">Sale</a>
+        <a href="catalogo.html" class="navbar__link">Catálogo</a>
+        <a href="catalogo.html?cat=novidades" class="navbar__link">Novidades</a>
+        <a href="catalogo.html?cat=sale" class="navbar__link">Sale</a>
         <a href="sobre.html"   class="navbar__link">Sobre</a>
         <a href="contato.html" class="navbar__link">Contato</a>
       </nav>
@@ -79,9 +93,9 @@
         <button class="mobile-menu__close" id="menuClose" aria-label="Fechar menu"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
       <nav class="mobile-menu__nav">
-        <a href="catalogo.html" class="mobile-menu__link">Coleções</a>
-        <a href="catalogo.html" class="mobile-menu__link">Novidades</a>
-        <a href="catalogo.html" class="mobile-menu__link">Sale</a>
+        <a href="catalogo.html" class="mobile-menu__link">Catálogo</a>
+        <a href="catalogo.html?cat=novidades" class="mobile-menu__link">Novidades</a>
+        <a href="catalogo.html?cat=sale" class="mobile-menu__link">Sale</a>
         <a href="sobre.html"    class="mobile-menu__link">Sobre</a>
         <a href="contato.html"  class="mobile-menu__link">Contato</a>
       </nav>
@@ -436,5 +450,6 @@
   <script src="js/carrinho.js"></script>
   <script src="js/stock.js"></script>
   <script src="js/produto.js"></script>
+  <script src="js/navbar-cats.js"></script>
 </body>
 </html>

@@ -222,7 +222,7 @@
   <!-- ANNOUNCEMENT BAR -->
   <div class="announcement-bar" role="marquee" aria-label="Avisos da loja">
     <div class="announcement-bar__track">
-      <span>Frete grátis com cupom FRETEGRATIS &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Trocas em até 30 dias &nbsp;✦&nbsp; Frete grátis com cupom FRETEGRATIS &nbsp;✦&nbsp; Parcele em até 6x sem juros &nbsp;✦&nbsp; Trocas em até 30 dias</span>
+      <span>Frete grátis com cupom FRETEGRATIS &nbsp;✦&nbsp; Parcele em até 12x sem juros &nbsp;✦&nbsp; Trocas em até 7 dias &nbsp;✦&nbsp; Frete grátis com cupom FRETEGRATIS &nbsp;✦&nbsp; Parcele em até 12x sem juros &nbsp;✦&nbsp; Trocas em até 7 dias</span>
     </div>
   </div>
 
@@ -232,6 +232,19 @@
       <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileMenu">
         <span></span><span></span><span></span>
       </button>
+      <!-- Dropdown categorias: só no desktop -->
+      <div class="navbar__cats-wrap">
+        <button class="navbar__cats-btn" id="catsToggle" aria-label="Categorias" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="navbar__cats-dropdown" id="catsDropdown" aria-label="Categorias do catálogo">
+          <a href="catalogo.html" class="navbar__cats-link navbar__cats-link--all">Catálogo completo</a>
+          <a href="catalogo.html?cat=blusas"     class="navbar__cats-link">Blusas</a>
+          <a href="catalogo.html?cat=calcas"     class="navbar__cats-link">Calças</a>
+          <a href="catalogo.html?cat=vestidos"   class="navbar__cats-link">Vestidos</a>
+          <a href="catalogo.html?cat=essenciais" class="navbar__cats-link">Essenciais</a>
+        </nav>
+      </div>
       <a class="navbar__logo" href="index.html" aria-label="Virtù — página inicial">
         <img src="images/logo-concha.png" alt="" class="navbar__logo-icon" width="32" height="26" aria-hidden="true" />
         <span class="navbar__logo-text">VIRTÙ</span>
@@ -509,6 +522,7 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
   <script src="js/supabase-config.js"></script>
   <script src="js/cart-badge.js"></script>
   <script src="js/announcement.js"></script>
+  <script src="js/navbar-cats.js"></script>
   <script>
     // Navbar scroll
     const navbar = document.getElementById('navbar');

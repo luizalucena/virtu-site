@@ -454,6 +454,88 @@ h4 { font-size: var(--text-lg); }
   transition: all var(--transition-base);
 }
 
+/* ── Lupa mobile (visível só no mobile) ── */
+.navbar__search-mobile {
+  display: flex;
+}
+@media (min-width: 1025px) {
+  .navbar__search-mobile { display: none !important; }
+}
+
+/* ── Categories dropdown (desktop) ── */
+.navbar__cats-wrap {
+  display: none;
+  position: relative;
+}
+@media (min-width: 1025px) {
+  .navbar__cats-wrap { display: block; }
+}
+
+.navbar__cats-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: var(--space-2);
+  color: var(--color-navy);
+  border-radius: 6px;
+  transition: background var(--transition-base);
+}
+.navbar__cats-btn:hover { background: var(--color-gray-100); color: var(--color-gold); }
+.navbar__cats-btn span {
+  display: block;
+  width: 22px;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: background var(--transition-base);
+}
+
+.navbar__cats-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(43,63,84,0.12);
+  z-index: 300;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+.navbar__cats-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.navbar__cats-link {
+  display: block;
+  padding: 0.625rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-navy);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.navbar__cats-link:hover { background: var(--color-off-white); color: var(--color-gold); }
+.navbar__cats-link--all {
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-light);
+}
+.navbar__cats-link--all:hover { color: var(--color-gold); }
+
 /* ----------------------------
    8. BOTÕES
    ---------------------------- */

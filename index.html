@@ -20,10 +20,10 @@
         <span class="sep">✦</span> Frete grátis com cupom FRETEGRATIS
       </span>
       <span class="announcement-bar__item">
-        <span class="sep">✦</span> Parcelamento em até 6x sem juros
+        <span class="sep">✦</span> Parcelamento em até 12x sem juros
       </span>
       <span class="announcement-bar__item">
-        <span class="sep">✦</span> Trocas e devoluções em até 30 dias
+        <span class="sep">✦</span> Trocas e devoluções em até 7 dias
       </span>
       <span class="announcement-bar__item">
         <span class="sep">✦</span> Atendimento via WhatsApp
@@ -32,10 +32,10 @@
         <span class="sep">✦</span> Frete grátis com cupom FRETEGRATIS
       </span>
       <span class="announcement-bar__item">
-        <span class="sep">✦</span> Parcelamento em até 6x sem juros
+        <span class="sep">✦</span> Parcelamento em até 12x sem juros
       </span>
       <span class="announcement-bar__item">
-        <span class="sep">✦</span> Trocas e devoluções em até 30 dias
+        <span class="sep">✦</span> Trocas e devoluções em até 7 dias
       </span>
       <span class="announcement-bar__item">
         <span class="sep">✦</span> Atendimento via WhatsApp
@@ -49,18 +49,30 @@
   <header class="navbar" id="navbar" role="navigation" aria-label="Navegação principal">
     <div class="container navbar__inner">
 
-      <!-- Esquerda: Hamburguer + Busca -->
+      <!-- Esquerda: Hamburguer + Categorias -->
       <div class="navbar__left">
         <button class="navbar__hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
-          <span></span>
-          <span></span>
-          <span></span>
+          <span></span><span></span><span></span>
         </button>
-        <button class="navbar__action-btn" id="searchToggle" aria-label="Buscar">
+        <!-- Lupa: só no mobile -->
+        <button class="navbar__action-btn navbar__search-mobile" id="searchToggle" aria-label="Buscar">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
           </svg>
         </button>
+        <!-- Dropdown categorias: só no desktop -->
+        <div class="navbar__cats-wrap">
+          <button class="navbar__cats-btn" id="catsToggle" aria-label="Categorias" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="navbar__cats-dropdown" id="catsDropdown" aria-label="Categorias do catálogo">
+            <a href="catalogo.html" class="navbar__cats-link navbar__cats-link--all">Catálogo completo</a>
+            <a href="catalogo.html?cat=blusas"    class="navbar__cats-link">Blusas</a>
+            <a href="catalogo.html?cat=calcas"    class="navbar__cats-link">Calças</a>
+            <a href="catalogo.html?cat=vestidos"  class="navbar__cats-link">Vestidos</a>
+            <a href="catalogo.html?cat=essenciais" class="navbar__cats-link">Essenciais</a>
+          </nav>
+        </div>
       </div>
 
       <!-- Centro: Logo -->
@@ -71,9 +83,9 @@
 
       <!-- Centro: Nav links (desktop) -->
       <nav class="navbar__nav" aria-label="Menu principal">
-        <a href="catalogo.html" class="navbar__link">Coleções</a>
-        <a href="catalogo.html" class="navbar__link">Novidades</a>
-        <a href="catalogo.html" class="navbar__link">Sale</a>
+        <a href="catalogo.html" class="navbar__link">Catálogo</a>
+        <a href="catalogo.html?cat=novidades" class="navbar__link">Novidades</a>
+        <a href="catalogo.html?cat=sale" class="navbar__link">Sale</a>
         <a href="sobre.html" class="navbar__link">Sobre</a>
         <a href="contato.html" class="navbar__link">Contato</a>
       </nav>
@@ -139,9 +151,9 @@
         </button>
       </div>
       <nav class="mobile-menu__nav">
-        <a href="catalogo.html" class="mobile-menu__link">Coleções</a>
-        <a href="catalogo.html" class="mobile-menu__link">Novidades</a>
-        <a href="catalogo.html" class="mobile-menu__link">Sale</a>
+        <a href="catalogo.html" class="mobile-menu__link">Catálogo</a>
+        <a href="catalogo.html?cat=novidades" class="mobile-menu__link">Novidades</a>
+        <a href="catalogo.html?cat=sale" class="mobile-menu__link">Sale</a>
         <a href="sobre.html"    class="mobile-menu__link">Sobre</a>
         <a href="contato.html"  class="mobile-menu__link">Contato</a>
       </nav>
@@ -274,7 +286,7 @@
             </div>
             <div class="diferencial__info">
               <h3 id="dif1Titulo">Parcelamento</h3>
-              <p id="dif1Desc">Até 6x sem juros no cartão</p>
+              <p id="dif1Desc">Até 12x sem juros no cartão</p>
             </div>
           </div>
           <div class="diferencial">
@@ -286,7 +298,7 @@
             </div>
             <div class="diferencial__info">
               <h3 id="dif2Titulo">Trocas Fáceis</h3>
-              <p id="dif2Desc">Até 30 dias para trocar</p>
+              <p id="dif2Desc">Até 7 dias para trocar</p>
             </div>
           </div>
           <div class="diferencial">
@@ -404,7 +416,7 @@
         </div>
 
         <div class="text-center" style="margin-top: var(--space-10);">
-          <a href="catalogo.html" class="btn btn--ghost">Ver todas as novidades</a>
+          <a href="catalogo.html?cat=novidades" class="btn btn--ghost">Ver todas as novidades</a>
         </div>
       </div>
     </section>
@@ -603,6 +615,7 @@
   <script src="js/announcement.js"></script>
   <script src="js/products.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/navbar-cats.js"></script>
   <script>
     function copiarCupomFrete() {
       navigator.clipboard.writeText('FRETEGRATIS').then(() => {

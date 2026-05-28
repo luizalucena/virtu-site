@@ -539,8 +539,8 @@ function populateConfig() {
   // Diferenciais
   const difs = cfg.diferenciais || [
     {titulo:'Frete Grátis',descricao:'Com o cupom FRETEGRATIS'},
-    {titulo:'Parcelamento',descricao:'Até 6x sem juros no cartão'},
-    {titulo:'Trocas Fáceis',descricao:'Até 30 dias para trocar'},
+    {titulo:'Parcelamento',descricao:'Até 12x sem juros no cartão'},
+    {titulo:'Trocas Fáceis',descricao:'Até 7 dias para trocar'},
     {titulo:'Atendimento',descricao:'Via WhatsApp, de seg. a sáb.'},
   ];
   const difWrap = document.getElementById('cfgDiferenciaisWrap');
