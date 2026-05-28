@@ -1,6 +1,6 @@
 /* ============================================================
    VIRTÙ — Checkout JavaScript
-   Frete: João Pessoa only (CEP 58000–58099)
+   Frete: Todo o Nordeste. Frete grátis (FRETEGRATIS) apenas para Grande JP.
    Pagamento: Mercado Pago via Supabase Edge Function
    ============================================================ */
 
@@ -13,10 +13,14 @@ const MP_PUBLIC_KEY = 'TEST-1e075ed3-c232-489a-9200-7350ae24bc48';
 const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/processar-pagamento';
 
 // ── CONSTANTES DE FRETE ──────────────────────────────────────
-const FRETE_STANDARD  = 10.00;  // Entrega padrão em João Pessoa
+const FRETE_STANDARD  = 10.00;  // Entrega padrão em João Pessoa / Grande JP
+const FRETE_NORDESTE  = 18.00;  // Entrega padrão no restante do Nordeste
 const FRETE_MOTOBOY   = 15.00;  // Motoboy em João Pessoa
-const CEP_JP_MIN      = 58000000;
+const CEP_JP_MIN      = 58000000; // João Pessoa cidade (motoboy disponível)
 const CEP_JP_MAX      = 58099999;
+const CEP_PB_MIN      = 58000000; // Paraíba (frete padrão R$10 + FRETEGRATIS válido)
+const CEP_PB_MAX      = 58999999;
+const NORDESTE_STATES = ['AL','BA','CE','MA','PB','PE','PI','RN','SE'];
 
 // ── ESTADO GLOBAL DO CHECKOUT ───────────────────────────────
 let freteValorSelecionado = FRETE_STANDARD;
@@ -347,23 +351,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function calcularFrete(cep) {
-    const num = parseInt(cep.replace(/\D/g, ''), 10);
+    const num         = parseInt(cep.replace(/\D/g, ''), 10);
     const freteResult = document.getElementById('freteResult');
     const freteMsg    = document.getElementById('freteMsg');
+    const uf          = document.getElementById('state')?.value || '';
 
-    if (num >= CEP_JP_MIN && num <= CEP_JP_MAX) {
-      // CEP de João Pessoa ✓
-      freteResult.style.display = 'block';
-      freteMsg.style.display    = 'none';
-      freteBase = FRETE_STANDARD; // guarda referência sem cupom
-      updateTotalWithFrete(FRETE_STANDARD);
-    } else {
-      // Fora de João Pessoa ✗
+    if (!NORDESTE_STATES.includes(uf)) {
+      // Estado fora do Nordeste ✗
       freteResult.style.display = 'none';
-      showFreteMsg('No momento, entregamos apenas em João Pessoa (PB).', 'error');
+      showFreteMsg('No momento, entregamos apenas para estados do Nordeste.', 'error');
       freteBase = 0;
       updateTotalWithFrete(0);
+      return;
     }
+
+    // Nordeste válido ✓
+    freteResult.style.display = 'block';
+    freteMsg.style.display    = 'none';
+
+    // Motoboy apenas em João Pessoa cidade
+    const isJP = num >= CEP_JP_MIN && num <= CEP_JP_MAX;
+    const motoboyOption = [...document.querySelectorAll('.shipping-option')]
+      .find(el => el.querySelector('[value="motoboy"]'));
+    if (motoboyOption) {
+      motoboyOption.style.display = isJP ? '' : 'none';
+    }
+    // Se motoboy estava selecionado mas não está disponível, volta para padrão
+    const motoboyRadio = document.querySelector('[value="motoboy"]');
+    if (motoboyRadio?.checked && !isJP) {
+      const stdRadio = document.querySelector('[value="standard"]');
+      if (stdRadio) stdRadio.checked = true;
+    }
+
+    // Preço padrão: R$10 para PB, R$18 para outros estados do Nordeste
+    const isGrandeJP = uf === 'PB';
+    const fretePadrao = isGrandeJP ? FRETE_STANDARD : FRETE_NORDESTE;
+    const stdPriceEl  = document.getElementById('shippingStdPrice');
+    if (stdPriceEl) stdPriceEl.textContent = `R$ ${fretePadrao.toFixed(2).replace('.', ',')}`;
+
+    // Delivery time hint
+    const stdTimeEl = document.getElementById('shippingStdTime');
+    if (stdTimeEl) stdTimeEl.textContent = isGrandeJP ? '2–4 dias úteis' : '5–10 dias úteis';
+
+    freteBase = fretePadrao;
+    updateTotalWithFrete(fretePadrao);
   }
 
   document.getElementById('lookupCep')?.addEventListener('click', async () => {
@@ -406,7 +437,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('change', e => {
     if (e.target.name === 'shipping') {
       const val = e.target.value;
-      freteBase = val === 'motoboy' ? FRETE_MOTOBOY : FRETE_STANDARD;
+      const uf = document.getElementById('state')?.value || '';
+      if (val === 'motoboy') {
+        freteBase = FRETE_MOTOBOY;
+      } else {
+        freteBase = uf === 'PB' ? FRETE_STANDARD : FRETE_NORDESTE;
+      }
       updateTotalWithFrete(freteBase);
     }
   });
@@ -529,12 +565,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Garante que o frete foi calculado
+    // Garante que o frete foi calculado e CEP é do Nordeste
     const cepRaw = document.getElementById('cep')?.value.replace(/\D/g, '');
     if (!cepRaw) { alert('Informe o CEP de entrega.'); goToStep(2); return; }
-    const cepNum = parseInt(cepRaw, 10);
-    if (cepNum < CEP_JP_MIN || cepNum > CEP_JP_MAX) {
-      alert('Só entregamos em João Pessoa (PB).'); goToStep(2); return;
+    const ufEntrega = document.getElementById('state')?.value || '';
+    if (!NORDESTE_STATES.includes(ufEntrega)) {
+      alert('No momento, entregamos apenas para estados do Nordeste.'); goToStep(2); return;
+    }
+    // Cupom de frete grátis só vale para a Paraíba (Grande João Pessoa)
+    if (cupomAplicado?.tipo === 'frete' && ufEntrega !== 'PB') {
+      alert('O cupom de frete grátis (FRETEGRATIS) é válido apenas para endereços na Paraíba (Grande João Pessoa).\nRemova o cupom ou altere o endereço de entrega.'); goToStep(2); return;
     }
 
     btn.innerHTML = 'Processando…';
