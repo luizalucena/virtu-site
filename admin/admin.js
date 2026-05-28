@@ -237,6 +237,9 @@ function renderTable() {
   // Filtro por categoria / status
   if (filtroAtual === 'inativos') {
     lista = lista.filter(p => !p.ativo);
+  } else if (filtroAtual === 'essenciais') {
+    // Mostra produtos marcados como Essencial (qualquer categoria) ou com categoria 'essenciais'
+    lista = lista.filter(p => p.ativo && (p.essencial || p.categoria === 'essenciais'));
   } else if (filtroAtual !== 'todos') {
     lista = lista.filter(p => p.categoria === filtroAtual && p.ativo);
   }
