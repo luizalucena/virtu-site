@@ -245,11 +245,11 @@ function updateSummary() {
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
     if (isFree && baseParaFrete > 0) {
-      text.textContent = '🎉 Frete grátis para Grande João Pessoa!';
+      text.textContent = '🎉 Frete grátis para João Pessoa!';
       text.style.color = '#2e7d32';
     } else if (baseParaFrete > 0) {
       const remaining = freeShippingThreshold - baseParaFrete;
-      text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis (Grande JP)`;
+      text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis (João Pessoa)`;
       text.style.color = '';
     } else {
       text.textContent = '';

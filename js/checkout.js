@@ -16,10 +16,8 @@ const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1
 const FRETE_STANDARD  = 10.00;  // Entrega padrão em João Pessoa / Grande JP
 const FRETE_NORDESTE  = 18.00;  // Entrega padrão no restante do Nordeste
 const FRETE_MOTOBOY   = 15.00;  // Motoboy em João Pessoa
-const CEP_JP_MIN      = 58000000; // João Pessoa cidade (motoboy disponível)
+const CEP_JP_MIN      = 58000000; // João Pessoa cidade (motoboy + FRETEGRATIS válido)
 const CEP_JP_MAX      = 58099999;
-const CEP_PB_MIN      = 58000000; // Paraíba (frete padrão R$10 + FRETEGRATIS válido)
-const CEP_PB_MAX      = 58999999;
 const NORDESTE_STATES = ['AL','BA','CE','MA','PB','PE','PI','RN','SE'];
 
 // ── ESTADO GLOBAL DO CHECKOUT ───────────────────────────────
@@ -204,9 +202,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar cupom
         cupomAplicado = { codigo: data.codigo, tipo: data.tipo, valor: data.valor };
 
+        // Se cupom de frete e CEP já digitado fora de JP, rejeitar
+        if (data.tipo === 'frete') {
+          const cepAtual = parseInt((document.getElementById('cep')?.value || '').replace(/\D/g, ''), 10);
+          const cepPreenchido = !isNaN(cepAtual) && cepAtual > 0;
+          const isJPCep = cepAtual >= CEP_JP_MIN && cepAtual <= CEP_JP_MAX;
+          if (cepPreenchido && !isJPCep) {
+            setMsg('Este cupom de frete grátis é válido apenas para João Pessoa (CEPs 58000–58099).', 'erro');
+            btn.disabled = false;
+            if (btn.textContent === '…') btn.textContent = 'Aplicar';
+            return;
+          }
+        }
+
         let labelDesc;
         if (data.tipo === 'frete') {
-          labelDesc = 'Frete grátis!';
+          labelDesc = 'Frete grátis para João Pessoa!';
         } else if (data.tipo === 'percentual') {
           labelDesc = `${data.valor}% de desconto`;
         } else {
@@ -383,15 +394,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (stdRadio) stdRadio.checked = true;
     }
 
-    // Preço padrão: R$10 para PB, R$18 para outros estados do Nordeste
-    const isGrandeJP = uf === 'PB';
-    const fretePadrao = isGrandeJP ? FRETE_STANDARD : FRETE_NORDESTE;
+    // Preço padrão: R$10 para João Pessoa, R$18 para restante do Nordeste
+    const fretePadrao = isJP ? FRETE_STANDARD : FRETE_NORDESTE;
     const stdPriceEl  = document.getElementById('shippingStdPrice');
     if (stdPriceEl) stdPriceEl.textContent = `R$ ${fretePadrao.toFixed(2).replace('.', ',')}`;
 
     // Delivery time hint
     const stdTimeEl = document.getElementById('shippingStdTime');
-    if (stdTimeEl) stdTimeEl.textContent = isGrandeJP ? '2–4 dias úteis' : '5–10 dias úteis';
+    if (stdTimeEl) stdTimeEl.textContent = isJP ? '2–4 dias úteis' : '5–10 dias úteis';
 
     freteBase = fretePadrao;
     updateTotalWithFrete(fretePadrao);
@@ -437,11 +447,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('change', e => {
     if (e.target.name === 'shipping') {
       const val = e.target.value;
-      const uf = document.getElementById('state')?.value || '';
+      const cepNum2 = parseInt((document.getElementById('cep')?.value || '').replace(/\D/g, ''), 10);
+      const isJP2   = cepNum2 >= CEP_JP_MIN && cepNum2 <= CEP_JP_MAX;
       if (val === 'motoboy') {
         freteBase = FRETE_MOTOBOY;
       } else {
-        freteBase = uf === 'PB' ? FRETE_STANDARD : FRETE_NORDESTE;
+        freteBase = isJP2 ? FRETE_STANDARD : FRETE_NORDESTE;
       }
       updateTotalWithFrete(freteBase);
     }
@@ -572,9 +583,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!NORDESTE_STATES.includes(ufEntrega)) {
       alert('No momento, entregamos apenas para estados do Nordeste.'); goToStep(2); return;
     }
-    // Cupom de frete grátis só vale para a Paraíba (Grande João Pessoa)
-    if (cupomAplicado?.tipo === 'frete' && ufEntrega !== 'PB') {
-      alert('O cupom de frete grátis (FRETEGRATIS) é válido apenas para endereços na Paraíba (Grande João Pessoa).\nRemova o cupom ou altere o endereço de entrega.'); goToStep(2); return;
+    // Cupom de frete grátis só vale para João Pessoa cidade
+    const cepNumFinal = parseInt(cepRaw, 10);
+    if (cupomAplicado?.tipo === 'frete' && !(cepNumFinal >= CEP_JP_MIN && cepNumFinal <= CEP_JP_MAX)) {
+      alert('O cupom de frete grátis (FRETEGRATIS) é válido apenas para entregas em João Pessoa (CEPs 58000‑58099).\nRemova o cupom ou altere o endereço de entrega.'); goToStep(2); return;
     }
 
     btn.innerHTML = 'Processando…';
