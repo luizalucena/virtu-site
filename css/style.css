@@ -535,6 +535,11 @@ h4 { font-size: var(--text-lg); }
   color: var(--color-text-light);
 }
 .navbar__cats-link--all:hover { color: var(--color-gold); }
+.navbar__cats-hr {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.35rem 0;
+}
 
 /* ----------------------------
    8. BOTÕES
