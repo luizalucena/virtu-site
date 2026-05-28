@@ -205,12 +205,6 @@ function updateSummary() {
   const total       = Math.max(0, subtotal - discount + giftExtra); // frete calculado no checkout
   const installment = total / 6;
 
-  // Linha de embalagem para presente
-  const giftLine = document.getElementById('giftWrapLine');
-  const giftDD   = document.getElementById('summaryGiftWrap');
-  if (giftLine) giftLine.hidden = !giftWrap;
-  if (giftDD)   giftDD.textContent = formatCurrency(giftWrapPrice);
-
   // Totais por linha
   document.querySelectorAll('.cart-item').forEach(itemEl => {
     const idx  = parseInt(itemEl.getAttribute('data-index'));
