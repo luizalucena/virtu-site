@@ -1,0 +1,437 @@
+/* ============================================================
+   VIRTÙ — Conta do Cliente
+   ============================================================ */
+
+/* ── LAYOUT BASE ─────────────────────────────────────────── */
+.conta-main {
+  min-height: calc(100vh - 64px);
+  padding-top: 64px;
+  background: var(--color-bg);
+}
+
+/* ── AUTH (não logado) ───────────────────────────────────── */
+.conta-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding: 3rem 1rem;
+}
+
+.conta-auth__box {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.conta-auth__logo {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.conta-auth__logo img {
+  height: 36px;
+}
+.conta-auth__logo-text {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
+  color: var(--color-navy);
+}
+
+.conta-auth__subtitle {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--color-text-light);
+  margin-bottom: 1.75rem;
+}
+
+/* Tabs */
+.conta-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.75rem;
+}
+.conta-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0.7rem 0;
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  color: var(--color-text-light);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.conta-tab--active {
+  color: var(--color-navy);
+  border-bottom-color: var(--color-gold);
+  font-weight: 500;
+}
+
+/* Forms */
+.conta-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.conta-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.conta-form__label {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+.conta-form__input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  font-size: 0.92rem;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: #fff;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.conta-form__input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+.conta-form__input[readonly] {
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  cursor: not-allowed;
+}
+.conta-form__submit {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--color-navy);
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 0.25rem;
+}
+.conta-form__submit:hover { background: #1a2a3a; }
+.conta-form__submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.conta-form__link {
+  background: none;
+  border: none;
+  color: var(--color-gold);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  font-family: var(--font-sans);
+}
+.conta-form__link:hover { text-decoration: underline; }
+
+.conta-form__msg {
+  font-size: 0.83rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 2px;
+  text-align: center;
+}
+.conta-form__msg--ok    { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.conta-form__msg--erro  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* ── CONTA (logado) ──────────────────────────────────────── */
+.conta-account {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 64px);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .conta-account {
+    grid-template-columns: 1fr;
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Sidebar */
+.conta-sidebar {
+  position: sticky;
+  top: 88px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.conta-sidebar__user {
+  padding: 1.5rem;
+  background: var(--color-navy);
+  color: #fff;
+}
+
+.conta-sidebar__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.conta-sidebar__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.conta-sidebar__email {
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.conta-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.conta-nav__item {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.9rem 1.5rem;
+  text-align: left;
+  font-size: 0.88rem;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.conta-nav__item:last-child { border-bottom: none; }
+.conta-nav__item:hover { background: var(--color-bg); }
+.conta-nav__item--active {
+  color: var(--color-gold);
+  font-weight: 500;
+  background: #fdf8f2;
+}
+.conta-nav__item--logout {
+  color: #b91c1c;
+  margin-top: auto;
+}
+.conta-nav__item--logout:hover { background: #fef2f2; }
+
+/* Content area */
+.conta-content {
+  padding-left: 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .conta-content { padding-left: 0; padding-top: 1.5rem; }
+}
+
+.conta-content__title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.8rem;
+  color: var(--color-navy);
+  margin-bottom: 1.5rem;
+}
+
+/* ── PEDIDOS ─────────────────────────────────────────────── */
+.conta-pedido {
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.conta-pedido__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.conta-pedido__num {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+
+.conta-pedido__num strong {
+  color: var(--color-text);
+  font-size: 0.88rem;
+}
+
+.conta-pedido__date {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+.conta-pedido__status {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.conta-pedido__status--pago       { background: #f0fdf4; color: #15803d; }
+.conta-pedido__status--pendente   { background: #fffbeb; color: #92400e; }
+.conta-pedido__status--recusado,
+.conta-pedido__status--cancelado  { background: #fef2f2; color: #b91c1c; }
+.conta-pedido__status--reembolsado{ background: #f0f9ff; color: #0369a1; }
+
+.conta-pedido__body {
+  padding: 1rem 1.25rem;
+}
+
+.conta-pedido__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.conta-pedido__item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.conta-pedido__item-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 2px;
+  background: #e8e0d5;
+  flex-shrink: 0;
+}
+
+.conta-pedido__item-name { font-weight: 500; color: var(--color-text); }
+.conta-pedido__item-meta { font-size: 0.78rem; color: var(--color-text-light); }
+
+.conta-pedido__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+
+.conta-pedido__total {
+  font-weight: 600;
+  color: var(--color-navy);
+}
+
+.conta-pedido__method {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  text-transform: capitalize;
+}
+
+.conta-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--color-text-light);
+}
+.conta-empty svg { margin-bottom: 1rem; opacity: 0.3; }
+.conta-empty p { margin-bottom: 1.25rem; }
+.conta-empty a {
+  display: inline-block;
+  padding: 0.7rem 1.75rem;
+  background: var(--color-navy);
+  color: #fff;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+/* ── DADOS PESSOAIS ──────────────────────────────────────── */
+.conta-dados__form {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.conta-dados__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 500px) { .conta-dados__row { grid-template-columns: 1fr; } }
+
+.conta-dados__save {
+  align-self: flex-start;
+  padding: 0.7rem 2rem;
+  background: var(--color-navy);
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 0.2s;
+}
+.conta-dados__save:hover { background: #1a2a3a; }
+
+.conta-dados__msg {
+  font-size: 0.83rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 2px;
+}
+.conta-dados__msg--ok   { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.conta-dados__msg--erro { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* ── AUTH BADGE (ícone logado) ───────────────────────────── */
+.navbar__account-wrap {
+  position: relative;
+}
+.navbar__account-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  border: 1.5px solid #fff;
+  display: none;
+}
+.navbar__account-dot--visible { display: block; }

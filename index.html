@@ -102,12 +102,13 @@
             <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
           </svg>
         </button>
-        <button class="navbar__action-btn" aria-label="Minha conta">
+        <a href="conta.html" class="navbar__action-btn navbar__account-wrap" aria-label="Minha conta">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
-        </button>
+          <span class="navbar__account-dot" id="authDot"></span>
+        </a>
         <a href="carrinho.html" class="navbar__action-btn" aria-label="Carrinho (0 itens)">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -161,6 +162,7 @@
         <a href="catalogo.html?cat=sale" class="mobile-menu__link">Sale</a>
         <a href="sobre.html"    class="mobile-menu__link">Sobre</a>
         <a href="contato.html"  class="mobile-menu__link">Contato</a>
+        <a href="conta.html"   class="mobile-menu__link">Minha Conta</a>
       </nav>
       <div style="margin-top:auto; padding-top: 32px;">
         <p class="overline" style="margin-bottom:12px;">Siga a Virtù</p>
@@ -616,6 +618,7 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
+  <script src="js/auth-badge.js"></script>
   <script src="js/cart-badge.js"></script>
   <script src="js/announcement.js"></script>
   <script src="js/products.js"></script>
