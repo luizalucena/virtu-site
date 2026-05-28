@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cupons — Virtù Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* ── CUPONS ─────────────────────────────── */
+    .cupons-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .cupons-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .cupons-stat {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+    .cupons-stat__label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-light);
+      margin-bottom: 0.35rem;
+    }
+    .cupons-stat__value {
+      font-size: 1.6rem;
+      font-family: var(--font-disp);
+      color: var(--navy);
+      font-weight: 500;
+    }
+
+    /* ── TABELA ─────────────────────────────── */
+    .cupons-table-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .cupons-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .cupons-table th {
+      background: var(--navy);
+      color: rgba(255,255,255,0.85);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .cupons-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .cupons-table tr:last-child td { border-bottom: none; }
+    .cupons-table tr:hover td { background: #faf9f7; }
+
+    .cupom-codigo {
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      color: var(--navy);
+      background: #f0ede8;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .badge--ativo   { background: #d1fae5; color: #065f46; }
+    .badge--inativo { background: #fee2e2; color: #991b1b; }
+    .badge--expirado{ background: #fef3c7; color: #92400e; }
+    .badge--percentual { background: #ede9fe; color: #5b21b6; }
+    .badge--fixo    { background: #dbeafe; color: #1e40af; }
+
+    .cupons-table__actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: nowrap;
+    }
+    .btn-icon {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--text);
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-icon:hover { border-color: var(--navy); color: var(--navy); }
+    .btn-icon--danger:hover { border-color: #c0392b; color: #c0392b; }
+    .btn-icon--success:hover { border-color: #27ae60; color: #27ae60; }
+    .btn-icon--toggle-off { border-color: #c0392b20; background: #fff5f5; color: #c0392b; }
+    .btn-icon--toggle-off:hover { background: #c0392b; color: #fff; }
+    .btn-icon--toggle-on { border-color: #27ae6020; background: #f0faf5; color: #27ae60; }
+    .btn-icon--toggle-on:hover { background: #27ae60; color: #fff; }
+
+    .cupons-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-light);
+    }
+    .cupons-empty svg { opacity: 0.25; margin-bottom: 0.75rem; }
+
+    /* ── MODAL ──────────────────────────────── */
+    .cupom-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(27,38,54,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .cupom-modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .cupom-modal {
+      background: #fff;
+      border-radius: var(--radius);
+      width: min(520px, 95vw);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      overflow: hidden;
+      transform: translateY(16px);
+      transition: transform 0.2s;
+    }
+    .cupom-modal-overlay.open .cupom-modal { transform: translateY(0); }
+    .cupom-modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--navy);
+      color: #fff;
+    }
+    .cupom-modal__title { font-family: var(--font-disp); font-size: 1.2rem; font-weight: 400; }
+    .cupom-modal__close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      padding: 0.25rem;
+      transition: color 0.15s;
+    }
+    .cupom-modal__close:hover { color: #fff; }
+    .cupom-modal__body { padding: 1.5rem; display: grid; gap: 1rem; }
+    .cupom-modal__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .cupom-modal__footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    /* filtro rápido */
+    .cupons-filter {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <span class="admin-sidebar__virtu">VIRTÙ</span>
+      <span class="admin-sidebar__tag">Admin</span>
+    </div>
+    <nav class="admin-sidebar__nav">
+      <a href="index.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Produtos
+      </a>
+      <a href="index.html#sobre" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Página Sobre
+      </a>
+      <a href="financeiro.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Financeiro
+      </a>
+      <a href="cupons.html" class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
+        Cupons
+      </a>
+      <a href="index.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Configurações
+      </a>
+    </nav>
+    <div class="admin-sidebar__footer">
+      <p>Virtù Admin v1.1</p>
+      <button class="admin-logout-btn" id="btnLogout" title="Sair do painel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <h1 class="admin-topbar__title">Cupons de Desconto</h1>
+        <span class="admin-topbar__count" id="cuponsCount"></span>
+      </div>
+      <div class="admin-topbar__actions">
+        <button class="admin-btn admin-btn--ghost" id="btnRecarregar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Recarregar
+        </button>
+        <button class="admin-btn admin-btn--primary" id="btnNovoCupom">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Cupom
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content" style="padding:1.5rem">
+
+      <!-- CARDS DE RESUMO -->
+      <div class="cupons-stats" id="cuponsStats">
+        <div class="cupons-stat">
+          <p class="cupons-stat__label">Total de cupons</p>
+          <p class="cupons-stat__value" id="statTotal">—</p>
+        </div>
+        <div class="cupons-stat">
+          <p class="cupons-stat__label">Ativos</p>
+          <p class="cupons-stat__value" id="statAtivos" style="color:#27ae60">—</p>
+        </div>
+        <div class="cupons-stat">
+          <p class="cupons-stat__label">Desativados</p>
+          <p class="cupons-stat__value" id="statInativos" style="color:#c0392b">—</p>
+        </div>
+        <div class="cupons-stat">
+          <p class="cupons-stat__label">Usos este mês</p>
+          <p class="cupons-stat__value" id="statUsos">—</p>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="cupons-filter">
+        <button class="filter-btn active" data-filter="todos">Todos</button>
+        <button class="filter-btn" data-filter="ativo">Ativos</button>
+        <button class="filter-btn" data-filter="inativo">Desativados</button>
+        <button class="filter-btn" data-filter="percentual">% Percentual</button>
+        <button class="filter-btn" data-filter="fixo">R$ Fixo</button>
+      </div>
+
+      <!-- TABELA -->
+      <div class="cupons-table-wrap">
+        <table class="cupons-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Desconto</th>
+              <th>Pedido Mínimo</th>
+              <th>Usos</th>
+              <th>Validade</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="cuponsTbody">
+            <tr>
+              <td colspan="8">
+                <div class="cupons-empty">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <p>Carregando cupons…</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p id="adminStatus" style="margin-top:1rem;font-size:0.82rem;color:var(--text-light)"></p>
+    </div>
+  </div><!-- /admin-main -->
+
+  <!-- MODAL: NOVO / EDITAR CUPOM -->
+  <div class="cupom-modal-overlay" id="cupomModalOverlay">
+    <div class="cupom-modal" role="dialog" aria-modal="true" aria-labelledby="cupomModalTitle">
+      <div class="cupom-modal__header">
+        <h2 class="cupom-modal__title" id="cupomModalTitle">Novo Cupom</h2>
+        <button class="cupom-modal__close" id="btnModalClose" aria-label="Fechar">✕</button>
+      </div>
+      <div class="cupom-modal__body">
+        <input type="hidden" id="formCupomId" />
+
+        <div class="admin-form-group">
+          <label class="admin-label">Código do cupom *</label>
+          <input type="text" class="admin-input" id="formCodigo"
+            placeholder="Ex: NAMORADO10"
+            style="text-transform:uppercase;font-family:monospace;letter-spacing:0.06em;font-size:1rem" />
+          <small style="color:var(--text-light);font-size:0.75rem;margin-top:0.25rem;display:block">
+            Letras maiúsculas, números e hífens. Ex: NATAL20, VIP-30, FRETE10.
+          </small>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-label">Descrição (interna — só você vê)</label>
+          <input type="text" class="admin-input" id="formDescricao"
+            placeholder="Ex: Campanha Dia dos Namorados 2026" />
+        </div>
+
+        <div class="cupom-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Tipo de desconto *</label>
+            <select class="admin-input" id="formTipo">
+              <option value="percentual">% Percentual (ex: 10%)</option>
+              <option value="fixo">R$ Fixo (ex: R$ 30,00)</option>
+              <option value="frete">🚚 Frete Grátis</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label" id="formValorLabel">Valor do desconto *</label>
+            <div style="position:relative">
+              <span id="formValorPrefix" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:0.85rem">%</span>
+              <input type="number" class="admin-input" id="formValor"
+                placeholder="10" min="0" step="0.01"
+                style="padding-left:2rem" />
+            </div>
+          </div>
+        </div>
+
+        <div class="cupom-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Pedido mínimo (R$)</label>
+            <input type="number" class="admin-input" id="formMinimo"
+              placeholder="0 = sem mínimo" min="0" step="0.01" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Limite de usos</label>
+            <input type="number" class="admin-input" id="formMaxUsos"
+              placeholder="Vazio = ilimitado" min="1" step="1" />
+          </div>
+        </div>
+
+        <div class="cupom-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Válido até</label>
+            <input type="date" class="admin-input" id="formValidade" />
+          </div>
+          <div class="admin-form-group" style="display:flex;align-items:flex-end;padding-bottom:0.15rem">
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem">
+              <input type="checkbox" id="formAtivo" checked style="width:16px;height:16px;accent-color:var(--navy)" />
+              Cupom ativo ao criar
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="cupom-modal__footer">
+        <button class="admin-btn admin-btn--ghost" id="btnModalCancelar">Cancelar</button>
+        <button class="admin-btn admin-btn--primary" id="btnSalvarCupom">Salvar Cupom</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="cupons.js"></script>
+</body>
+</html>

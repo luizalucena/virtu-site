@@ -341,9 +341,30 @@
           </div>
         </div>
 
+        <!-- CUPOM DE DESCONTO -->
+        <div class="checkout-cupom" id="cupomWrap">
+          <form class="checkout-cupom__form" id="cupomForm" autocomplete="off">
+            <input
+              type="text"
+              class="checkout-cupom__input"
+              id="cupomInput"
+              placeholder="Código de desconto"
+              maxlength="30"
+              aria-label="Código de cupom de desconto"
+              style="text-transform:uppercase"
+            />
+            <button type="submit" class="checkout-cupom__btn" id="cupomBtn">Aplicar</button>
+          </form>
+          <p class="checkout-cupom__msg" id="cupomMsg" aria-live="polite"></p>
+        </div>
+
         <dl class="checkout-order-summary__lines">
           <div class="checkout-order-summary__line">
             <dt>Subtotal</dt><dd id="checkoutSubtotal">R$ 0,00</dd>
+          </div>
+          <div class="checkout-order-summary__line checkout-order-summary__line--desconto" id="checkoutDescontoLine" style="display:none">
+            <dt id="checkoutDescontoLabel">Desconto (CUPOM)</dt>
+            <dd id="checkoutDesconto" style="color:#27ae60;font-weight:600">−R$ 0,00</dd>
           </div>
           <div class="checkout-order-summary__line">
             <dt>Frete</dt><dd id="checkoutFreteLabel" class="checkout-order-summary__free">Grátis</dd>

@@ -626,3 +626,54 @@
   .card-preview { padding: 1.25rem; }
   .checkout-main { padding: 2rem 0 4rem; }
 }
+
+/* ── CUPOM DE DESCONTO ─────────────────────────── */
+.checkout-cupom {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color, #e8e2d9);
+}
+.checkout-cupom__form {
+  display: flex;
+  gap: 0.5rem;
+}
+.checkout-cupom__input {
+  flex: 1;
+  border: 1px solid var(--border-color, #e0dbd3);
+  border-radius: 4px;
+  padding: 0.55rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+  outline: none;
+  transition: border-color 0.15s;
+  background: #fff;
+}
+.checkout-cupom__input:focus { border-color: var(--color-navy); }
+.checkout-cupom__input::placeholder { text-transform: none; color: #aaa; letter-spacing: 0; }
+.checkout-cupom__btn {
+  padding: 0.55rem 1rem;
+  background: var(--color-navy);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.checkout-cupom__btn:hover { background: var(--color-gold, #c8a96e); }
+.checkout-cupom__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.checkout-cupom__msg {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  min-height: 1.2em;
+  font-family: var(--font-body);
+}
+.checkout-cupom__msg--ok    { color: #27ae60; }
+.checkout-cupom__msg--erro  { color: #c0392b; }

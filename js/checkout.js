@@ -20,8 +20,12 @@ const CEP_JP_MAX      = 58099999;
 
 // ── ESTADO GLOBAL DO CHECKOUT ───────────────────────────────
 let freteValorSelecionado = FRETE_STANDARD;
-let baseTotal             = 0;   // subtotal + gift wrap, sem frete
+let freteBase             = FRETE_STANDARD; // frete sem cupom (referência)
+let baseTotal             = 0;              // subtotal + gift wrap, sem frete
 let mpInstance            = null;
+
+// ── ESTADO DO CUPOM ─────────────────────────────────────────
+let cupomAplicado = null; // { codigo, tipo, valor } ou null
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -91,20 +95,134 @@ document.addEventListener('DOMContentLoaded', () => {
     if (installEl)  updateInstallments(total);
   }
 
+  // ── CALCULA DESCONTO DO CUPOM (apenas tipos percentual/fixo) ──
+  function calcularDesconto(subtotalParaDesconto) {
+    if (!cupomAplicado || cupomAplicado.tipo === 'frete') return 0;
+    if (cupomAplicado.tipo === 'percentual') {
+      return Math.min(subtotalParaDesconto, subtotalParaDesconto * cupomAplicado.valor / 100);
+    }
+    return Math.min(subtotalParaDesconto, cupomAplicado.valor);
+  }
+
+  // ── FRETE EFETIVO (0 se cupom de frete ativo) ─────────────
+  function freteEfetivo() {
+    return (cupomAplicado?.tipo === 'frete') ? 0 : freteValorSelecionado;
+  }
+
+  // ── ATUALIZA LINHA DE DESCONTO NO RESUMO ─────────────────
+  function atualizarLinhaDesconto() {
+    const descontoLine  = document.getElementById('checkoutDescontoLine');
+    const descontoLabel = document.getElementById('checkoutDescontoLabel');
+    const descontoEl    = document.getElementById('checkoutDesconto');
+    if (!descontoLine) return;
+
+    if (cupomAplicado && cupomAplicado.tipo !== 'frete') {
+      const desc = calcularDesconto(baseTotal);
+      descontoLine.style.display  = '';
+      if (descontoLabel) descontoLabel.textContent = `Desconto (${cupomAplicado.codigo})`;
+      if (descontoEl)    descontoEl.textContent     = `−${formatCurrency(desc)}`;
+    } else {
+      descontoLine.style.display = 'none';
+    }
+  }
+
   // ── ATUALIZA TOTAL COM FRETE ─────────────────────────────
   function updateTotalWithFrete(freteValor) {
     freteValorSelecionado = freteValor;
-    const total    = baseTotal + freteValor;
-    const totalEl  = document.getElementById('checkoutTotal');
-    const freteEl  = document.getElementById('checkoutFreteLabel');
+    const frete   = freteEfetivo();
+    const desconto= calcularDesconto(baseTotal);
+    const total   = Math.max(0, baseTotal - desconto) + frete;
+    const totalEl   = document.getElementById('checkoutTotal');
+    const freteEl   = document.getElementById('checkoutFreteLabel');
     const installEl = document.getElementById('checkoutInstallments');
 
+    atualizarLinhaDesconto();
+
     if (freteEl) {
-      freteEl.textContent = freteValor === 0 ? 'Grátis' : formatCurrency(freteValor);
-      freteEl.classList.toggle('checkout-order-summary__free', freteValor === 0);
+      freteEl.textContent = frete === 0 ? 'Grátis' : formatCurrency(frete);
+      freteEl.classList.toggle('checkout-order-summary__free', frete === 0);
     }
     if (totalEl) { totalEl.textContent = formatCurrency(total); totalEl.dataset.baseTotal = total; }
     if (installEl) updateInstallments(total);
+  }
+
+  // ── CUPOM: VALIDAÇÃO E APLICAÇÃO ─────────────────────────
+  async function initCupom() {
+    const form    = document.getElementById('cupomForm');
+    const input   = document.getElementById('cupomInput');
+    const btn     = document.getElementById('cupomBtn');
+    const msg     = document.getElementById('cupomMsg');
+    if (!form) return;
+
+    function setMsg(texto, tipo) {
+      if (!msg) return;
+      msg.textContent = texto;
+      msg.className = `checkout-cupom__msg checkout-cupom__msg--${tipo}`;
+    }
+
+    function removerCupom() {
+      cupomAplicado = null;
+      if (input) input.value = '';
+      if (btn)   { btn.textContent = 'Aplicar'; btn.style.background = ''; }
+      setMsg('', 'ok');
+      atualizarLinhaDesconto();
+      updateTotalWithFrete(freteBase); // restaura frete original
+    }
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const codigo = (input?.value || '').trim().toUpperCase();
+
+      // Se já tem cupom aplicado, remover ao clicar em "Remover"
+      if (cupomAplicado) { removerCupom(); return; }
+
+      if (!codigo) { setMsg('Digite um código de cupom.', 'erro'); return; }
+
+      btn.disabled    = true;
+      btn.textContent = '…';
+      setMsg('', 'ok');
+
+      try {
+        const { data, error } = await supabaseClient.rpc('validar_cupom', { p_codigo: codigo });
+        if (error) throw error;
+
+        if (!data.valido) {
+          setMsg(data.erro || 'Cupom inválido.', 'erro');
+          return;
+        }
+
+        // Verificar pedido mínimo
+        if (data.valor_minimo > 0 && baseTotal < data.valor_minimo) {
+          setMsg(`Pedido mínimo de ${formatCurrency(data.valor_minimo)} para este cupom.`, 'erro');
+          return;
+        }
+
+        // Aplicar cupom
+        cupomAplicado = { codigo: data.codigo, tipo: data.tipo, valor: data.valor };
+
+        let labelDesc;
+        if (data.tipo === 'frete') {
+          labelDesc = 'Frete grátis!';
+        } else if (data.tipo === 'percentual') {
+          labelDesc = `${data.valor}% de desconto`;
+        } else {
+          labelDesc = `${formatCurrency(data.valor)} de desconto`;
+        }
+
+        setMsg(`✓ Cupom aplicado: ${labelDesc}`, 'ok');
+        if (btn) { btn.textContent = 'Remover'; btn.style.background = '#c0392b'; }
+
+        // Para tipo 'frete': zera o frete no display, mantém freteValorSelecionado como referência
+        atualizarLinhaDesconto();
+        updateTotalWithFrete(freteValorSelecionado); // usa freteEfetivo() internamente
+
+      } catch (err) {
+        setMsg('Erro ao validar o cupom. Tente novamente.', 'erro');
+      } finally {
+        btn.disabled = false;
+        if (btn.textContent === '…') btn.textContent = 'Aplicar';
+      }
+    });
   }
 
   // ── PARCELAS DINÂMICAS ───────────────────────────────────
@@ -125,15 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── CARREGA DADOS INICIAIS DO SUPABASE ───────────────────
   (async () => {
-    let freteGratis = 300;
-    try {
-      if (typeof supabaseClient !== 'undefined') {
-        const { data: cfg } = await supabaseClient
-          .from('configuracoes').select('frete_gratis_acima').eq('id', 1).maybeSingle();
-        if (cfg?.frete_gratis_acima != null) freteGratis = parseFloat(cfg.frete_gratis_acima) || 300;
-      }
-    } catch {}
-    renderOrderSummary(getCart(), freteGratis);
+    renderOrderSummary(getCart());
+    await initCupom(); // campo de cupom no resumo do pedido
   })();
 
   // ── STEPS ───────────────────────────────────────────────
@@ -244,11 +355,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // CEP de João Pessoa ✓
       freteResult.style.display = 'block';
       freteMsg.style.display    = 'none';
-      updateTotalWithFrete(FRETE_STANDARD); // padrão selecionado por default
+      freteBase = FRETE_STANDARD; // guarda referência sem cupom
+      updateTotalWithFrete(FRETE_STANDARD);
     } else {
       // Fora de João Pessoa ✗
       freteResult.style.display = 'none';
       showFreteMsg('No momento, entregamos apenas em João Pessoa (PB).', 'error');
+      freteBase = 0;
       updateTotalWithFrete(0);
     }
   }
@@ -293,7 +406,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('change', e => {
     if (e.target.name === 'shipping') {
       const val = e.target.value;
-      updateTotalWithFrete(val === 'motoboy' ? FRETE_MOTOBOY : FRETE_STANDARD);
+      freteBase = val === 'motoboy' ? FRETE_MOTOBOY : FRETE_STANDARD;
+      updateTotalWithFrete(freteBase);
     }
   });
 
@@ -427,11 +541,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled  = true;
 
     // Monta dados do cliente e endereço
-    const cart     = getCart();
-    const totalEl  = document.getElementById('checkoutTotal');
-    const total    = parseFloat(totalEl?.dataset.baseTotal || 0) + freteValorSelecionado;
-    const isPix    = activeTab === 'pix';
-    const finalTotal = isPix ? +(total * 0.95).toFixed(2) : +total.toFixed(2);
+    const cart          = getCart();
+    const isPix         = activeTab === 'pix';
+    const descontoCupom = calcularDesconto(baseTotal);
+    const freteReal     = freteEfetivo();
+    const totalBruto    = Math.max(0, baseTotal - descontoCupom) + freteReal;
+    const finalTotal    = isPix ? +(totalBruto * 0.95).toFixed(2) : +totalBruto.toFixed(2);
 
     const cliente = {
       nome:     `${document.getElementById('firstName')?.value.trim()} ${document.getElementById('lastName')?.value.trim()}`.trim(),
@@ -452,12 +567,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Monta payload base ───────────────────────
     const payload = {
-      tipo:      isPix ? 'pix' : 'cartao',
-      total:     finalTotal,
-      subtotal:  baseTotal,
-      frete:     freteValorSelecionado,
-      desconto:  isPix ? +(baseTotal * 0.05).toFixed(2) : 0,
-      itens:     cart,
+      tipo:          isPix ? 'pix' : 'cartao',
+      total:         finalTotal,
+      subtotal:      baseTotal,
+      frete:         freteReal,
+      desconto:      descontoCupom + (isPix ? +(totalBruto * 0.05).toFixed(2) : 0),
+      cupom_codigo:  cupomAplicado?.codigo || null,
+      itens:         cart,
       cliente,
       endereco,
     };
@@ -507,6 +623,11 @@ document.addEventListener('DOMContentLoaded', () => {
             p_quantidade:  i.qty || 1,
           }));
         await Promise.allSettled(decrements);
+      }
+
+      // Registra uso do cupom (se houver)
+      if (cupomAplicado?.codigo && typeof supabaseClient !== 'undefined') {
+        try { await supabaseClient.rpc('usar_cupom', { p_codigo: cupomAplicado.codigo }); } catch {}
       }
 
       // Limpa carrinho
