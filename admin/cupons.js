@@ -209,7 +209,7 @@ async function salvarCupom() {
   const ativo    = document.getElementById('formAtivo').checked;
 
   if (!codigo) { showToast('Informe o código do cupom.', 'error'); return; }
-  if (valor <= 0) { showToast('O valor do desconto deve ser maior que zero.', 'error'); return; }
+  if (tipo !== 'frete' && valor <= 0) { showToast('O valor do desconto deve ser maior que zero.', 'error'); return; }
   if (tipo === 'percentual' && valor > 100) { showToast('Desconto percentual não pode ultrapassar 100%.', 'error'); return; }
 
   const payload = { codigo, descricao: desc || null, tipo, valor, valor_minimo: minimo, uso_maximo: maxUsos, validade, ativo };
