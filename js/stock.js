@@ -245,31 +245,45 @@ const VirtuStock = (() => {
     if (_variacoes.size === 0) return;
 
     // ── Tamanhos ─────────────────────────────────────────
+    // Se há cor selecionada, mostra esgotado só para essa cor;
+    // senão, considera qualquer cor disponível.
     document.querySelectorAll('[data-tam]').forEach(btn => {
-      const tam  = btn.getAttribute('data-tam');
-      const temStock = [..._variacoes.values()].some(v => v.tamanho === tam && v.estoque > 0);
-
-      btn.classList.toggle('esgotado',  !temStock);
+      const tam = btn.getAttribute('data-tam');
+      let temStock;
+      if (_corSelecionada) {
+        temStock = [..._variacoes.values()].some(
+          v => v.tamanho === tam && v.cor_nome === _corSelecionada && v.estoque > 0
+        );
+      } else {
+        temStock = [..._variacoes.values()].some(v => v.tamanho === tam && v.estoque > 0);
+      }
+      btn.classList.toggle('esgotado',   !temStock);
       btn.classList.toggle('selecionado', tam === _tamSelecionado);
       btn.disabled = !temStock;
     });
 
     // ── Cores ─────────────────────────────────────────────
+    // Cores sempre clicáveis; esgotado se não houver nenhum tamanho em stock
+    // para essa cor (ou para o tamanho já selecionado, se houver).
     document.querySelectorAll('[data-cor]').forEach(btn => {
       const cor = btn.getAttribute('data-cor');
       let disponivel = false;
-
       if (_tamSelecionado) {
+        // Tamanho já escolhido → verifica estoque para tam + cor
         for (const v of _variacoes.values()) {
           if (v.tamanho === _tamSelecionado && v.cor_nome === cor && v.estoque > 0) {
             disponivel = true; break;
           }
         }
+      } else {
+        // Sem tamanho selecionado → cor fica ativa se qualquer tamanho tiver estoque
+        for (const v of _variacoes.values()) {
+          if (v.cor_nome === cor && v.estoque > 0) { disponivel = true; break; }
+        }
       }
-
       btn.classList.toggle('esgotado',   !disponivel);
       btn.classList.toggle('selecionado', cor === _corSelecionada);
-      btn.disabled = !disponivel || !_tamSelecionado;
+      btn.disabled = !disponivel; // não bloqueia pela falta de tamanho
     });
 
     // ── Botão de compra ───────────────────────────────────

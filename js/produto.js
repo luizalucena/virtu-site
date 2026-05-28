@@ -63,9 +63,9 @@ async function carregarProduto(produtoId) {
     }
 
     // Parcelamento
-    const parcela = preco / 6;
+    const parcela = preco / 12;
     const parcelaEl = document.querySelector('.produto-parcelamento');
-    if (parcelaEl) parcelaEl.textContent = `ou 6x de ${fmt(parcela)} sem juros`;
+    if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmt(parcela)} sem juros`;
 
     // Cores
     const coresContainer = document.getElementById('coresContainer');
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchOverlay?.addEventListener('click', e => { if (e.target === searchOverlay) closeSearch(); });
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeMenu(); closeSearch(); closeGuia(); }
+    if (e.key === 'Escape') { closeMenu(); closeSearch(); }
   });
 
   // ── GALERIA ────────────────────────────────
@@ -591,23 +591,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // ── GUIA DE TAMANHOS (MODAL) ───────────────
-  const guiaModal = document.getElementById('guiaModal');
-  const openGuia  = () => {
-    guiaModal?.classList.add('open');
-    guiaModal?.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    document.getElementById('guiaClose')?.focus();
-  };
-  const closeGuia = () => {
-    guiaModal?.classList.remove('open');
-    guiaModal?.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  };
-
-  document.getElementById('openGuia')?.addEventListener('click', openGuia);
-  document.getElementById('guiaClose')?.addEventListener('click', closeGuia);
-  guiaModal?.addEventListener('click', e => { if (e.target === guiaModal) closeGuia(); });
+  // ── GUIA DE TAMANHOS → politicas.html#tamanhos ─
+  document.getElementById('openGuia')?.addEventListener('click', () => {
+    window.open('politicas.html#tamanhos', '_blank');
+  });
 
   // ── STICKY BUY BAR ─────────────────────────
   const stickyBar     = document.querySelector('.sticky-buy-bar');
