@@ -616,6 +616,40 @@
           </div>
         </div>
 
+        <!-- FILTROS DO CATÁLOGO -->
+        <div class="admin-card" style="grid-column:1/-1">
+          <h3 class="admin-card__title">Filtros do Catálogo</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1.5rem;line-height:1.5">
+            Tamanhos e cores exibidos na barra de filtros da página do catálogo.
+          </p>
+
+          <div class="admin-form-group" style="margin-bottom:1.5rem;max-width:480px">
+            <label class="admin-label">Tamanhos disponíveis <span style="font-weight:400;opacity:0.7">(separados por vírgula)</span></label>
+            <input type="text" class="admin-input" id="cfgFiltrosTamanhos" placeholder="PP,P,M,G,GG,XG" />
+            <span style="font-size:0.75rem;color:var(--text-muted,#888);margin-top:4px;display:block">Ex: PP,P,M,G,GG,XG — exatamente como aparecem nos produtos</span>
+          </div>
+
+          <label class="admin-label" style="margin-bottom:0.75rem;display:block">Cores disponíveis</label>
+          <div style="overflow-x:auto;max-width:520px">
+            <table style="width:100%;border-collapse:collapse;font-size:0.85rem" id="filtrosCorTable">
+              <thead>
+                <tr style="background:var(--bg-sidebar,#1a1a2e);color:#fff">
+                  <th style="padding:0.5rem 0.75rem;text-align:center;font-weight:500;width:44px">Cor</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:left;font-weight:500">Nome</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:left;font-weight:500;width:110px">Hex</th>
+                  <th style="padding:0.5rem 0.75rem;text-align:center;font-weight:500;width:48px">–</th>
+                </tr>
+              </thead>
+              <tbody id="filtrosCorTbody">
+                <!-- linhas injetadas via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:0.75rem">
+            <button type="button" class="admin-btn" id="btnAddCor" style="font-size:0.82rem">+ Cor</button>
+          </div>
+        </div>
+
         <!-- POLÍTICAS -->
         <div class="admin-card" style="grid-column:1/-1">
           <h3 class="admin-card__title">Políticas & Informações (página /politicas.html)</h3>

@@ -605,6 +605,27 @@ function populateConfig() {
     });
   }
 
+  // Filtros do Catálogo
+  const tamanhosCfg = cfg.filtros_tamanhos || ['PP','P','M','G','GG','XG'];
+  const cfgFiltrosTam = document.getElementById('cfgFiltrosTamanhos');
+  if (cfgFiltrosTam) cfgFiltrosTam.value = tamanhosCfg.join(',');
+
+  const coresCfg = cfg.filtros_cores || [
+    {nome:'Azul Âncora',hex:'#2B3F54'},{nome:'Dourado',hex:'#C4934A'},
+    {nome:'Cru',hex:'#E8D5B5'},{nome:'Preto',hex:'#1a1a1a'},
+    {nome:'Off-White',hex:'#F9F7F4'},{nome:'Cinza',hex:'#6E6660'},
+    {nome:'Terracota',hex:'#8B6F5E'},{nome:'Rosa',hex:'#D4A5A5'}
+  ];
+  renderFiltrosCores(coresCfg);
+
+  if (!document.getElementById('btnAddCor')._bound) {
+    document.getElementById('btnAddCor')._bound = true;
+    document.getElementById('btnAddCor').addEventListener('click', () => {
+      document.getElementById('filtrosCorTbody')
+        ?.insertAdjacentHTML('beforeend', filtrosCorRow({nome:'',hex:'#000000'}));
+    });
+  }
+
   // Políticas
   set('cfgPolComoFunciona',    cfg.pol_como_funciona);
   set('cfgPolTrocas',          cfg.pol_trocas);
@@ -612,6 +633,47 @@ function populateConfig() {
   set('cfgPolPrivacidade',     cfg.pol_privacidade);
   set('cfgPolSustentabilidade',cfg.pol_sustentabilidade);
   set('cfgPolTrabalheConosco', cfg.pol_trabalhe_conosco);
+}
+
+// ── Filtros de cores ────────────────────────
+function filtrosCorRow(c) {
+  return `<tr>
+    <td style="padding:0.35rem 0.5rem;text-align:center">
+      <input type="color" data-fc="hex" value="${c.hex||'#000000'}"
+        style="width:32px;height:32px;border:none;border-radius:4px;cursor:pointer;padding:0;background:none" />
+    </td>
+    <td style="padding:0.35rem 0.5rem">
+      <input type="text" class="admin-input" data-fc="nome" value="${c.nome||''}" placeholder="Ex: Azul Âncora" style="min-width:130px" />
+    </td>
+    <td style="padding:0.35rem 0.5rem">
+      <input type="text" class="admin-input" data-fc="hex-txt" value="${c.hex||''}" placeholder="#2B3F54" style="min-width:90px"
+        oninput="const p=this.closest('tr').querySelector('[data-fc=hex]');if(p&&/^#[0-9a-fA-F]{6}$/.test(this.value))p.value=this.value" />
+    </td>
+    <td style="padding:0.35rem 0.5rem;text-align:center">
+      <button type="button" onclick="this.closest('tr').remove()"
+        style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:1rem" title="Remover">✕</button>
+    </td>
+  </tr>`;
+}
+
+function renderFiltrosCores(cores) {
+  const tbody = document.getElementById('filtrosCorTbody');
+  if (!tbody) return;
+  tbody.innerHTML = cores.map(filtrosCorRow).join('');
+  // Sincroniza color picker → campo texto
+  tbody.querySelectorAll('[data-fc="hex"]').forEach(picker => {
+    picker.addEventListener('input', () => {
+      const txt = picker.closest('tr').querySelector('[data-fc="hex-txt"]');
+      if (txt) txt.value = picker.value;
+    });
+  });
+}
+
+function collectFiltrosCores() {
+  return Array.from(document.querySelectorAll('#filtrosCorTbody tr')).map(tr => ({
+    nome: tr.querySelector('[data-fc="nome"]')?.value.trim()    || '',
+    hex:  tr.querySelector('[data-fc="hex-txt"]')?.value.trim() || tr.querySelector('[data-fc="hex"]')?.value || ''
+  })).filter(c => c.nome && c.hex);
 }
 
 function guiaTamanhoRow(r) {
@@ -702,6 +764,10 @@ async function saveConfig() {
     // Guia de Tamanhos
     guia_tamanhos:     collectGuiaTamanhos(),
     guia_tamanhos_obs: document.getElementById('cfgGuiaTamanhoObs')?.value.trim() || null,
+    // Filtros do Catálogo
+    filtros_tamanhos: (document.getElementById('cfgFiltrosTamanhos')?.value || '')
+      .split(',').map(s => s.trim()).filter(Boolean),
+    filtros_cores: collectFiltrosCores(),
     // Políticas
     pol_como_funciona:    document.getElementById('cfgPolComoFunciona')?.value.trim()    || null,
     pol_trocas:           document.getElementById('cfgPolTrocas')?.value.trim()           || null,

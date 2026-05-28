@@ -22,25 +22,36 @@ const VirtuProducts = (() => {
       ] = await Promise.all([
         supabaseClient.from('produtos').select('*').order('criado_em', { ascending: false }),
         supabaseClient.from('configuracoes').select('*').eq('id', 1).maybeSingle(),
-        supabaseClient.from('variacoes').select('produto_id, cor_nome, cor_hex').gt('estoque', 0)
+        supabaseClient.from('variacoes').select('produto_id, cor_nome, cor_hex, tamanho').gt('estoque', 0)
       ]);
 
       if (e1) throw new Error(`Produtos: ${e1.message}`);
 
-      // Monta mapa de cores reais por produto (a partir das variações em estoque)
-      const coresPorProduto     = {};
-      const produtosComEstoque  = new Set();
+      // Monta mapa de cores e tamanhos reais por produto (a partir das variações em estoque)
+      const coresPorProduto    = {};
+      const tamanhosPorProduto = {};
+      const produtosComEstoque = new Set();
       (variacoes || []).forEach(v => {
         produtosComEstoque.add(v.produto_id);
-        if (!v.cor_hex) return;
-        if (!coresPorProduto[v.produto_id]) coresPorProduto[v.produto_id] = [];
-        const jaExiste = coresPorProduto[v.produto_id].some(c => c.hex === v.cor_hex);
-        if (!jaExiste) coresPorProduto[v.produto_id].push({ nome: v.cor_nome || '', hex: v.cor_hex });
+        // Cores
+        if (v.cor_hex) {
+          if (!coresPorProduto[v.produto_id]) coresPorProduto[v.produto_id] = [];
+          const jaExiste = coresPorProduto[v.produto_id].some(c => c.hex === v.cor_hex);
+          if (!jaExiste) coresPorProduto[v.produto_id].push({ nome: v.cor_nome || '', hex: v.cor_hex });
+        }
+        // Tamanhos
+        if (v.tamanho) {
+          if (!tamanhosPorProduto[v.produto_id]) tamanhosPorProduto[v.produto_id] = [];
+          if (!tamanhosPorProduto[v.produto_id].includes(v.tamanho)) {
+            tamanhosPorProduto[v.produto_id].push(v.tamanho);
+          }
+        }
       });
 
-      // Sobrescreve cores de cada produto; marca esgotado se sem estoque
+      // Sobrescreve cores/tamanhos de cada produto; marca esgotado se sem estoque
       (produtos || []).forEach(p => {
-        if (coresPorProduto[p.id]?.length) p.cores = coresPorProduto[p.id];
+        if (coresPorProduto[p.id]?.length)    p.cores    = coresPorProduto[p.id];
+        if (tamanhosPorProduto[p.id]?.length) p.tamanhos = tamanhosPorProduto[p.id];
         p._esgotado = !produtosComEstoque.has(p.id);
       });
 
@@ -108,8 +119,11 @@ const VirtuProducts = (() => {
          <span class="product-card__price-old">${formatCurrency(preco_original)}</span>`
       : `<span class="product-card__price-current">${formatCurrency(precoFinal)}</span>`;
 
+    const sizesAttr  = (produto.tamanhos || []).join(',');
+    const colorsAttr = (produto.cores    || []).map(c => c.hex.toLowerCase()).join(',');
+
     return `
-      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" role="listitem">
+      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
           <div class="product-card__image-wrap">
             <div class="product-card__placeholder" style="${imgStyle}"></div>

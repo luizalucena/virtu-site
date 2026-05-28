@@ -1,5 +1,7 @@
 /* ============================================================
    VIRTÙ — Catálogo JavaScript
+   Filtros: categoria, tamanho, cor e preço — todos funcionais
+   Tamanhos e cores carregados do Supabase (configuracoes)
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -42,11 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── FILTRO MOBILE (SIDEBAR DRAWER) ─────────
-  const catSidebar       = document.getElementById('catSidebar');
+  const catSidebar         = document.getElementById('catSidebar');
   const filterToggleMobile = document.getElementById('filterToggleMobile');
-
-  // Criar overlay da sidebar
-  const sidebarOverlay = document.createElement('div');
+  const sidebarOverlay     = document.createElement('div');
   sidebarOverlay.className = 'cat-sidebar-overlay';
   document.body.appendChild(sidebarOverlay);
 
@@ -62,26 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const targetId = btn.getAttribute('data-toggle');
       const content  = document.getElementById(targetId);
       const isOpen   = btn.getAttribute('aria-expanded') === 'true';
-
       btn.setAttribute('aria-expanded', !isOpen);
       content?.classList.toggle('sidebar-block__content--hidden', isOpen);
-    });
-  });
-
-  // ── TAMANHOS ───────────────────────────────
-  document.querySelectorAll('.size-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.closest('.size-grid')?.querySelectorAll('.size-btn').forEach(b => b.classList.remove('size-btn--active'));
-      btn.classList.toggle('size-btn--active');
-      applyFilters();
-    });
-  });
-
-  // ── CORES ──────────────────────────────────
-  document.querySelectorAll('.color-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('color-btn--active');
-      applyFilters();
     });
   });
 
@@ -91,30 +73,26 @@ document.addEventListener('DOMContentLoaded', () => {
     pill.addEventListener('click', () => {
       catPills.forEach(p => p.classList.remove('cat-pill--active'));
       pill.classList.add('cat-pill--active');
-
       const cat = pill.getAttribute('data-cat');
-      const catTitle = document.getElementById('catTitle');
+      const catTitle   = document.getElementById('catTitle');
       const breadcrumb = document.getElementById('breadcrumbCurrent');
-
-      if (catTitle) catTitle.textContent = cat === 'todas' ? 'Todas as Peças' : pill.textContent.replace(' ✦','');
+      if (catTitle)   catTitle.textContent   = cat === 'todas' ? 'Todas as Peças' : pill.textContent.replace(' ✦','');
       if (breadcrumb) breadcrumb.textContent = cat === 'todas' ? 'Todas as peças' : pill.textContent.replace(' ✦','');
-
       applyFilters();
     });
   });
 
   // ── PREÇO RANGE ────────────────────────────
-  const priceMin = document.getElementById('priceMin');
-  const priceMax = document.getElementById('priceMax');
+  const priceMin      = document.getElementById('priceMin');
+  const priceMax      = document.getElementById('priceMax');
   const priceMinLabel = document.getElementById('priceMinLabel');
   const priceMaxLabel = document.getElementById('priceMaxLabel');
-  const priceFill = document.getElementById('priceRangeFill');
+  const priceFill     = document.getElementById('priceRangeFill');
 
   function updatePriceRange() {
-    const min = parseInt(priceMin?.value || 0);
-    const max = parseInt(priceMax?.value || 800);
+    const min   = parseInt(priceMin?.value || 0);
+    const max   = parseInt(priceMax?.value || 800);
     const total = 800;
-
     if (priceMinLabel) priceMinLabel.textContent = `R$ ${min}`;
     if (priceMaxLabel) priceMaxLabel.textContent = `R$ ${max}`;
     if (priceFill) {
@@ -137,22 +115,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── LÓGICA PRINCIPAL DE FILTROS ────────────
   function applyFilters() {
-    const activeCat = document.querySelector('.cat-pill--active')?.getAttribute('data-cat') || 'todas';
-    const minPrice  = parseInt(priceMin?.value || 0);
-    const maxPrice  = parseInt(priceMax?.value || 800);
+    const activeCat  = document.querySelector('.cat-pill--active')?.getAttribute('data-cat') || 'todas';
+    const minPrice   = parseInt(priceMin?.value || 0);
+    const maxPrice   = parseInt(priceMax?.value || 800);
+
+    // Tamanhos ativos
+    const activeSizes = [...document.querySelectorAll('#sizeGrid .size-btn.size-btn--active')]
+      .map(b => b.dataset.size || b.textContent.trim());
+
+    // Cores ativas (hex, minúsculas)
+    const activeColors = [...document.querySelectorAll('#colorGrid .color-btn.color-btn--active')]
+      .map(b => (b.dataset.hex || '').toLowerCase());
 
     const products = document.querySelectorAll('.product-card[data-cat]');
     let visibleCount = 0;
 
     products.forEach(product => {
-      const cat   = product.getAttribute('data-cat');
-      const price = parseInt(product.getAttribute('data-price') || 0);
-      const isSale = product.querySelector('.product-card__badge--sale') !== null;
+      const cat    = product.getAttribute('data-cat');
+      const price  = parseInt(product.getAttribute('data-price') || 0);
+      const sizes  = (product.getAttribute('data-sizes')  || '').split(',').filter(Boolean);
+      const colors = (product.getAttribute('data-colors') || '').split(',').filter(Boolean).map(c => c.toLowerCase());
+      const isSale = !!product.querySelector('.product-card__badge--sale');
 
       const matchCat   = activeCat === 'todas' || activeCat === cat || (activeCat === 'sale' && isSale);
       const matchPrice = price >= minPrice && price <= maxPrice;
+      // Nenhum filtro de tamanho ativo → mostra tudo; senão verifica interseção
+      const matchSize  = activeSizes.length === 0  || activeSizes.some(s  => sizes.includes(s));
+      // Nenhum filtro de cor ativo → mostra tudo; senão verifica interseção
+      const matchColor = activeColors.length === 0 || activeColors.some(c => colors.includes(c));
 
-      const shouldShow = matchCat && matchPrice;
+      const shouldShow = matchCat && matchPrice && matchSize && matchColor;
       product.classList.toggle('product-card--hidden', !shouldShow);
       if (shouldShow) visibleCount++;
     });
@@ -163,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sortCount) sortCount.innerHTML = `Exibindo <strong>${visibleCount}</strong> produto${visibleCount !== 1 ? 's' : ''}`;
     if (catCount)  catCount.textContent = `${visibleCount} produto${visibleCount !== 1 ? 's' : ''}`;
 
-    // Sem resultados
     const noResults = document.getElementById('noResults');
     if (noResults) noResults.hidden = visibleCount > 0;
   }
@@ -174,8 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-cat="todas"]')?.classList.add('cat-pill--active');
     if (priceMin) priceMin.value = 0;
     if (priceMax) priceMax.value = 800;
-    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('size-btn--active'));
-    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('color-btn--active'));
+    document.querySelectorAll('#sizeGrid  .size-btn').forEach(b  => b.classList.remove('size-btn--active'));
+    document.querySelectorAll('#colorGrid .color-btn').forEach(b => b.classList.remove('color-btn--active'));
     document.querySelectorAll('.filter-option input').forEach(cb => cb.checked = false);
     const firstCb = document.querySelector('.filter-option input');
     if (firstCb) firstCb.checked = true;
@@ -192,56 +183,97 @@ document.addEventListener('DOMContentLoaded', () => {
   const grid  = document.getElementById('productsGrid');
 
   view4?.addEventListener('click', () => {
-    grid?.classList.replace('products-grid--2', 'products-grid--4');
-    view4.classList.add('view-btn--active'); view4.setAttribute('aria-pressed','true');
+    grid?.classList.replace('products-grid--2','products-grid--4');
+    view4.classList.add('view-btn--active');     view4.setAttribute('aria-pressed','true');
     view2?.classList.remove('view-btn--active'); view2?.setAttribute('aria-pressed','false');
   });
-
   view2?.addEventListener('click', () => {
-    grid?.classList.replace('products-grid--4', 'products-grid--2');
-    view2.classList.add('view-btn--active'); view2.setAttribute('aria-pressed','true');
+    grid?.classList.replace('products-grid--4','products-grid--2');
+    view2.classList.add('view-btn--active');     view2.setAttribute('aria-pressed','true');
     view4?.classList.remove('view-btn--active'); view4?.setAttribute('aria-pressed','false');
   });
 
   // ── ORDENAÇÃO ──────────────────────────────
   document.getElementById('sortSelect')?.addEventListener('change', function () {
-    const products = [...document.querySelectorAll('.product-card[data-cat]')];
-    const grid = document.getElementById('productsGrid');
-
-    products.sort((a, b) => {
+    const prods = [...document.querySelectorAll('.product-card[data-cat]')];
+    prods.sort((a, b) => {
       const pa = parseInt(a.getAttribute('data-price') || 0);
       const pb = parseInt(b.getAttribute('data-price') || 0);
       if (this.value === 'price-asc')  return pa - pb;
       if (this.value === 'price-desc') return pb - pa;
       return 0;
     });
-
-    products.forEach(p => grid?.appendChild(p));
+    prods.forEach(p => grid?.appendChild(p));
   });
 
-  // ── CARREGAMENTO DINÂMICO DO JSON ─────────
-  // Carrega os produtos e depois aplica filtros de URL
+  // ── TAMANHOS E CORES: DELEGAÇÃO DE EVENTOS ──
+  // (funciona mesmo após render dinâmico)
+  document.getElementById('sizeGrid')?.addEventListener('click', e => {
+    const btn = e.target.closest('.size-btn');
+    if (!btn) return;
+    btn.classList.toggle('size-btn--active');
+    applyFilters();
+  });
+
+  document.getElementById('colorGrid')?.addEventListener('click', e => {
+    const btn = e.target.closest('.color-btn');
+    if (!btn) return;
+    btn.classList.toggle('color-btn--active');
+    applyFilters();
+  });
+
+  // ── CARREGAR FILTROS DINÂMICOS DO SUPABASE ──
+  async function loadFiltrosDinamicos() {
+    const cfg = await VirtuProducts.getConfig();
+
+    // Tamanhos
+    const tamanhos = cfg?.filtros_tamanhos || ['PP','P','M','G','GG','XG'];
+    const sizeGrid = document.getElementById('sizeGrid');
+    if (sizeGrid) {
+      sizeGrid.innerHTML = tamanhos.map(t =>
+        `<button class="size-btn" data-size="${t}">${t}</button>`
+      ).join('');
+    }
+
+    // Cores
+    const cores = cfg?.filtros_cores || [
+      {nome:'Azul Âncora',hex:'#2B3F54'},{nome:'Dourado',hex:'#C4934A'},
+      {nome:'Cru',hex:'#E8D5B5'},{nome:'Preto',hex:'#1a1a1a'},
+      {nome:'Off-White',hex:'#F9F7F4'},{nome:'Cinza',hex:'#6E6660'},
+      {nome:'Terracota',hex:'#8B6F5E'},{nome:'Rosa',hex:'#D4A5A5'}
+    ];
+    const colorGrid = document.getElementById('colorGrid');
+    if (colorGrid) {
+      colorGrid.innerHTML = cores.map(c => {
+        const hex = c.hex.toLowerCase();
+        const isLight = ['#f9f7f4','#e8d5b5','#ffffff','#ffffff'].includes(hex);
+        return `<button class="color-btn" style="background:${c.hex}${isLight ? ';border:1px solid #ccc' : ''}"
+                  title="${c.nome}" aria-label="${c.nome}" data-hex="${hex}"></button>`;
+      }).join('');
+    }
+  }
+
+  // ── INIT PRINCIPAL ─────────────────────────
   async function initProducts() {
-    // Descobre filtro da URL antes de carregar
     const params   = new URLSearchParams(window.location.search);
     const catParam = params.get('cat');
 
-    // Mapeia "novidades" e "sale" para filtros especiais
     let filtroInicial = {};
     if (catParam === 'novidades') filtroInicial = { novidade: true };
     else if (catParam === 'sale') filtroInicial = { sale: true };
 
-    // Renderiza os cards no grid via VirtuProducts
-    await VirtuProducts.renderGrid('productsGrid', filtroInicial);
+    // Carrega filtros dinâmicos e produtos em paralelo (mesma chamada fetchAll, cache compartilhado)
+    await Promise.all([
+      loadFiltrosDinamicos(),
+      VirtuProducts.renderGrid('productsGrid', filtroInicial)
+    ]);
 
-    // Aplica filtro de categoria via pill (ativa a pill correta)
     if (catParam) {
       const pill = document.querySelector(`[data-cat="${catParam}"]`);
       if (pill) {
         pill.click();
-        pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        pill.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
       } else {
-        // Categoria específica sem pill (ex: ?cat=vestidos)
         applyFilters();
       }
     } else {
