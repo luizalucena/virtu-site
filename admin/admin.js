@@ -585,6 +585,14 @@ function populateConfig() {
   // Pedido confirmado
   set('cfgPedidoTitulo', cfg.pedido_msg_titulo);
   set('cfgPedidoCorpo',  cfg.pedido_msg_corpo);
+
+  // Políticas
+  set('cfgPolComoFunciona',    cfg.pol_como_funciona);
+  set('cfgPolTrocas',          cfg.pol_trocas);
+  set('cfgPolRastreio',        cfg.pol_rastreio);
+  set('cfgPolPrivacidade',     cfg.pol_privacidade);
+  set('cfgPolSustentabilidade',cfg.pol_sustentabilidade);
+  set('cfgPolTrabalheConosco', cfg.pol_trabalhe_conosco);
 }
 
 async function saveConfig() {
@@ -644,6 +652,13 @@ async function saveConfig() {
     // Pedido confirmado
     pedido_msg_titulo: document.getElementById('cfgPedidoTitulo')?.value.trim() || null,
     pedido_msg_corpo:  document.getElementById('cfgPedidoCorpo')?.value.trim()  || null,
+    // Políticas
+    pol_como_funciona:    document.getElementById('cfgPolComoFunciona')?.value.trim()    || null,
+    pol_trocas:           document.getElementById('cfgPolTrocas')?.value.trim()           || null,
+    pol_rastreio:         document.getElementById('cfgPolRastreio')?.value.trim()         || null,
+    pol_privacidade:      document.getElementById('cfgPolPrivacidade')?.value.trim()      || null,
+    pol_sustentabilidade: document.getElementById('cfgPolSustentabilidade')?.value.trim() || null,
+    pol_trabalhe_conosco: document.getElementById('cfgPolTrabalheConosco')?.value.trim()  || null,
   };
 
   try {
