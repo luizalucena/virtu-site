@@ -4,7 +4,7 @@
 
 /* ── HEADER ──────────────────────────────── */
 .contato-header {
-  padding: calc(var(--navbar-height) + 36px + 3rem) var(--spacing-xl) 3rem;
+  padding: calc(var(--navbar-height) + 36px + 3rem) 2rem 3rem;
   background: var(--color-off-white);
   border-bottom: 1px solid var(--color-border);
 }
@@ -31,7 +31,7 @@
 
 /* ── MAIN SECTION ────────────────────────── */
 .contato-main {
-  padding: 4rem var(--spacing-xl) 5rem;
+  padding: 4rem 2rem 5rem;
   background: var(--color-off-white);
 }
 .contato-container {
@@ -222,7 +222,7 @@
 /* ── NEWSLETTER ──────────────────────────── */
 .newsletter-section {
   background: var(--color-navy);
-  padding: 8rem var(--spacing-xl) 6rem;
+  padding: 8rem 2rem 6rem;
   margin-top: 2rem;
 }
 
