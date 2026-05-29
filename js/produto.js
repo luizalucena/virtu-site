@@ -44,7 +44,8 @@ async function carregarProduto(produtoId) {
       return null;
     }
 
-    const fmt = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const fmt     = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const fmtParc = v => fmt(Math.ceil(v * 100) / 100); // arredonda parcela para cima
     const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
     const preco = p.preco_desconto ?? p.preco_original;
 
@@ -93,7 +94,7 @@ async function carregarProduto(produtoId) {
     // Parcelamento
     const parcela = preco / 12;
     const parcelaEl = document.querySelector('.produto-parcelamento');
-    if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmt(parcela)} sem juros`;
+    if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} sem juros`;
 
     // Cores — renderiza p.cores imediatamente como base.
     // VirtuStock sobrescreve depois se houver variações configuradas.

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const CART_KEY = 'virtu_cart';
 
   function formatCurrency(v) {
-    return `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    return `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function getCart() {
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxSemJuros = 12;
     sel.innerHTML = '';
     for (let i = 1; i <= maxSemJuros; i++) {
-      const parcela = total / i;
+      const parcela = Math.ceil((total / i) * 100) / 100;
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = `${i}x de ${formatCurrency(parcela)} (sem juros)`;

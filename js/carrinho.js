@@ -218,7 +218,8 @@ function updateSummary() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('summarySubtotal',    formatCurrency(subtotal));
   set('summaryTotal',       formatCurrency(total));
-  set('summaryInstallments', total > 0 ? `ou 12x de ${formatCurrency(installment)} sem juros` : '');
+  const installmentUp = Math.ceil(installment * 100) / 100;
+  set('summaryInstallments', total > 0 ? `ou 12x de ${formatCurrency(installmentUp)} sem juros` : '');
 
   const discLine = document.getElementById('discountLine');
   const discEl   = document.getElementById('summaryDiscount');
