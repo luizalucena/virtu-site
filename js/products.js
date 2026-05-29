@@ -216,19 +216,23 @@ const VirtuProducts = (() => {
     const tl2 = document.getElementById('heroLine2');
     const tsub = document.getElementById('heroSubtitle');
     const tcta = document.getElementById('heroCta');
-    if (tl1 && b.titulo_linha1) tl1.textContent = b.titulo_linha1;
-    if (tl2 && b.titulo_linha2) tl2.textContent = b.titulo_linha2;
-    if (tsub && b.subtitulo)    tsub.textContent = b.subtitulo;
-    if (tcta) { tcta.textContent = b.cta_texto; tcta.href = b.cta_link; }
+    if (b) {
+      if (tl1 && b.titulo_linha1) tl1.textContent = b.titulo_linha1;
+      if (tl2 && b.titulo_linha2) tl2.textContent = b.titulo_linha2;
+      if (tsub && b.subtitulo)    tsub.textContent = b.subtitulo;
+      if (tcta) { tcta.textContent = b.cta_texto; tcta.href = b.cta_link; }
+    }
 
     // Banner editorial
     const e = cfg.banner_editorial;
     const etit = document.getElementById('editorialTitle');
     const etxt = document.getElementById('editorialText');
     const ecta = document.getElementById('editorialCta');
-    if (etit && e.titulo) etit.textContent = e.titulo;
-    if (etxt && e.texto)  etxt.textContent = e.texto;
-    if (ecta) { ecta.textContent = e.cta_texto; ecta.href = e.cta_link; }
+    if (e) {
+      if (etit && e.titulo) etit.textContent = e.titulo;
+      if (etxt && e.texto)  etxt.textContent = e.texto;
+      if (ecta) { ecta.textContent = e.cta_texto; ecta.href = e.cta_link; }
+    }
   }
 
   /* ── APLICA DIFERENCIAIS E NEWSLETTER NA HOME ─ */

@@ -71,7 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mapa texto do checkbox → data-cat do pill
   const catMap = {
     'Todas': 'todas', 'Vestidos': 'vestidos',
-    'Blusas': 'blusas', 'Calças': 'calcas', 'Essenciais': 'essenciais'
+    'Blusas': 'blusas', 'Calças': 'calcas', 'Essenciais': 'essenciais',
+    'Sale': 'sale', 'Promoções': 'sale', 'Novidades': 'novidades'
   };
 
   // Sincroniza sidebar checkboxes com o pill ativo
@@ -237,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return 0;
     });
     prods.forEach(p => grid?.appendChild(p));
+    applyFilters(); // re-aplica visibilidade após reordenar
   });
 
   // ── TAMANHOS E CORES: DELEGAÇÃO DE EVENTOS ──

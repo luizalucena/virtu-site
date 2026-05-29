@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Filtro de mês padrão = mês atual
-  document.getElementById('filtroMes').value = mesAtual();
+  const filtroMesEl = document.getElementById('filtroMes');
+  if (filtroMesEl) filtroMesEl.value = mesAtual();
 
   // Carrega dados
   await carregarKPIs();
@@ -74,7 +75,7 @@ async function carregarKPIs() {
   const mes = document.getElementById('filtroMes')?.value || mesAtual();
   const [ano, m] = mes.split('-');
   const inicio = `${ano}-${m}-01`;
-  const fim    = `${ano}-${m}-31`; // Supabase aceita além do mês, trata correto
+  const fim    = new Date(parseInt(ano), parseInt(m), 0).toISOString().slice(0, 10); // último dia do mês
 
   // Busca mês atual
   const { data: rows } = await supabaseClient
@@ -226,10 +227,33 @@ async function excluirLancamento(id) {
 }
 
 // ── EXPORTAR CSV ─────────────────────────────────────────────
-function exportarCSV() {
-  if (!_allRows.length) { alert('Nenhum dado para exportar.'); return; }
+async function exportarCSV() {
+  // Busca TODOS os registros com filtros ativos (sem paginação)
+  const mes    = document.getElementById('filtroMes')?.value;
+  const tipo   = document.getElementById('filtroTipo')?.value;
+  const origem = document.getElementById('filtroOrigem')?.value;
+  const categ  = document.getElementById('filtroCategoria')?.value;
+
+  let query = supabaseClient
+    .from('fluxo_caixa')
+    .select('*')
+    .order('data_lancamento', { ascending: false });
+
+  if (mes) {
+    const [ano, m] = mes.split('-');
+    const inicio = `${ano}-${m}-01`;
+    const fim    = new Date(parseInt(ano), parseInt(m), 0).toISOString().slice(0, 10);
+    query = query.gte('data_lancamento', inicio).lte('data_lancamento', fim);
+  }
+  if (tipo)   query = query.eq('tipo', tipo);
+  if (origem) query = query.eq('origem', origem);
+  if (categ)  query = query.eq('categoria', categ);
+
+  const { data: allData, error } = await query;
+  if (error || !allData?.length) { alert('Nenhum dado para exportar.'); return; }
+
   const header = 'Data,Tipo,Descrição,Categoria,Origem,Valor';
-  const linhas = _allRows.map(r =>
+  const linhas = allData.map(r =>
     `"${fmtDate(r.data_lancamento)}","${r.tipo}","${r.descricao}","${r.categoria}","${r.origem}","${r.valor}"`
   );
   const csv  = [header, ...linhas].join('\n');

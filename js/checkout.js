@@ -289,14 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
         editBtn?.removeAttribute('hidden');
         stepEl?.classList.remove('checkout-step--active');
         stepEl?.classList.add('checkout-step--done');
-        stepEl.querySelector('.checkout-step__num').textContent = '✓';
+        const numEl1 = stepEl?.querySelector('.checkout-step__num');
+        if (numEl1) numEl1.textContent = '✓';
       } else {
         section.classList.add('checkout-section--locked');
         content?.setAttribute('hidden', '');
         summary?.setAttribute('hidden', '');
         editBtn?.setAttribute('hidden', '');
         stepEl?.classList.remove('checkout-step--active', 'checkout-step--done');
-        stepEl.querySelector('.checkout-step__num').textContent = i;
+        const numEl2 = stepEl?.querySelector('.checkout-step__num');
+        if (numEl2) numEl2.textContent = i;
       }
     }
     currentStep = step;
@@ -369,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!NORDESTE_STATES.includes(uf)) {
       // Estado fora do Nordeste ✗
-      freteResult.style.display = 'none';
+      if (freteResult) freteResult.style.display = 'none';
       showFreteMsg('No momento, entregamos apenas para estados do Nordeste.', 'error');
       freteBase = 0;
       updateTotalWithFrete(0);
@@ -377,8 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Nordeste válido ✓
-    freteResult.style.display = 'block';
-    freteMsg.style.display    = 'none';
+    if (freteResult) freteResult.style.display = 'block';
+    if (freteMsg)    freteMsg.style.display    = 'none';
 
     // Motoboy apenas em João Pessoa cidade
     const isJP = num >= CEP_JP_MIN && num <= CEP_JP_MAX;
@@ -563,6 +565,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('submitOrder')?.addEventListener('click', async () => {
     const activeTab = document.querySelector('.payment-tab--active')?.dataset.tab;
     const btn = document.getElementById('submitOrder');
+
+    // Validação: carrinho não pode estar vazio
+    const cartCheck = getCart();
+    if (!cartCheck || cartCheck.length === 0) {
+      alert('Seu carrinho está vazio. Adicione produtos antes de finalizar.');
+      return;
+    }
+
+    // Boleto não implementado — bloqueia
+    if (activeTab === 'boleto') {
+      alert('Pagamento por boleto ainda não está disponível. Por favor, escolha PIX ou cartão de crédito.');
+      return;
+    }
 
     // Validação cartão
     if (activeTab === 'cartao') {

@@ -209,6 +209,19 @@ async function renderPecasRelacionadas(currentId, categoria) {
     grid.querySelectorAll('.product-card__quick-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
+        // Salva no localStorage
+        const card = btn.closest('[data-id]') || btn.closest('.product-card');
+        const prodId    = card?.dataset?.id || '';
+        const prodNome  = card?.querySelector('.product-card__name')?.textContent?.trim() || 'Produto';
+        const prodPreco = parseFloat(card?.querySelector('.product-card__price')?.textContent?.replace(/\D/g, '').replace(',', '.') || '0') / 100;
+        const CART_KEY = 'virtu_cart';
+        try {
+          const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+          const idx = cart.findIndex(i => i.id === prodId);
+          if (idx >= 0) { cart[idx].qty = (cart[idx].qty || 1) + 1; }
+          else { cart.push({ id: prodId, nome: prodNome, preco: prodPreco, qty: 1 }); }
+          localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        } catch {}
         const orig = btn.innerHTML;
         btn.innerHTML = '✓ Adicionado!';
         btn.style.cssText = 'background:var(--color-navy);color:white;';
@@ -469,8 +482,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── ADD TO CART ────────────────────────────
-  let cartCount = 0;
+  let cartCount = (() => { try { return JSON.parse(localStorage.getItem('virtu_cart') || '[]').reduce((s, i) => s + (i.qty || 1), 0); } catch { return 0; } })();
   const cartBadge    = document.getElementById('cartBadge');
+  if (cartBadge && cartCount > 0) cartBadge.textContent = cartCount;
   const addToCartBtn = document.getElementById('btnComprar');
   const buyNowBtn    = document.getElementById('buyNowBtn');
   const stickyAddBtn = document.getElementById('stickyAddBtn');

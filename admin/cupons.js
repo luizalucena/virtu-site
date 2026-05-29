@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
     return;
   }
 
@@ -292,7 +292,7 @@ function bindEventos() {
   document.getElementById('btnRecarregar')?.addEventListener('click', carregarCupons);
   document.getElementById('btnLogout')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   });
 
   // Tipo altera o prefixo e visibilidade do campo valor
