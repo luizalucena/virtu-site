@@ -81,6 +81,17 @@
   aspect-ratio: 3 / 4;
   position: relative;
   cursor: zoom-in;
+  overflow: hidden;
+}
+
+.galeria-main__real-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .galeria-main__placeholder {

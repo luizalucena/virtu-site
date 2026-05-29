@@ -120,30 +120,53 @@ async function carregarProduto(produtoId) {
     if (imagens.length) {
       const thumbsContainer = document.querySelector('.galeria-thumbs');
       const mainImg         = document.getElementById('mainImg');
-      const mainPlaceholder = document.getElementById('mainPlaceholder');
 
-      // Atualiza imagem principal
-      if (mainPlaceholder) {
-        mainPlaceholder.style.background = `url('${imagens[0]}') center/cover no-repeat`;
-        const label = mainPlaceholder.querySelector('.galeria-main__placeholder-label');
-        if (label) label.style.display = 'none';
+      // ── Função local que troca a imagem principal ──
+      function _showImage(url) {
+        if (!mainImg) return;
+        mainImg.style.transition = 'opacity 0.2s ease';
+        mainImg.style.opacity    = '0';
+        setTimeout(() => {
+          // Usa uma <img> real dentro do mainImg para melhor compatibilidade
+          const existing = mainImg.querySelector('img.galeria-main__real-img');
+          if (existing) {
+            existing.src = url;
+          } else {
+            // Remove placeholder e injeta <img>
+            mainImg.innerHTML = `<img class="galeria-main__real-img"
+              src="${url}"
+              alt="Foto do produto"
+              style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+          }
+          mainImg.style.opacity = '1';
+        }, 200);
       }
-      if (mainImg) {
-        mainImg.style.background = `url('${imagens[0]}') center/cover no-repeat`;
-      }
+
+      // Exibe a primeira imagem
+      _showImage(imagens[0]);
 
       // Re-renderiza thumbnails
       if (thumbsContainer) {
         thumbsContainer.innerHTML = imagens.map((url, i) => `
           <button class="galeria-thumb${i === 0 ? ' galeria-thumb--active' : ''}"
                   data-index="${i}" data-url="${url}"
-                  style="background:url('${url}') center/cover no-repeat"
+                  style="background:url('${url}') center/cover no-repeat;background-size:cover;"
                   role="listitem" aria-label="Foto ${i + 1}" aria-pressed="${i === 0}">
           </button>
         `).join('');
 
-        // O clique nas thumbs é gerido pelo event delegation no .galeria-thumbs
-        // (configurado no DOMContentLoaded, via setActiveThumb)
+        // Bind clique direto em cada thumb (simples e confiável)
+        thumbsContainer.querySelectorAll('.galeria-thumb').forEach(btn => {
+          btn.addEventListener('click', () => {
+            thumbsContainer.querySelectorAll('.galeria-thumb').forEach(b => {
+              b.classList.remove('galeria-thumb--active');
+              b.setAttribute('aria-pressed', 'false');
+            });
+            btn.classList.add('galeria-thumb--active');
+            btn.setAttribute('aria-pressed', 'true');
+            _showImage(btn.dataset.url);
+          });
+        });
       }
     }
 
@@ -408,75 +431,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Escape') { closeMenu(); closeSearch(); }
   });
 
-  // ── GALERIA ────────────────────────────────
-  const thumbs     = document.querySelectorAll('.galeria-thumb');
-  const mainImage  = document.getElementById('mainImg');
-  const prevBtn    = document.getElementById('galPrev');
-  const nextBtn    = document.getElementById('galNext');
-  let currentThumb = 0;
+  // ── SETAS MOBILE DA GALERIA ────────────────
+  // (o clique nas thumbs e a lógica principal ficam dentro de loadProduct)
+  const prevBtn = document.getElementById('galPrev');
+  const nextBtn = document.getElementById('galNext');
 
-  // Paleta de cores de placeholder para simular imagens diferentes
-  const placeholderColors = [
-    '#D4C4B5', '#B8A99A', '#C9B8A8', '#E2D5C8', '#A89888'
-  ];
-
-  function setActiveThumb(index) {
-    // Sempre busca as thumbs do DOM atual (podem ter sido re-renderizadas pelo loadProduct)
-    const currentThumbs = document.querySelectorAll('.galeria-thumb');
-    currentThumbs.forEach(t => t.classList.remove('galeria-thumb--active'));
-    const targetThumb = currentThumbs[index];
-    if (targetThumb) {
-      targetThumb.classList.add('galeria-thumb--active');
-      const url = targetThumb.dataset.url;
-      // Atualiza o placeholder (filho visível), não o mainImg pai
-      const placeholder = document.getElementById('mainPlaceholder');
-      const target = placeholder || mainImage;
-      if (target && url) {
-        target.style.transition = 'opacity 0.3s ease';
-        target.style.opacity = '0';
-        setTimeout(() => {
-          target.style.background = `url('${url}') center/cover no-repeat`;
-          target.style.opacity = '1';
-        }, 150);
-      }
-    }
-    currentThumb = index;
-  }
-
-  // Delegação de eventos nas thumbs (funciona mesmo após re-renderização pelo loadProduct)
-  const thumbsContainer2 = document.querySelector('.galeria-thumbs');
-  thumbsContainer2?.addEventListener('click', e => {
-    const thumb = e.target.closest('.galeria-thumb');
-    if (!thumb) return;
-    const allThumbs = document.querySelectorAll('.galeria-thumb');
-    const index = [...allThumbs].indexOf(thumb);
-    if (index >= 0) setActiveThumb(index);
-  });
-
-  // Setas mobile
   prevBtn?.addEventListener('click', () => {
-    const count = document.querySelectorAll('.galeria-thumb').length;
-    const prev = (currentThumb - 1 + count) % count;
-    setActiveThumb(prev);
+    const thumbs = [...document.querySelectorAll('.galeria-thumb')];
+    const active = thumbs.findIndex(t => t.classList.contains('galeria-thumb--active'));
+    const prev = (active - 1 + thumbs.length) % thumbs.length;
+    thumbs[prev]?.click();
   });
   nextBtn?.addEventListener('click', () => {
-    const count = document.querySelectorAll('.galeria-thumb').length;
-    const next = (currentThumb + 1) % count;
-    setActiveThumb(next);
+    const thumbs = [...document.querySelectorAll('.galeria-thumb')];
+    const active = thumbs.findIndex(t => t.classList.contains('galeria-thumb--active'));
+    const next = (active + 1) % thumbs.length;
+    thumbs[next]?.click();
   });
-
-  // Swipe no mobile
-  if (mainImage) {
-    let touchStartX = 0;
-    mainImage.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-    mainImage.addEventListener('touchend', e => {
-      const delta = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(delta) > 50) {
-        if (delta < 0) nextBtn?.click();
-        else prevBtn?.click();
-      }
-    }, { passive: true });
-  }
 
   // ── SELETOR DE CORES (event delegation) ────
   // Usa delegação de eventos no container para funcionar mesmo
