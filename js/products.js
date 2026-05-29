@@ -102,10 +102,17 @@ const VirtuProducts = (() => {
       if (m3) return `https://lh3.googleusercontent.com/d/${m3[1]}`;
       return u;
     }
-    const imgUrl = _cvDrive(imagem_url);
-    const imgStyle = imgUrl
-      ? `background: url('${imgUrl}') center/cover no-repeat`
-      : `background: ${imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)'}`;
+    // Usa imagem_url; se vazio, pega o primeiro item do array imagens (galeria)
+    const _primeiraImg = Array.isArray(produto.imagens) && produto.imagens.length
+      ? produto.imagens[0] : null;
+    const imgUrl = _cvDrive(imagem_url || _primeiraImg);
+    const placeholderBg = imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)';
+    // Usa <img> real com onerror fallback para o placeholder CSS
+    const imgHtml = imgUrl
+      ? `<img src="${imgUrl}" alt="${nome}" class="product-card__img"
+           onerror="this.style.display='none';this.parentElement.style.background='${placeholderBg}'" />`
+      : '';
+    const wrapStyle = imgUrl ? '' : `style="background:${placeholderBg}"`;
 
     // Badge
     let badgeHtml = '';
@@ -139,8 +146,8 @@ const VirtuProducts = (() => {
     return `
       <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
-          <div class="product-card__image-wrap">
-            <div class="product-card__placeholder" style="${imgStyle}"></div>
+          <div class="product-card__image-wrap" ${wrapStyle}>
+            ${imgHtml}
             ${badgeHtml}
             <button class="product-card__wishlist" aria-label="Favoritar ${nome}">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
