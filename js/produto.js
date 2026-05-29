@@ -142,26 +142,8 @@ async function carregarProduto(produtoId) {
           </button>
         `).join('');
 
-        // Bind clique nas thumbnails
-        thumbsContainer.querySelectorAll('.galeria-thumb').forEach((thumb, i) => {
-          thumb.addEventListener('click', () => {
-            thumbsContainer.querySelectorAll('.galeria-thumb').forEach(t => {
-              t.classList.remove('galeria-thumb--active');
-              t.setAttribute('aria-pressed', 'false');
-            });
-            thumb.classList.add('galeria-thumb--active');
-            thumb.setAttribute('aria-pressed', 'true');
-            const url = thumb.dataset.url;
-            if (mainImg) {
-              mainImg.style.transition = 'opacity 0.25s ease';
-              mainImg.style.opacity = '0';
-              setTimeout(() => {
-                mainImg.style.background = `url('${url}') center/cover no-repeat`;
-                mainImg.style.opacity = '1';
-              }, 150);
-            }
-          });
-        });
+        // O clique nas thumbs é gerido pelo event delegation no .galeria-thumbs
+        // (configurado no DOMContentLoaded, via setActiveThumb)
       }
     }
 
@@ -439,38 +421,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   ];
 
   function setActiveThumb(index) {
-    thumbs.forEach(t => t.classList.remove('galeria-thumb--active'));
-    if (thumbs[index]) {
-      thumbs[index].classList.add('galeria-thumb--active');
-      // Atualiza imagem principal
-      const bg = thumbs[index].style.background || `linear-gradient(135deg, ${placeholderColors[index % placeholderColors.length]} 0%, #8B7D6B 100%)`;
-      if (mainImage) {
-        mainImage.style.transition = 'opacity 0.3s ease';
-        mainImage.style.opacity = '0';
+    // Sempre busca as thumbs do DOM atual (podem ter sido re-renderizadas pelo loadProduct)
+    const currentThumbs = document.querySelectorAll('.galeria-thumb');
+    currentThumbs.forEach(t => t.classList.remove('galeria-thumb--active'));
+    const targetThumb = currentThumbs[index];
+    if (targetThumb) {
+      targetThumb.classList.add('galeria-thumb--active');
+      const url = targetThumb.dataset.url;
+      // Atualiza o placeholder (filho visível), não o mainImg pai
+      const placeholder = document.getElementById('mainPlaceholder');
+      const target = placeholder || mainImage;
+      if (target && url) {
+        target.style.transition = 'opacity 0.3s ease';
+        target.style.opacity = '0';
         setTimeout(() => {
-          mainImage.style.background = thumbs[index].style.background || `linear-gradient(135deg, ${placeholderColors[index % placeholderColors.length]} 0%, #8B7D6B 100%)`;
-          mainImage.style.opacity = '1';
+          target.style.background = `url('${url}') center/cover no-repeat`;
+          target.style.opacity = '1';
         }, 150);
       }
     }
     currentThumb = index;
   }
 
-  thumbs.forEach((thumb, i) => {
-    thumb.addEventListener('click', () => setActiveThumb(i));
-    thumb.setAttribute('tabindex', '0');
-    thumb.setAttribute('role', 'button');
-    thumb.setAttribute('aria-label', `Ver imagem ${i + 1}`);
-    thumb.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveThumb(i); } });
+  // Delegação de eventos nas thumbs (funciona mesmo após re-renderização pelo loadProduct)
+  const thumbsContainer2 = document.querySelector('.galeria-thumbs');
+  thumbsContainer2?.addEventListener('click', e => {
+    const thumb = e.target.closest('.galeria-thumb');
+    if (!thumb) return;
+    const allThumbs = document.querySelectorAll('.galeria-thumb');
+    const index = [...allThumbs].indexOf(thumb);
+    if (index >= 0) setActiveThumb(index);
   });
 
   // Setas mobile
   prevBtn?.addEventListener('click', () => {
-    const prev = (currentThumb - 1 + thumbs.length) % thumbs.length;
+    const count = document.querySelectorAll('.galeria-thumb').length;
+    const prev = (currentThumb - 1 + count) % count;
     setActiveThumb(prev);
   });
   nextBtn?.addEventListener('click', () => {
-    const next = (currentThumb + 1) % thumbs.length;
+    const count = document.querySelectorAll('.galeria-thumb').length;
+    const next = (currentThumb + 1) % count;
     setActiveThumb(next);
   });
 
