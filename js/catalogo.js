@@ -169,11 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const colors = (product.getAttribute('data-colors') || '').split(',').filter(Boolean).map(c => c.toLowerCase());
       const isSale      = !!product.querySelector('.product-card__badge--sale');
       const isEssencial = product.getAttribute('data-essencial') === 'true' || cat === 'essenciais';
+      const isNovidade  = product.getAttribute('data-novidade')  === 'true';
 
       const matchCat   = activeCat === 'todas'
         || activeCat === cat
-        || (activeCat === 'sale'       && isSale)
-        || (activeCat === 'essenciais' && isEssencial);
+        || (activeCat === 'sale'      && isSale)
+        || (activeCat === 'essenciais'&& isEssencial)
+        || (activeCat === 'novidades' && isNovidade);
       const matchPrice = price >= minPrice && price <= maxPrice;
       // Nenhum filtro de tamanho ativo → mostra tudo; senão verifica interseção
       const matchSize  = activeSizes.length === 0  || activeSizes.some(s  => sizes.includes(s));
@@ -293,14 +295,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const params   = new URLSearchParams(window.location.search);
     const catParam = params.get('cat');
 
-    let filtroInicial = {};
-    if (catParam === 'novidades') filtroInicial = { novidade: true };
-    else if (catParam === 'sale') filtroInicial = { sale: true };
-
-    // Carrega filtros dinâmicos e produtos em paralelo (mesma chamada fetchAll, cache compartilhado)
+    // Carrega TODOS os produtos (sem filtro pré-Supabase para novidades/sale,
+    // pois o filtro de pills é feito no cliente via data attributes)
     await Promise.all([
       loadFiltrosDinamicos(),
-      VirtuProducts.renderGrid('productsGrid', filtroInicial)
+      VirtuProducts.renderGrid('productsGrid', {})
     ]);
 
     if (catParam) {

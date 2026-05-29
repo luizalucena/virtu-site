@@ -448,6 +448,19 @@ Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-m
           </div>
         </section>
 
+        <!-- TERMOS DE USO -->
+        <section class="pol-section" id="termos">
+          <div class="pol-section__icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h2 class="pol-section__title">Termos de uso</h2>
+          <div class="pol-section__body" id="txtTermos">Ao utilizar o site da Virtù, você concorda com os presentes termos. O conteúdo deste site (textos, imagens, logotipo) é de propriedade exclusiva da Virtù e não pode ser reproduzido sem autorização.
+
+As informações de produto (descrições, tamanhos e preços) podem ser atualizadas sem aviso prévio. Nos reservamos o direito de cancelar pedidos em caso de erro de preço ou indisponibilidade de estoque, com reembolso integral ao cliente.
+
+O uso indevido do site, incluindo tentativas de fraude ou acesso não autorizado, poderá resultar no cancelamento da conta e ação legal cabível. Para dúvidas, entre em contato pelo e-mail ou WhatsApp.</div>
+        </section>
+
         <!-- PRIVACIDADE -->
         <section class="pol-section" id="privacidade">
           <div class="pol-section__icon">
@@ -581,7 +594,7 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
       try {
         const { data: cfg } = await supabaseClient
           .from('configuracoes')
-          .select('pol_como_funciona, pol_trocas, pol_rastreio, pol_privacidade, pol_trabalhe_conosco, pol_sustentabilidade, guia_tamanhos, guia_tamanhos_obs')
+          .select('pol_como_funciona, pol_trocas, pol_rastreio, pol_termos, pol_privacidade, pol_trabalhe_conosco, pol_sustentabilidade, guia_tamanhos, guia_tamanhos_obs')
           .eq('id', 1)
           .maybeSingle();
         if (!cfg) return;
@@ -591,6 +604,7 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
           txtComoFunciona:     cfg.pol_como_funciona,
           txtTrocas:           cfg.pol_trocas,
           txtRastreio:         cfg.pol_rastreio,
+          txtTermos:           cfg.pol_termos,
           txtPrivacidade:      cfg.pol_privacidade,
           txtTrabalheConosco:  cfg.pol_trabalhe_conosco,
           txtSustentabilidade: cfg.pol_sustentabilidade,

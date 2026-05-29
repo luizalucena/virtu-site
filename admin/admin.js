@@ -711,6 +711,7 @@ function populateConfig() {
   set('cfgPolComoFunciona',    cfg.pol_como_funciona);
   set('cfgPolTrocas',          cfg.pol_trocas);
   set('cfgPolRastreio',        cfg.pol_rastreio);
+  set('cfgPolTermos',          cfg.pol_termos);
   set('cfgPolPrivacidade',     cfg.pol_privacidade);
   set('cfgPolSustentabilidade',cfg.pol_sustentabilidade);
   set('cfgPolTrabalheConosco', cfg.pol_trabalhe_conosco);
@@ -853,6 +854,7 @@ async function saveConfig() {
     pol_como_funciona:    document.getElementById('cfgPolComoFunciona')?.value.trim()    || null,
     pol_trocas:           document.getElementById('cfgPolTrocas')?.value.trim()           || null,
     pol_rastreio:         document.getElementById('cfgPolRastreio')?.value.trim()         || null,
+    pol_termos:           document.getElementById('cfgPolTermos')?.value.trim()           || null,
     pol_privacidade:      document.getElementById('cfgPolPrivacidade')?.value.trim()      || null,
     pol_sustentabilidade: document.getElementById('cfgPolSustentabilidade')?.value.trim() || null,
     pol_trabalhe_conosco: document.getElementById('cfgPolTrabalheConosco')?.value.trim()  || null,

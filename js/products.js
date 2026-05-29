@@ -133,9 +133,11 @@ const VirtuProducts = (() => {
     const sizesAttr    = (produto.tamanhos || []).join(',');
     const colorsAttr   = (produto.cores    || []).map(c => c.hex.toLowerCase()).join(',');
     const essencialAttr = produto.essencial ? 'true' : '';
+    const novidadeAttr  = produto.novidade  ? 'true' : '';
+    const destaqueAttr  = produto.destaque  ? 'true' : '';
 
     return `
-      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" role="listitem">
+      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
           <div class="product-card__image-wrap">
             <div class="product-card__placeholder" style="${imgStyle}"></div>
