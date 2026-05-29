@@ -64,8 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── AUTH STATE ──────────────────────────────────────────────
+  const loadingEl = document.getElementById('contaLoading');
+
+  function hideLoading() {
+    if (loadingEl) loadingEl.style.display = 'none';
+  }
+
   async function checkAuth() {
     const { data: { session } } = await supabaseClient.auth.getSession();
+    hideLoading();
     if (session) {
       enterAccount(session.user);
     } else {
@@ -74,9 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   supabaseClient.auth.onAuthStateChange((_event, session) => {
+    hideLoading();
     if (session) {
       enterAccount(session.user);
-      // gold dot
       authDot?.classList.add('navbar__account-dot--visible');
     } else {
       showAuthSection();
