@@ -33,10 +33,15 @@ const VirtuProducts = (() => {
       const produtosComEstoque = new Set();
       (variacoes || []).forEach(v => {
         produtosComEstoque.add(v.produto_id);
-        // Cores
+        // Cores — deduplica por nome E por hex normalizado (evita duplicatas como #000 vs #000000)
         if (v.cor_hex) {
           if (!coresPorProduto[v.produto_id]) coresPorProduto[v.produto_id] = [];
-          const jaExiste = coresPorProduto[v.produto_id].some(c => c.hex === v.cor_hex);
+          const hexNorm = v.cor_hex.toLowerCase().trim();
+          const nomeNorm = (v.cor_nome || '').toLowerCase().trim();
+          const jaExiste = coresPorProduto[v.produto_id].some(c =>
+            c.hex.toLowerCase() === hexNorm ||
+            (nomeNorm && c.nome.toLowerCase().trim() === nomeNorm)
+          );
           if (!jaExiste) coresPorProduto[v.produto_id].push({ nome: v.cor_nome || '', hex: v.cor_hex });
         }
         // Tamanhos
@@ -48,10 +53,10 @@ const VirtuProducts = (() => {
         }
       });
 
-      // Atualiza tamanhos (variacoes em estoque) e marca esgotado
-      // CORES: mantém as definidas no produto (fonte de verdade do admin),
-      //        NÃO sobrescreve com variacoes para evitar duplicatas por hex diferente
+      // Atualiza cores/tamanhos (variacoes em estoque) e marca esgotado
+      // Deduplicação: mesma cor_nome → mantém apenas uma entrada (evita duplicatas por hex levemente diferente)
       (produtos || []).forEach(p => {
+        if (coresPorProduto[p.id]?.length)    p.cores    = coresPorProduto[p.id];
         if (tamanhosPorProduto[p.id]?.length) p.tamanhos = tamanhosPorProduto[p.id];
         p._esgotado = !produtosComEstoque.has(p.id);
       });
