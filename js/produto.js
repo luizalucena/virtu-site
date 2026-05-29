@@ -79,18 +79,23 @@ async function carregarProduto(produtoId) {
     const parcelaEl = document.querySelector('.produto-parcelamento');
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmt(parcela)} sem juros`;
 
-    // Cores
+    // Cores — VirtuStock é a fonte primária (assíncrono, sobrescreve abaixo).
+    // p.cores serve apenas de fallback se não houver variações configuradas.
     const coresContainer = document.getElementById('coresContainer');
     const selectedColorEl = document.getElementById('selectedColor');
-    if (coresContainer && p.cores && p.cores.length > 0) {
-      coresContainer.innerHTML = p.cores.map((c, i) =>
-        `<button class="produto-cor${i === 0 ? ' produto-cor--active' : ''}"
+    const _coresFallback = p.cores || [];
+
+    function _renderCores(lista) {
+      if (!coresContainer || !lista.length) return;
+      coresContainer.innerHTML = lista.map((c, i) => {
+        const isLight = /off.?wh|branco|white|creme|marfim/i.test(c.nome);
+        return `<button class="produto-cor${i === 0 ? ' produto-cor--active' : ''}"
                  data-cor="${c.nome}"
-                 style="background:${c.hex}${c.nome === 'Off-White' || c.nome === 'Off white' ? ';border:1px solid #ddd' : ''}"
+                 style="background:${c.hex}${isLight ? ';border:1px solid #ddd' : ''}"
                  aria-label="${c.nome}"
-                 aria-pressed="${i === 0 ? 'true' : 'false'}"></button>`
-      ).join('');
-      if (selectedColorEl) selectedColorEl.textContent = p.cores[0].nome;
+                 aria-pressed="${i === 0 ? 'true' : 'false'}"></button>`;
+      }).join('');
+      if (selectedColorEl) selectedColorEl.textContent = lista[0].nome;
     }
 
     // Descrição
@@ -734,41 +739,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(() => { window.location.href = 'carrinho.html'; }, 900);
     })
     .then(() => {
-      // Após carregar variações, reconstruir botões de cor a partir
-      // do stock — garante sincronização automática com o admin.
+      // ── Cores: usa variacoes se existirem, senão cai em p.cores ──
       const variacoes = VirtuStock.getVariacoes();
-      if (variacoes.size === 0) return;
 
-      // Extrai cores únicas (preserva ordem de inserção)
-      const coresMap = new Map(); // cor_nome → cor_hex
-      variacoes.forEach(v => {
-        if (!coresMap.has(v.cor_nome)) coresMap.set(v.cor_nome, v.cor_hex);
-      });
+      if (variacoes.size > 0) {
+        // Fonte primária: variacoes do Supabase
+        const coresMap = new Map();
+        variacoes.forEach(v => {
+          if (!coresMap.has(v.cor_nome)) coresMap.set(v.cor_nome, v.cor_hex);
+        });
 
-      const coresContainer = document.getElementById('coresContainer');
-      if (!coresContainer || coresMap.size === 0) return;
+        const lista = [...coresMap.entries()].map(([nome, hex]) => ({ nome, hex }));
+        _renderCores(lista);
 
-      let isFirst = true;
-      coresContainer.innerHTML = [...coresMap.entries()].map(([nome, hex]) => {
-        const isLight = /off.?wh|branco|white|creme|marfim/i.test(nome);
-        const btn = `<button class="produto-cor${isFirst ? ' produto-cor--active' : ''}"
-                             data-cor="${nome}"
-                             style="background:${hex}${isLight ? ';border:1px solid #ddd' : ''}"
-                             aria-label="${nome}"
-                             aria-pressed="${isFirst ? 'true' : 'false'}"></button>`;
-        if (isFirst) {
-          // Sincroniza variável local e label de cor
-          selectedColor = nome;
-          if (selectedColorLabel) selectedColorLabel.textContent = nome;
-          // Pré-seleciona no VirtuStock para o botão comprar ficar pronto
-          // quando o utilizador só precisar escolher o tamanho
-          VirtuStock.selecionarCor(nome);
+        // Pré-seleciona a primeira cor no VirtuStock
+        if (lista.length > 0) {
+          selectedColor = lista[0].nome;
+          if (selectedColorLabel) selectedColorLabel.textContent = lista[0].nome;
+          VirtuStock.selecionarCor(lista[0].nome);
         }
-        isFirst = false;
-        return btn;
-      }).join('');
+      } else {
+        // Fallback: p.cores do produto (produto sem gestão de stock)
+        _renderCores(_coresFallback);
+        if (_coresFallback.length > 0) {
+          selectedColor = _coresFallback[0].nome;
+          if (selectedColorLabel) selectedColorLabel.textContent = _coresFallback[0].nome;
+        }
+      }
 
-      // Atualiza estado visual (habilita/desabilita com base no tamanho)
+      // Atualiza estado visual dos tamanhos (esgotado/disponível)
       VirtuStock.atualizarUI();
     })
     .catch(err => {
