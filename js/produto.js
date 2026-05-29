@@ -14,6 +14,22 @@ function convertDriveUrl(url) {
   return url;
 }
 
+/* ── RENDERIZAR CORES (módulo — acessível por VirtuStock.init) ── */
+function _renderCores(lista) {
+  const coresContainer = document.getElementById('coresContainer');
+  const selectedColorEl = document.getElementById('selectedColor');
+  if (!coresContainer || !lista || !lista.length) return;
+  coresContainer.innerHTML = lista.map((c, i) => {
+    const isLight = /off.?wh|branco|white|creme|marfim/i.test(c.nome);
+    return `<button class="produto-cor${i === 0 ? ' produto-cor--active' : ''}"
+             data-cor="${c.nome}"
+             style="background:${c.hex}${isLight ? ';border:1px solid #ddd' : ''}"
+             aria-label="${c.nome}"
+             aria-pressed="${i === 0 ? 'true' : 'false'}"></button>`;
+  }).join('');
+  if (selectedColorEl) selectedColorEl.textContent = lista[0].nome;
+}
+
 /* ── CARREGAR PRODUTO DO SUPABASE ──────────── */
 async function carregarProduto(produtoId) {
   try {
@@ -79,24 +95,8 @@ async function carregarProduto(produtoId) {
     const parcelaEl = document.querySelector('.produto-parcelamento');
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmt(parcela)} sem juros`;
 
-    // Cores — VirtuStock é a fonte primária (assíncrono, sobrescreve abaixo).
-    // p.cores serve apenas de fallback se não houver variações configuradas.
-    const coresContainer = document.getElementById('coresContainer');
-    const selectedColorEl = document.getElementById('selectedColor');
-    const _coresFallback = p.cores || [];
-
-    function _renderCores(lista) {
-      if (!coresContainer || !lista.length) return;
-      coresContainer.innerHTML = lista.map((c, i) => {
-        const isLight = /off.?wh|branco|white|creme|marfim/i.test(c.nome);
-        return `<button class="produto-cor${i === 0 ? ' produto-cor--active' : ''}"
-                 data-cor="${c.nome}"
-                 style="background:${c.hex}${isLight ? ';border:1px solid #ddd' : ''}"
-                 aria-label="${c.nome}"
-                 aria-pressed="${i === 0 ? 'true' : 'false'}"></button>`;
-      }).join('');
-      if (selectedColorEl) selectedColorEl.textContent = lista[0].nome;
-    }
+    // Cores — VirtuStock é a fonte primária (assíncrono, sobrescreve no DOMContentLoaded).
+    // p.cores fica disponível via retorno desta função para uso como fallback.
 
     // Descrição
     const descEl = document.getElementById('acc-desc');
@@ -401,8 +401,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── CARREGAR DADOS DO PRODUTO ───────────────
   const _urlId = new URLSearchParams(window.location.search).get('id');
+  let _produtoCarregado = null;
   if (_urlId && typeof supabaseClient !== 'undefined') {
-    await carregarProduto(_urlId);
+    _produtoCarregado = await carregarProduto(_urlId);
   }
 
   // ── NAVBAR SCROLL ──────────────────────────
@@ -760,10 +761,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       } else {
         // Fallback: p.cores do produto (produto sem gestão de stock)
-        _renderCores(_coresFallback);
-        if (_coresFallback.length > 0) {
-          selectedColor = _coresFallback[0].nome;
-          if (selectedColorLabel) selectedColorLabel.textContent = _coresFallback[0].nome;
+        const fallback = _produtoCarregado?.cores || [];
+        _renderCores(fallback);
+        if (fallback.length > 0) {
+          selectedColor = fallback[0].nome;
+          if (selectedColorLabel) selectedColorLabel.textContent = fallback[0].nome;
         }
       }
 
