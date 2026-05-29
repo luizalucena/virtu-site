@@ -95,8 +95,11 @@ async function carregarProduto(produtoId) {
     const parcelaEl = document.querySelector('.produto-parcelamento');
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmt(parcela)} sem juros`;
 
-    // Cores — VirtuStock é a fonte primária (assíncrono, sobrescreve no DOMContentLoaded).
-    // p.cores fica disponível via retorno desta função para uso como fallback.
+    // Cores — renderiza p.cores imediatamente como base.
+    // VirtuStock sobrescreve depois se houver variações configuradas.
+    if (p.cores && p.cores.length > 0) {
+      _renderCores(p.cores);
+    }
 
     // Descrição
     const descEl = document.getElementById('acc-desc');
