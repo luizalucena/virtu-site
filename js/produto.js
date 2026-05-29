@@ -122,24 +122,30 @@ async function carregarProduto(produtoId) {
       const mainImg         = document.getElementById('mainImg');
 
       // ── Função local que troca a imagem principal ──
+      // Pré-carrega a imagem antes de exibir, evitando flash do conteúdo anterior
       function _showImage(url) {
         if (!mainImg) return;
-        mainImg.style.transition = 'opacity 0.2s ease';
+        // Fade out
+        mainImg.style.transition = 'opacity 0.15s ease';
         mainImg.style.opacity    = '0';
-        setTimeout(() => {
-          // Usa uma <img> real dentro do mainImg para melhor compatibilidade
+        // Pré-carrega
+        const preload = new Image();
+        preload.onload = () => {
           const existing = mainImg.querySelector('img.galeria-main__real-img');
           if (existing) {
             existing.src = url;
           } else {
-            // Remove placeholder e injeta <img>
             mainImg.innerHTML = `<img class="galeria-main__real-img"
-              src="${url}"
-              alt="Foto do produto"
-              style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+              src="${url}" alt="Foto do produto" />`;
           }
+          // Só revela quando a imagem está pronta
           mainImg.style.opacity = '1';
-        }, 200);
+        };
+        preload.onerror = () => {
+          // Mesmo com erro, restaura opacidade
+          mainImg.style.opacity = '1';
+        };
+        preload.src = url;
       }
 
       // Exibe a primeira imagem
