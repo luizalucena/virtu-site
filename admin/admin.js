@@ -10,13 +10,21 @@ let filtroAtual = 'todos';
 let editandoId  = null;
 
 // ── CONVERTE URL DO GOOGLE DRIVE ────────────
+// Usa lh3.googleusercontent.com/d/{ID} — único formato que funciona
+// como CSS background-image sem redirect/CORS
 function convertDriveUrl(url) {
   if (!url) return url;
-  // Formatos: /file/d/{ID}/view  ou  /file/d/{ID}  ou  open?id={ID}  ou  uc?id={ID}
+  // /file/d/{ID}/view  ou  /file/d/{ID}
   const m1 = url.match(/drive\.google\.com\/file\/d\/([^/?&]+)/);
-  if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+  if (m1) return `https://lh3.googleusercontent.com/d/${m1[1]}`;
+  // ?id={ID} ou &id={ID}
   const m2 = url.match(/[?&]id=([^&]+)/);
-  if (m2 && url.includes('drive.google.com')) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+  if (m2 && url.includes('drive.google.com')) return `https://lh3.googleusercontent.com/d/${m2[1]}`;
+  // Já está no formato lh3 ou uc?export — extrai o ID se possível
+  const m3 = url.match(/lh3\.googleusercontent\.com\/d\/([^/?&]+)/);
+  if (m3) return `https://lh3.googleusercontent.com/d/${m3[1]}`;
+  const m4 = url.match(/uc\?export=view&id=([^&]+)/);
+  if (m4) return `https://lh3.googleusercontent.com/d/${m4[1]}`;
   return url;
 }
 

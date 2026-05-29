@@ -2,6 +2,18 @@
    VIRTÙ — Produto JavaScript
    ============================================================ */
 
+/* ── CONVERTE URL DO GOOGLE DRIVE ──────────── */
+function convertDriveUrl(url) {
+  if (!url) return url;
+  const m1 = url.match(/drive\.google\.com\/file\/d\/([^/?&]+)/);
+  if (m1) return `https://lh3.googleusercontent.com/d/${m1[1]}`;
+  const m2 = url.match(/[?&]id=([^&]+)/);
+  if (m2 && url.includes('drive.google.com')) return `https://lh3.googleusercontent.com/d/${m2[1]}`;
+  const m4 = url.match(/uc\?export=view&id=([^&]+)/);
+  if (m4) return `https://lh3.googleusercontent.com/d/${m4[1]}`;
+  return url;
+}
+
 /* ── CARREGAR PRODUTO DO SUPABASE ──────────── */
 async function carregarProduto(produtoId) {
   try {
@@ -100,9 +112,10 @@ async function carregarProduto(produtoId) {
     if (stickyPrice) stickyPrice.textContent = fmt(preco);
 
     // Galeria de imagens — monta thumbnails dinamicamente
-    const imagens = Array.isArray(p.imagens) && p.imagens.length
+    const imagens = (Array.isArray(p.imagens) && p.imagens.length
       ? p.imagens
-      : (p.imagem_url ? [p.imagem_url] : []);
+      : (p.imagem_url ? [p.imagem_url] : [])
+    ).map(convertDriveUrl);
 
     if (imagens.length) {
       const thumbsContainer = document.querySelector('.galeria-thumbs');

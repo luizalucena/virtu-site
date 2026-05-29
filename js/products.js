@@ -91,9 +91,20 @@ const VirtuProducts = (() => {
     const pct = calcDesconto(preco_original, preco_desconto);
     const link = slugToUrl(id);
 
-    // Imagem: usa URL real se tiver, senão placeholder CSS
-    const imgStyle = imagem_url
-      ? `background: url('${imagem_url}') center/cover no-repeat`
+    // Imagem: converte Drive → lh3, usa URL real se tiver, senão placeholder CSS
+    function _cvDrive(u) {
+      if (!u) return u;
+      const m1 = u.match(/drive\.google\.com\/file\/d\/([^/?&]+)/);
+      if (m1) return `https://lh3.googleusercontent.com/d/${m1[1]}`;
+      const m2 = u.match(/[?&]id=([^&]+)/);
+      if (m2 && u.includes('drive.google.com')) return `https://lh3.googleusercontent.com/d/${m2[1]}`;
+      const m3 = u.match(/uc\?export=view&id=([^&]+)/);
+      if (m3) return `https://lh3.googleusercontent.com/d/${m3[1]}`;
+      return u;
+    }
+    const imgUrl = _cvDrive(imagem_url);
+    const imgStyle = imgUrl
+      ? `background: url('${imgUrl}') center/cover no-repeat`
       : `background: ${imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)'}`;
 
     // Badge
