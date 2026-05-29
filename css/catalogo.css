@@ -462,7 +462,7 @@
 }
 
 .product-card__placeholder::after {
-  content: 'foto';
+  content: '';
   font-family: var(--font-display);
   font-size: 12px;
   letter-spacing: 2px;
