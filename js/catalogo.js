@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cfg = await VirtuProducts.getConfig();
 
     // Tamanhos
-    const tamanhos = cfg?.filtros_tamanhos || ['PP','P','M','G','GG','XG'];
+    const tamanhos = cfg?.filtros_tamanhos || ['PP','P','M','G','XG'];
     const sizeGrid = document.getElementById('sizeGrid');
     if (sizeGrid) {
       sizeGrid.innerHTML = tamanhos.map(t =>

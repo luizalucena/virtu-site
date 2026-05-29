@@ -142,7 +142,7 @@ const VirtuStock = (() => {
     _variacoes.forEach(v => {
       if (v.estoque > 0) tam.add(v.tamanho);
     });
-    const ordem = ['PP','P','M','G','GG','U'];
+    const ordem = ['PP','P','M','G','U'];
     return [...tam].sort((a, b) => ordem.indexOf(a) - ordem.indexOf(b));
   }
 

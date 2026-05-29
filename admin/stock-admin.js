@@ -20,7 +20,7 @@ const VirtuStockAdmin = (() => {
   let _containerAtual = null;
 
   /* ── UTILITÁRIOS ─────────────────────────────────────────── */
-  const TAMANHOS_ORDEM = ['PP', 'P', 'M', 'G', 'GG', 'U'];
+  const TAMANHOS_ORDEM = ['PP', 'P', 'M', 'G', 'U'];
 
   function formatEstoque(n) {
     if (n === 0) return '<span class="badge badge--esgotado">Esgotado</span>';

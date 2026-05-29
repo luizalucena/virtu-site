@@ -490,7 +490,7 @@ async function saveProduct() {
     imagem_placeholder: document.getElementById('formPlaceholder')?.value.trim()
                           || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)',
     cores:              coresExistentes,
-    tamanhos:           tamanhos.length ? tamanhos : ['PP','P','M','G','GG'],
+    tamanhos:           tamanhos.length ? tamanhos : ['PP','P','M','G'],
     tamanhos_esgotados: [],
     destaque:           document.getElementById('formDestaque')?.checked,
     novidade:           document.getElementById('formNovidade')?.checked,
@@ -674,7 +674,6 @@ function populateConfig() {
     {tamanho:'P', busto:'84–88',cintura:'64–68',quadril:'90–94'},
     {tamanho:'M', busto:'88–92',cintura:'68–72',quadril:'94–98'},
     {tamanho:'G', busto:'92–96',cintura:'72–76',quadril:'98–102'},
-    {tamanho:'GG',busto:'96–100',cintura:'76–80',quadril:'102–106'},
   ]);
   // Bind botão "+ Linha"
   const btnAddRow = document.getElementById('btnAddTamanhoRow');
@@ -687,7 +686,7 @@ function populateConfig() {
   }
 
   // Filtros do Catálogo
-  const tamanhosCfg = cfg.filtros_tamanhos || ['PP','P','M','G','GG','XG'];
+  const tamanhosCfg = cfg.filtros_tamanhos || ['PP','P','M','G','XG'];
   const cfgFiltrosTam = document.getElementById('cfgFiltrosTamanhos');
   if (cfgFiltrosTam) cfgFiltrosTam.value = tamanhosCfg.join(',');
 
