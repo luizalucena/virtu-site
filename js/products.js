@@ -48,9 +48,10 @@ const VirtuProducts = (() => {
         }
       });
 
-      // Sobrescreve cores/tamanhos de cada produto; marca esgotado se sem estoque
+      // Atualiza tamanhos (variacoes em estoque) e marca esgotado
+      // CORES: mantém as definidas no produto (fonte de verdade do admin),
+      //        NÃO sobrescreve com variacoes para evitar duplicatas por hex diferente
       (produtos || []).forEach(p => {
-        if (coresPorProduto[p.id]?.length)    p.cores    = coresPorProduto[p.id];
         if (tamanhosPorProduto[p.id]?.length) p.tamanhos = tamanhosPorProduto[p.id];
         p._esgotado = !produtosComEstoque.has(p.id);
       });
