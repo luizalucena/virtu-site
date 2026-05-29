@@ -99,13 +99,56 @@ async function carregarProduto(produtoId) {
     if (stickyName)  stickyName.textContent  = p.nome;
     if (stickyPrice) stickyPrice.textContent = fmt(preco);
 
-    // Imagem principal
-    if (p.imagem_url) {
+    // Galeria de imagens — monta thumbnails dinamicamente
+    const imagens = Array.isArray(p.imagens) && p.imagens.length
+      ? p.imagens
+      : (p.imagem_url ? [p.imagem_url] : []);
+
+    if (imagens.length) {
+      const thumbsContainer = document.querySelector('.galeria-thumbs');
+      const mainImg         = document.getElementById('mainImg');
       const mainPlaceholder = document.getElementById('mainPlaceholder');
+
+      // Atualiza imagem principal
       if (mainPlaceholder) {
-        mainPlaceholder.style.background = `url('${p.imagem_url}') center/cover no-repeat`;
+        mainPlaceholder.style.background = `url('${imagens[0]}') center/cover no-repeat`;
         const label = mainPlaceholder.querySelector('.galeria-main__placeholder-label');
         if (label) label.style.display = 'none';
+      }
+      if (mainImg) {
+        mainImg.style.background = `url('${imagens[0]}') center/cover no-repeat`;
+      }
+
+      // Re-renderiza thumbnails
+      if (thumbsContainer) {
+        thumbsContainer.innerHTML = imagens.map((url, i) => `
+          <button class="galeria-thumb${i === 0 ? ' galeria-thumb--active' : ''}"
+                  data-index="${i}" data-url="${url}"
+                  style="background:url('${url}') center/cover no-repeat"
+                  role="listitem" aria-label="Foto ${i + 1}" aria-pressed="${i === 0}">
+          </button>
+        `).join('');
+
+        // Bind clique nas thumbnails
+        thumbsContainer.querySelectorAll('.galeria-thumb').forEach((thumb, i) => {
+          thumb.addEventListener('click', () => {
+            thumbsContainer.querySelectorAll('.galeria-thumb').forEach(t => {
+              t.classList.remove('galeria-thumb--active');
+              t.setAttribute('aria-pressed', 'false');
+            });
+            thumb.classList.add('galeria-thumb--active');
+            thumb.setAttribute('aria-pressed', 'true');
+            const url = thumb.dataset.url;
+            if (mainImg) {
+              mainImg.style.transition = 'opacity 0.25s ease';
+              mainImg.style.opacity = '0';
+              setTimeout(() => {
+                mainImg.style.background = `url('${url}') center/cover no-repeat`;
+                mainImg.style.opacity = '1';
+              }, 150);
+            }
+          });
+        });
       }
     }
 

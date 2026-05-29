@@ -9,6 +9,60 @@ let DB = { produtos: [], configuracoes: {} };
 let filtroAtual = 'todos';
 let editandoId  = null;
 
+// ── CONVERTE URL DO GOOGLE DRIVE ────────────
+function convertDriveUrl(url) {
+  if (!url) return url;
+  // Formatos: /file/d/{ID}/view  ou  /file/d/{ID}  ou  open?id={ID}  ou  uc?id={ID}
+  const m1 = url.match(/drive\.google\.com\/file\/d\/([^/?&]+)/);
+  if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+  const m2 = url.match(/[?&]id=([^&]+)/);
+  if (m2 && url.includes('drive.google.com')) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+  return url;
+}
+
+// ── GALERIA DE FOTOS: GERENCIA INPUTS ───────
+function getGaleriaUrls() {
+  return [...document.querySelectorAll('.galeria-url-input')]
+    .map(i => convertDriveUrl(i.value.trim()))
+    .filter(Boolean);
+}
+
+function buildGaleriaRows(imagens = []) {
+  const container = document.getElementById('galeriaInputs');
+  if (!container) return;
+  container.innerHTML = '';
+  const lista = imagens.length ? imagens : [''];
+  lista.forEach((url, idx) => addGaleriaRow(url, idx + 1));
+}
+
+function addGaleriaRow(url = '', num = null) {
+  const container = document.getElementById('galeriaInputs');
+  if (!container) return;
+  const current = container.querySelectorAll('.galeria-input-row').length;
+  if (current >= 5) return;
+  const n = num ?? current + 1;
+  const row = document.createElement('div');
+  row.className = 'galeria-input-row';
+  row.style.cssText = 'display:flex;gap:0.5rem;align-items:center';
+  row.innerHTML = `
+    <span style="font-size:0.72rem;color:#888;min-width:16px">${n}</span>
+    <input type="url" class="admin-input galeria-url-input" placeholder="URL da foto ${n}" style="flex:1" value="${url}" />
+    <div class="galeria-preview-dot" style="width:28px;height:28px;border-radius:4px;border:1px solid #e0d8d0;flex-shrink:0;background:${url ? `url('${convertDriveUrl(url)}') center/cover` : '#f5f0eb'}"></div>
+    ${n > 1 ? `<button type="button" class="galeria-remove-btn" title="Remover" style="font-size:0.85rem;color:#c0a080;background:none;border:none;cursor:pointer;padding:0 4px">✕</button>` : ''}
+  `;
+  // Preview ao sair do campo
+  const input = row.querySelector('.galeria-url-input');
+  const preview = row.querySelector('.galeria-preview-dot');
+  input?.addEventListener('blur', () => {
+    const v = convertDriveUrl(input.value.trim());
+    preview.style.background = v ? `url('${v}') center/cover` : '#f5f0eb';
+    input.value = v; // substitui pelo URL convertido
+  });
+  // Remover linha
+  row.querySelector('.galeria-remove-btn')?.addEventListener('click', () => row.remove());
+  container.appendChild(row);
+}
+
 // ── INICIALIZAÇÃO ───────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // Verifica autenticação antes de mostrar o painel
@@ -210,6 +264,13 @@ function bindEvents() {
 
   // ESC fecha modal
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Botão adicionar foto
+  document.getElementById('btnAddFoto')?.addEventListener('click', () => {
+    const current = document.querySelectorAll('.galeria-input-row').length;
+    if (current < 5) addGaleriaRow('', current + 1);
+    if (current + 1 >= 5) document.getElementById('btnAddFoto').style.display = 'none';
+  });
 }
 
 // ── EXPORTAR BACKUP (JSON download) ────────
@@ -327,7 +388,10 @@ function openModal(id) {
     document.getElementById('formPrecoOriginal').value    = p.preco_original;
     document.getElementById('formPrecoDesconto').value    = p.preco_desconto || '';
     document.getElementById('formEstoque').value          = p.estoque ?? '';
-    document.getElementById('formImagem').value           = p.imagem_url || '';
+    // Galeria de imagens
+    const imgs = p.imagens?.length ? p.imagens : (p.imagem_url ? [p.imagem_url] : []);
+    buildGaleriaRows(imgs);
+    document.getElementById('btnAddFoto').style.display = imgs.length >= 5 ? 'none' : '';
     document.getElementById('formPlaceholder').value      = p.imagem_placeholder || '';
     document.getElementById('formDescricao').value        = p.descricao || '';
     document.getElementById('formComposicao').value       = p.composicao || '';
@@ -347,6 +411,8 @@ function openModal(id) {
     title.textContent = 'Novo Produto';
     document.getElementById('formAtivo').checked = true;
     document.querySelectorAll('.admin-size-check input').forEach(cb => cb.checked = true);
+    buildGaleriaRows([]);
+    document.getElementById('btnAddFoto').style.display = '';
   }
 
   modal?.classList.add('open');
@@ -364,7 +430,7 @@ function closeModal() {
 
 function resetForm() {
   ['formId','formNome','formPrecoOriginal','formPrecoDesconto','formEstoque',
-   'formImagem','formPlaceholder','formDescricao','formComposicao','formCompreJunto']
+   'formPlaceholder','formDescricao','formComposicao','formCompreJunto']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('formCategoria').value  = 'vestidos';
   document.getElementById('formBadge').value      = '';
@@ -411,7 +477,8 @@ async function saveProduct() {
     preco_original:     preco,
     preco_desconto:     (desconto && desconto < preco) ? desconto : null,
     badge:              document.getElementById('formBadge')?.value || null,
-    imagem_url:         document.getElementById('formImagem')?.value.trim(),
+    imagens:            getGaleriaUrls(),
+    imagem_url:         getGaleriaUrls()[0] || '',
     imagem_placeholder: document.getElementById('formPlaceholder')?.value.trim()
                           || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)',
     cores:              coresExistentes,

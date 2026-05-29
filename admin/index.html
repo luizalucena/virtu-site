@@ -758,9 +758,16 @@
           <!-- Coluna 2 -->
           <div>
             <div class="admin-form-group">
-              <label class="admin-label">URL da Imagem</label>
-              <input type="url" class="admin-input" id="formImagem" placeholder="https://… ou deixe vazio para usar cor" />
-              <p class="admin-hint">Cole a URL de uma imagem hospedada. Ex: Imgur, Google Drive (link direto), etc.</p>
+              <label class="admin-label">Fotos do Produto <span style="font-weight:400;opacity:0.6">(até 5)</span></label>
+              <p class="admin-hint" style="margin-bottom:0.75rem">Links do Google Drive são convertidos automaticamente. Certifique-se de que o arquivo está compartilhado como "Qualquer pessoa com o link".</p>
+              <div id="galeriaInputs" style="display:flex;flex-direction:column;gap:0.5rem">
+                <div class="galeria-input-row" style="display:flex;gap:0.5rem;align-items:center">
+                  <span style="font-size:0.72rem;color:#888;min-width:16px">1</span>
+                  <input type="url" class="admin-input galeria-url-input" placeholder="URL da foto 1 (principal)" style="flex:1" />
+                  <div class="galeria-preview-dot" style="width:28px;height:28px;border-radius:4px;border:1px solid #e0d8d0;flex-shrink:0;background:#f5f0eb"></div>
+                </div>
+              </div>
+              <button type="button" id="btnAddFoto" style="margin-top:0.5rem;font-size:0.78rem;color:var(--admin-gold);background:none;border:1px dashed var(--admin-gold);border-radius:4px;padding:0.35rem 0.75rem;cursor:pointer;width:100%">+ Adicionar outra foto</button>
             </div>
             <div class="admin-form-group">
               <label class="admin-label">Cor de fundo (sem foto)</label>
