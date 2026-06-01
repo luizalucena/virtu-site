@@ -1013,6 +1013,13 @@ h4 { font-size: var(--text-lg); }
   padding-bottom: var(--space-8);
 }
 
+.footer__inner {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-8);
+}
+
 .footer__grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1fr;
@@ -1321,6 +1328,7 @@ h4 { font-size: var(--text-lg); }
   }
 
   .container { padding-inline: var(--space-6); }
+  .footer__inner { padding-inline: var(--space-6); }
 
   .footer__grid {
     grid-template-columns: 1fr 1fr;
@@ -1339,6 +1347,7 @@ h4 { font-size: var(--text-lg); }
   }
 
   .container { padding-inline: var(--space-4); }
+  .footer__inner { padding-inline: var(--space-4); }
   .section { padding-block: var(--space-12); }
 
   .footer__grid {
