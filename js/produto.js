@@ -118,11 +118,26 @@ async function carregarProduto(produtoId) {
       descEl.innerHTML = `<p>${p.descricao.replace(/\n/g, '</p><p style="margin-top:var(--space-3);">')}</p>`;
     }
 
-    // Composição
+    // Composição & Cuidados
     const compEl = document.getElementById('acc-composicao');
     if (compEl && p.composicao) {
-      compEl.innerHTML = `<p>${p.composicao.replace(/\n/g, '<br/>')}</p>`;
+      compEl.innerHTML = p.composicao
+        .split('\n')
+        .filter(l => l.trim())
+        .map(l => `<p>${l}</p>`)
+        .join('');
     }
+
+    // Entrega & Trocas
+    const entregaEl = document.getElementById('acc-entrega');
+    if (entregaEl && p.entrega_trocas) {
+      entregaEl.innerHTML = p.entrega_trocas
+        .split('\n')
+        .filter(l => l.trim())
+        .map(l => `<p>${l}</p>`)
+        .join('');
+    }
+    // Se não há texto personalizado, mantém o HTML padrão que já está no produto.html
 
     // Sticky bar — nome e preço
     const stickyName  = document.querySelector('.sticky-buy-bar__name');
