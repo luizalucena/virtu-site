@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Botões principais
   document.getElementById('btnNovoLancamento')?.addEventListener('click', abrirModalLancamento);
-  document.getElementById('btnSyncPlanilha')?.addEventListener('click', abrirModalPlanilha);
   document.getElementById('btnExportarCSV')?.addEventListener('click', exportarCSV);
 
   // Bind modais
@@ -133,9 +132,10 @@ async function carregarTabela() {
 
   if (mes) {
     const [ano, m] = mes.split('-');
+    const ultimoDia = new Date(parseInt(ano), parseInt(m), 0).getDate(); // último dia do mês
     query = query
       .gte('data_lancamento', `${ano}-${m}-01`)
-      .lte('data_lancamento', `${ano}-${m}-31`);
+      .lte('data_lancamento', `${ano}-${m}-${String(ultimoDia).padStart(2,'0')}`);
   }
   if (tipo)   query = query.eq('tipo', tipo);
   if (origem) query = query.eq('origem', origem);

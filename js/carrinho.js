@@ -398,6 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
       appliedCoupon  = code;
       showFeedback(`✓ Cupom ${code} aplicado! −${pct}% de desconto`, 'success');
       if (input) input.disabled = true;
+      // Salva no localStorage para o checkout ler
+      localStorage.setItem('virtu_coupon', JSON.stringify({ code, pct, discount }));
       updateSummary();
     } else {
       showFeedback('Cupom inválido ou expirado.', 'error');
@@ -407,6 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Embalagem para presente
   document.getElementById('giftWrapCheck')?.addEventListener('change', function () {
     giftWrap = this.checked;
+    // Salva no localStorage para o checkout ler
+    localStorage.setItem('virtu_gift', JSON.stringify({ ativo: giftWrap, preco: giftWrapPrice }));
     updateSummary();
   });
 

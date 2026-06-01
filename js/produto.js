@@ -68,7 +68,7 @@ async function carregarProduto(produtoId) {
     const bcLinks = document.querySelectorAll('.breadcrumb__link');
     if (bcLinks[1]) {
       bcLinks[1].textContent = cap(p.categoria || 'Produtos');
-      bcLinks[1].href = `catalogo.html?categoria=${p.categoria || ''}`;
+      bcLinks[1].href = `catalogo.html?cat=${p.categoria || ''}`;
     }
     const bcAtual = document.querySelector('.breadcrumb__current');
     if (bcAtual) bcAtual.textContent = p.nome.toUpperCase();
@@ -625,23 +625,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── ACCORDION ──────────────────────────────
-  document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+  document.querySelectorAll('.accordion-header').forEach(trigger => {
     trigger.addEventListener('click', () => {
-      const targetId = trigger.getAttribute('aria-controls');
-      const content  = document.getElementById(targetId);
-      const isOpen   = trigger.getAttribute('aria-expanded') === 'true';
+      const item   = trigger.closest('.accordion-item');
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
 
       // Fecha todos os outros
-      document.querySelectorAll('.accordion-trigger').forEach(t => {
+      document.querySelectorAll('.accordion-header').forEach(t => {
+        t.setAttribute('aria-expanded', 'false');
+        t.closest('.accordion-item')?.classList.remove('accordion-item--open');
         const tid = t.getAttribute('aria-controls');
         const tc  = document.getElementById(tid);
-        t.setAttribute('aria-expanded', 'false');
         tc?.classList.add('accordion-content--hidden');
       });
 
       // Abre o clicado se estava fechado
       if (!isOpen) {
         trigger.setAttribute('aria-expanded', 'true');
+        item?.classList.add('accordion-item--open');
+        const targetId = trigger.getAttribute('aria-controls');
+        const content  = document.getElementById(targetId);
         content?.classList.remove('accordion-content--hidden');
         // Scroll suave para visibilidade
         setTimeout(() => content?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
@@ -733,8 +736,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.head.appendChild(style);
 
   // ── INICIALIZAÇÃO ──────────────────────────
-  // Seleciona primeira miniatura
-  if (thumbs.length > 0) setActiveThumb(0);
+  // Seleciona primeira miniatura (thumbs são carregadas dinamicamente em carregarProduto)
 
   // Seleciona primeira cor ativa
   const firstColor = document.querySelector('.produto-cor');

@@ -39,7 +39,7 @@ const VirtuProducts = (() => {
           const hexNorm = v.cor_hex.toLowerCase().trim();
           const nomeNorm = (v.cor_nome || '').toLowerCase().trim();
           const jaExiste = coresPorProduto[v.produto_id].some(c =>
-            c.hex.toLowerCase() === hexNorm ||
+            (c.hex || '').toLowerCase() === hexNorm ||
             (nomeNorm && c.nome.toLowerCase().trim() === nomeNorm)
           );
           if (!jaExiste) coresPorProduto[v.produto_id].push({ nome: v.cor_nome || '', hex: v.cor_hex });
@@ -144,7 +144,7 @@ const VirtuProducts = (() => {
       : `<span class="product-card__price-current">${formatCurrency(precoFinal)}</span>`;
 
     const sizesAttr    = (produto.tamanhos || []).join(',');
-    const colorsAttr   = (produto.cores    || []).map(c => c.hex.toLowerCase()).join(',');
+    const colorsAttr   = (produto.cores    || []).map(c => (c.hex || '').toLowerCase()).join(',');
     const essencialAttr = produto.essencial ? 'true' : '';
     const novidadeAttr  = produto.novidade  ? 'true' : '';
     const destaqueAttr  = produto.destaque  ? 'true' : '';

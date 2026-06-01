@@ -698,9 +698,10 @@ function populateConfig() {
   ];
   renderFiltrosCores(coresCfg);
 
-  if (!document.getElementById('btnAddCor')._bound) {
-    document.getElementById('btnAddCor')._bound = true;
-    document.getElementById('btnAddCor').addEventListener('click', () => {
+  const btnAddCor = document.getElementById('btnAddCor');
+  if (btnAddCor && !btnAddCor._bound) {
+    btnAddCor._bound = true;
+    btnAddCor.addEventListener('click', () => {
       document.getElementById('filtrosCorTbody')
         ?.insertAdjacentHTML('beforeend', filtrosCorRow({nome:'',hex:'#000000'}));
     });

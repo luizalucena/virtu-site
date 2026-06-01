@@ -25,6 +25,7 @@ let freteValorSelecionado = FRETE_STANDARD;
 let freteBase             = FRETE_STANDARD; // frete sem cupom (referência)
 let baseTotal             = 0;              // subtotal + gift wrap, sem frete
 let mpInstance            = null;
+let freteCalculado        = false;          // flag: frete foi calculado com sucesso
 
 // ── ESTADO DO CUPOM ─────────────────────────────────────────
 let cupomAplicado = null; // { codigo, tipo, valor } ou null
@@ -260,6 +261,17 @@ document.addEventListener('DOMContentLoaded', () => {
   (async () => {
     renderOrderSummary(getCart());
     await initCupom(); // campo de cupom no resumo do pedido
+
+    // Pré-preenche cupom aplicado no carrinho
+    try {
+      const savedCoupon = JSON.parse(localStorage.getItem('virtu_coupon') || 'null');
+      if (savedCoupon?.code) {
+        const input = document.getElementById('cupomInput');
+        if (input && !input.value) {
+          input.value = savedCoupon.code;
+        }
+      }
+    } catch {}
   })();
 
   // ── STEPS ───────────────────────────────────────────────
@@ -337,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Garante que o frete foi calculado
-    if (document.getElementById('freteResult')?.style.display === 'none') {
+    if (!freteCalculado) {
       showFreteMsg('Clique em "Buscar" para calcular o frete antes de continuar.', 'error');
       document.getElementById('lookupCep')?.focus();
       return;
@@ -379,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Nordeste válido ✓
+    freteCalculado = true;
     if (freteResult) freteResult.style.display = 'block';
     if (freteMsg)    freteMsg.style.display    = 'none';
 
@@ -467,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     this.value = v;
     this.classList.remove('error', 'success');
     // Esconde frete anterior ao digitar novo CEP
+    freteCalculado = false;
     document.getElementById('freteResult').style.display = 'none';
     document.getElementById('freteMsg').style.display    = 'none';
   });
