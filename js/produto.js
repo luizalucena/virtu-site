@@ -18,15 +18,15 @@ function convertDriveUrl(url) {
 function _renderCores(lista) {
   const coresContainer = document.getElementById('coresContainer');
   const selectedColorEl = document.getElementById('selectedColor');
-  // Linha "COR:" inteira — esconde se não há cores
-  const coresRow = coresContainer?.closest('.produto-cores') || coresContainer?.parentElement;
+  // Bloco "COR:" inteiro — é o .produto-opcao pai do coresContainer
+  const coresBlock = coresContainer?.closest('.produto-opcao');
 
   if (!lista || !lista.length) {
-    if (coresRow) coresRow.style.display = 'none';
+    if (coresBlock) coresBlock.style.display = 'none';
     return;
   }
 
-  if (coresRow) coresRow.style.display = '';
+  if (coresBlock) coresBlock.style.display = '';
   if (!coresContainer) return;
 
   coresContainer.innerHTML = lista.map((c, i) => {
