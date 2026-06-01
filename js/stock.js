@@ -263,27 +263,18 @@ const VirtuStock = (() => {
     });
 
     // ── Cores ─────────────────────────────────────────────
-    // Cores sempre clicáveis; esgotado se não houver nenhum tamanho em stock
-    // para essa cor (ou para o tamanho já selecionado, se houver).
+    // Cores NUNCA ficam disabled — sempre clicáveis.
+    // Esgotado visual se não houver nenhum tamanho com estoque para essa cor.
     document.querySelectorAll('[data-cor]').forEach(btn => {
       const cor = btn.getAttribute('data-cor');
-      let disponivel = false;
-      if (_tamSelecionado) {
-        // Tamanho já escolhido → verifica estoque para tam + cor
-        for (const v of _variacoes.values()) {
-          if (v.tamanho === _tamSelecionado && v.cor_nome === cor && v.estoque > 0) {
-            disponivel = true; break;
-          }
-        }
-      } else {
-        // Sem tamanho selecionado → cor fica ativa se qualquer tamanho tiver estoque
-        for (const v of _variacoes.values()) {
-          if (v.cor_nome === cor && v.estoque > 0) { disponivel = true; break; }
-        }
-      }
-      btn.classList.toggle('esgotado',   !disponivel);
-      btn.classList.toggle('selecionado', cor === _corSelecionada);
-      btn.disabled = !disponivel; // não bloqueia pela falta de tamanho
+      // Verifica se há ALGUM tamanho com estoque para essa cor (ignora tamanho selecionado)
+      const temQualquerStock = [..._variacoes.values()].some(
+        v => v.cor_nome === cor && v.estoque > 0
+      );
+      btn.classList.toggle('esgotado', !temQualquerStock);
+      btn.classList.toggle('produto-cor--active', cor === _corSelecionada);
+      btn.setAttribute('aria-pressed', cor === _corSelecionada ? 'true' : 'false');
+      btn.disabled = false; // NUNCA bloqueia — cliente sempre pode clicar
     });
 
     // ── Botão de compra ───────────────────────────────────
@@ -357,21 +348,16 @@ const VirtuStock = (() => {
         });
       });
 
-      // 5. Bind dos cliques de cor — event delegation no container para
-      //    funcionar mesmo após os botões serem reconstruídos dinamicamente
+      // 5. Bind dos cliques de cor — event delegation no container.
+      //    Funciona mesmo após _renderCores reconstruir os botões.
+      //    Cores NUNCA são disabled — removida a guarda btn.disabled.
       const coresContainerEl = document.getElementById('coresContainer');
       if (coresContainerEl) {
         coresContainerEl.addEventListener('click', e => {
           const btn = e.target.closest('[data-cor]');
-          if (!btn || btn.disabled) return;
+          if (!btn) return; // sem guarda disabled — qualquer cor é clicável
           selecionarCor(btn.getAttribute('data-cor'));
           atualizarUI();
-        });
-      } else {
-        document.querySelectorAll('[data-cor]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            if (!btn.disabled) { selecionarCor(btn.getAttribute('data-cor')); atualizarUI(); }
-          });
         });
       }
 
