@@ -324,8 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cpf       = document.getElementById('cpf')?.value.trim();
     const phone     = document.getElementById('phone')?.value.trim();
 
-    if (!firstName || !email || !cpf || !phone) {
-      highlightEmptyFields(['firstName', 'email', 'cpf', 'phone']);
+    if (!firstName || !lastName || !email || !cpf || !phone) {
+      highlightEmptyFields(['firstName', 'lastName', 'email', 'cpf', 'phone']);
       return;
     }
 
@@ -343,7 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const number = document.getElementById('number')?.value.trim();
     const city   = document.getElementById('city')?.value.trim();
 
-    if (!cepRaw || !street || !number || !city) {
+    const neighborhood = document.getElementById('neighborhood')?.value.trim();
+    if (!cepRaw || !street || !number || !city || !neighborhood) {
       highlightEmptyFields(['cep', 'street', 'number', 'city', 'neighborhood']);
       return;
     }

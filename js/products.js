@@ -166,7 +166,7 @@ const VirtuProducts = (() => {
           </div>
         </a>
         <div class="product-card__info">
-          <p class="product-card__category">${categoria.charAt(0).toUpperCase() + categoria.slice(1)}</p>
+          <p class="product-card__category">${(categoria || '').charAt(0).toUpperCase() + (categoria || '').slice(1)}</p>
           <h3 class="product-card__name"><a href="${link}">${nome}</a></h3>
           <div class="product-card__price">${precoHtml}</div>
           ${swatchesHtml ? `<div class="product-card__swatches">${swatchesHtml}</div>` : ''}
@@ -244,7 +244,13 @@ const VirtuProducts = (() => {
     const tcta = document.getElementById('heroCta');
     if (b) {
       if (tl1 && b.titulo_linha1) tl1.textContent = b.titulo_linha1;
-      if (tl2 && b.titulo_linha2) tl2.textContent = b.titulo_linha2;
+      if (tl2 && b.titulo_linha2) {
+        // Hífen isolado → travessão em span não-itálico (evita o efeito "torto" da fonte itálica)
+        const SEP = '<span style="font-style:normal;font-family:var(--font-body);font-weight:300"> — </span>';
+        tl2.innerHTML = b.titulo_linha2
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // sanitiza
+          .replace(/ - /g, SEP);
+      }
       if (tsub && b.subtitulo)    tsub.textContent = b.subtitulo;
       if (tcta) { tcta.textContent = b.cta_texto; tcta.href = b.cta_link; }
     }

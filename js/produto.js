@@ -401,11 +401,12 @@ async function renderCompreJunto(produtoPrincipal, sugestoesIds) {
         const toAdd = [produtoPrincipal, ...sugestoes];
         toAdd.forEach(item => {
           const preco = item.preco_desconto ?? item.preco_original;
-          const existing = cart.findIndex(c => c.id === item.id);
+          const existing = cart.findIndex(c => c.id === item.id && !c.tamanho && !c.cor_nome);
           if (existing >= 0) {
             cart[existing].qty = (cart[existing].qty || 1) + 1;
           } else {
-            cart.push({ id: item.id, nome: item.nome, preco, tamanho: '', cor_nome: '', qty: 1 });
+            // Adiciona sem tamanho/cor — o cliente deve ajustar no carrinho
+            cart.push({ id: item.id, nome: item.nome, preco, tamanho: null, cor_nome: null, qty: 1, sem_variacao: true });
           }
         });
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
@@ -417,7 +418,12 @@ async function renderCompreJunto(produtoPrincipal, sugestoesIds) {
         const orig = addBtn.textContent;
         addBtn.textContent = `✓ ${qtd} peças adicionadas!`;
         addBtn.disabled = true;
-        setTimeout(() => { addBtn.textContent = orig; addBtn.disabled = false; }, 2000);
+        // Avisa que tamanho/cor deve ser ajustado no carrinho
+        const aviso = document.createElement('p');
+        aviso.style.cssText = 'font-size:0.8em;color:#a07c5a;margin-top:0.5rem;text-align:center';
+        aviso.textContent = '⚠️ Selecione tamanho e cor de cada peça no carrinho.';
+        addBtn.parentNode.insertBefore(aviso, addBtn.nextSibling);
+        setTimeout(() => { addBtn.textContent = orig; addBtn.disabled = false; aviso.remove(); }, 3000);
       });
     }
 

@@ -5,7 +5,7 @@
 
 /* ── CART STORAGE ──────────────────────────────────────────── */
 const CART_KEY    = 'virtu_cart';
-const VALID_COUPONS = { 'VIRTU10': 10, 'VIRTU20': 20, 'BEMVINDA': 15 };
+// Cupons validados via Supabase (não exponha códigos no frontend)
 
 let freeShippingThreshold = 300;  // sobrescrito pelo Supabase
 let discount              = 0;
@@ -391,19 +391,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!code)        { showFeedback('Por favor, insira um cupom.', 'error'); return; }
     if (appliedCoupon){ showFeedback('Já existe um cupom aplicado.', 'error'); return; }
 
-    if (VALID_COUPONS[code]) {
-      const pct      = VALID_COUPONS[code];
-      const subtotal = getCart().reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
-      discount       = Math.round(subtotal * pct / 100);
-      appliedCoupon  = code;
-      showFeedback(`✓ Cupom ${code} aplicado! −${pct}% de desconto`, 'success');
-      if (input) input.disabled = true;
-      // Salva no localStorage para o checkout ler
-      localStorage.setItem('virtu_coupon', JSON.stringify({ code, pct, discount }));
-      updateSummary();
-    } else {
-      showFeedback('Cupom inválido ou expirado.', 'error');
-    }
+    // Valida cupom no Supabase (seguro — não expõe lista de cupons no frontend)
+    showFeedback('Verificando cupom…', 'info');
+    (async () => {
+      try {
+        if (typeof supabaseClient === 'undefined') throw new Error('Supabase não disponível');
+        const { data, error } = await supabaseClient.rpc('validar_cupom', { codigo: code });
+        if (error || !data || !data.valido) {
+          showFeedback('Cupom inválido ou expirado.', 'error');
+          return;
+        }
+        const pct      = data.desconto_pct || 0;
+        const subtotal = getCart().reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
+        discount       = Math.round(subtotal * pct / 100);
+        appliedCoupon  = code;
+        showFeedback(`✓ Cupom ${code} aplicado! −${pct}% de desconto`, 'success');
+        if (input) input.disabled = true;
+        localStorage.setItem('virtu_coupon', JSON.stringify({ code, pct, discount }));
+        updateSummary();
+      } catch (err) {
+        console.warn('[Carrinho] Erro ao validar cupom:', err);
+        showFeedback('Erro ao verificar cupom. Tente novamente.', 'error');
+      }
+    })();
   });
 
   // Embalagem para presente

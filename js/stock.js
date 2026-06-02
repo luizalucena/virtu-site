@@ -258,7 +258,7 @@ const VirtuStock = (() => {
         temStock = [..._variacoes.values()].some(v => v.tamanho === tam && v.estoque > 0);
       }
       btn.classList.toggle('esgotado',   !temStock);
-      btn.classList.toggle('selecionado', tam === _tamSelecionado);
+      btn.classList.toggle('produto-tamanho--selected', tam === _tamSelecionado);
       btn.disabled = !temStock;
     });
 
