@@ -246,7 +246,7 @@ const VirtuProducts = (() => {
       if (tl1 && b.titulo_linha1) tl1.textContent = b.titulo_linha1;
       if (tl2 && b.titulo_linha2) {
         // Hífen isolado → travessão em span não-itálico (evita o efeito "torto" da fonte itálica)
-        const SEP = '<span style="font-style:normal;font-family:var(--font-body);font-weight:300"> — </span>';
+        const SEP = '<span class="hero__dash"> &#8211; </span>';
         tl2.innerHTML = b.titulo_linha2
           .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // sanitiza
           .replace(/ - /g, SEP);

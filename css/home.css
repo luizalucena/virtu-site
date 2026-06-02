@@ -162,6 +162,16 @@
   text-shadow: 0 2px 24px rgba(0,0,0,0.15);
 }
 
+/* Hífen do título hero — não-itálico para evitar o efeito "torto" */
+.hero__dash {
+  font-style: normal;
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: 0;
+  font-size: 0.85em;
+  vertical-align: middle;
+}
+
 .hero__desc {
   font-size: var(--text-sm);
   color: rgba(255,255,255,0.72);
@@ -205,7 +215,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 3;
+  z-index: 20;
+  pointer-events: auto;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -234,7 +245,7 @@
   bottom: var(--space-8);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 3;
+  z-index: 20;
   display: flex;
   gap: var(--space-3);
 }
