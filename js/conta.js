@@ -121,10 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarName)  sidebarName.textContent = nome;
     // Email permanece oculto (removido do layout)
 
-    // Dados form pre-fill
-    if (dadosNome)  dadosNome.value  = user.user_metadata?.nome     || '';
-    if (dadosTel)   dadosTel.value   = user.user_metadata?.telefone || '';
-    if (dadosEmail) dadosEmail.value = user.email;
+    // Dados form pre-fill (nome e telefone apenas — email só na abertura da aba)
+    if (dadosNome) dadosNome.value = user.user_metadata?.nome     || '';
+    if (dadosTel)  dadosTel.value  = user.user_metadata?.telefone || '';
 
     // Gold dot navbar
     authDot?.classList.add('navbar__account-dot--visible');
@@ -260,7 +259,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   navPedidos?.addEventListener('click', () => showView('pedidos'));
-  navDados?.addEventListener('click',   () => showView('dados'));
+  navDados?.addEventListener('click', async () => {
+    showView('dados');
+    // Preenche o email somente ao abrir a aba — nunca sobrescreve o que o usuário digitou
+    if (dadosEmail && !dadosEmail.dataset.userEdited) {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) dadosEmail.value = user.email;
+    }
+  });
+
+  // Marca o campo como editado pelo usuário para evitar sobrescrita
+  dadosEmail?.addEventListener('input', () => {
+    if (dadosEmail) dadosEmail.dataset.userEdited = '1';
+  });
 
   // ── PEDIDOS ─────────────────────────────────────────────────
   async function loadPedidos(email) {
@@ -388,6 +399,14 @@ document.addEventListener('DOMContentLoaded', () => {
       showMsg(dadosMsg, 'Dados atualizados com sucesso!' + msgEmail, 'ok');
       if (dadosSenha)     dadosSenha.value     = '';
       if (dadosSenhaConf) dadosSenhaConf.value = '';
+
+      // Mantém o email que o usuário digitou no campo (não deixa voltar o antigo)
+      if (dadosEmail && emailMudou) {
+        dadosEmail.value = novoEmail;
+        dadosEmail.dataset.userEdited = '1'; // continua protegido contra sobrescrita
+      } else if (dadosEmail) {
+        delete dadosEmail.dataset.userEdited;
+      }
 
       // Update sidebar name
       const { data: { user } } = await supabaseClient.auth.getUser();
