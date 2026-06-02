@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     accountSection?.removeAttribute('hidden');
 
     // Sidebar
-    const nome = user.user_metadata?.nome || user.email.split('@')[0];
+    const nome = (user.user_metadata?.nome || '').trim() || 'Cliente';
 
     // Iniciais: primeira letra de cada palavra (máx 2)
     const initials = nome
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update sidebar name
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
-        const nomeAtualizado = user.user_metadata?.nome || user.email.split('@')[0];
+        const nomeAtualizado = (user.user_metadata?.nome || '').trim() || 'Cliente';
         if (sidebarName) sidebarName.textContent = nomeAtualizado;
         const newInitials = nomeAtualizado.split(/\s+/).filter(Boolean).slice(0,2).map(w => w.charAt(0).toUpperCase()).join('');
         const initialsEl2 = document.getElementById('sidebarInitials');
