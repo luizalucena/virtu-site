@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
   searchToggleDesktop?.addEventListener('click', openSearch);
   searchClose?.addEventListener('click', closeSearch);
   searchOverlay?.addEventListener('click', e => { if (e.target === searchOverlay) closeSearch(); });
+  searchOverlay?.querySelector('form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const term = searchOverlay.querySelector('.search-overlay__input')?.value.trim();
+    if (term) window.location.href = `catalogo.html?busca=${encodeURIComponent(term)}`;
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeMenu(); closeSearch(); closeSidebar(); }
@@ -150,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeCat  = document.querySelector('.cat-pill--active')?.getAttribute('data-cat') || 'todas';
     const minPrice   = parseInt(priceMin?.value || 0);
     const maxPrice   = parseInt(priceMax?.value || 800);
+    const buscaTerm  = (new URLSearchParams(window.location.search).get('busca') || '').toLowerCase().trim();
 
     // Tamanhos ativos
     const activeSizes = [...document.querySelectorAll('#sizeGrid .size-btn.size-btn--active')]
@@ -182,7 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Nenhum filtro de cor ativo → mostra tudo; senão verifica interseção
       const matchColor = activeColors.length === 0 || activeColors.some(c => colors.includes(c));
 
-      const shouldShow = matchCat && matchPrice && matchSize && matchColor;
+      const nomeProd   = (product.querySelector('.product-card__name')?.textContent || '').toLowerCase();
+      const matchBusca = !buscaTerm || nomeProd.includes(buscaTerm);
+      const shouldShow = matchCat && matchPrice && matchSize && matchColor && matchBusca;
       product.classList.toggle('product-card--hidden', !shouldShow);
       if (shouldShow) visibleCount++;
     });
@@ -292,8 +300,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── INIT PRINCIPAL ─────────────────────────
   async function initProducts() {
-    const params   = new URLSearchParams(window.location.search);
-    const catParam = params.get('cat');
+    const params    = new URLSearchParams(window.location.search);
+    const catParam  = params.get('cat');
+    const buscaParam = params.get('busca');
+    if (buscaParam) {
+      const countEl = document.getElementById('sortCount');
+      if (countEl) countEl.innerHTML = `Resultados para <strong>"${buscaParam}"</strong>`;
+    }
 
     // Carrega TODOS os produtos (sem filtro pré-Supabase para novidades/sale,
     // pois o filtro de pills é feito no cliente via data attributes)

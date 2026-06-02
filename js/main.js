@@ -73,6 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
   searchToggleDesktop?.addEventListener('click', openSearch);
   searchClose?.addEventListener('click', closeSearch);
 
+  // Submeter busca → redireciona para catálogo com ?busca=TERMO
+  searchOverlay?.querySelector('form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const term = searchOverlay.querySelector('.search-overlay__input')?.value.trim();
+    if (term) window.location.href = `catalogo.html?busca=${encodeURIComponent(term)}`;
+  });
+
   // Clicar fora do form fecha
   searchOverlay?.addEventListener('click', (e) => {
     if (e.target === searchOverlay) closeSearch();

@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     (async () => {
       try {
         if (typeof supabaseClient === 'undefined') throw new Error('Supabase não disponível');
-        const { data, error } = await supabaseClient.rpc('validar_cupom', { codigo: code });
+        const { data, error } = await supabaseClient.rpc('validar_cupom', { p_codigo: code });
         if (error || !data || !data.valido) {
           showFeedback('Cupom inválido ou expirado.', 'error');
           return;

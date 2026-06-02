@@ -26,6 +26,9 @@
     } else {
       badge.hidden = true;
     }
+    // Atualiza aria-label do link do carrinho para acessibilidade
+    const cartLink = badge.closest('a[href*="carrinho"]');
+    if (cartLink) cartLink.setAttribute('aria-label', `Carrinho (${count} ${count === 1 ? 'item' : 'itens'})`);
   }
 
   // Atualiza ao carregar a página

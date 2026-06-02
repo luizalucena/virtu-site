@@ -102,6 +102,7 @@ function mostrarLogin() {
   bindLoginEvents();
 }
 
+let _eventsBound = false;
 function mostrarAdmin() {
   const loginScreen = document.getElementById('loginScreen');
   if (loginScreen) {
@@ -110,7 +111,7 @@ function mostrarAdmin() {
   }
   setStatus('info', '⏳ Conectando ao banco de dados…');
   carregarDados();
-  bindEvents();
+  if (!_eventsBound) { bindEvents(); _eventsBound = true; }
 }
 
 // ── AUTH: EVENTOS DE LOGIN ──────────────────
@@ -470,6 +471,11 @@ async function saveProduct() {
   if (btnSave) { btnSave.disabled = true; btnSave.textContent = 'Salvando…'; }
 
   const desconto = parseFloat(document.getElementById('formPrecoDesconto')?.value) || null;
+  if (desconto !== null && desconto >= preco) {
+    toast('O preço de desconto deve ser menor que o preço original.', 'error');
+    document.getElementById('formPrecoDesconto')?.classList.add('error');
+    return;
+  }
   const tamanhos = [...document.querySelectorAll('.admin-size-check input:checked')].map(cb => cb.value);
 
   // Preserva cores do produto existente

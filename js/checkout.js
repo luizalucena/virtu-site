@@ -63,12 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (itemsEl) {
       itemsEl.innerHTML = cart.map(item => {
-        const bg = item.imagem_placeholder
-          ? `background:${item.imagem_placeholder}`
-          : 'background:linear-gradient(135deg,#E8E0D5,#D4CCC0)';
+        const imgStyle = item.imagem_url
+          ? `background:url('${item.imagem_url}') center/cover no-repeat`
+          : item.imagem_placeholder
+            ? `background:${item.imagem_placeholder}`
+            : 'background:linear-gradient(135deg,#E8E0D5,#D4CCC0)';
         return `
           <div class="checkout-order-item">
-            <div class="checkout-order-item__img" style="${bg}"></div>
+            <div class="checkout-order-item__img" style="${imgStyle}"></div>
             <div class="checkout-order-item__info">
               <p class="checkout-order-item__name">${item.nome || 'Produto'}</p>
               <p class="checkout-order-item__meta">${[item.cor_nome, item.tamanho].filter(Boolean).join(' · ')} · Qtd: ${item.qty || 1}</p>
@@ -262,14 +264,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderOrderSummary(getCart());
     await initCupom(); // campo de cupom no resumo do pedido
 
-    // Pré-preenche cupom aplicado no carrinho
+    // Auto-aplica cupom validado no carrinho
     try {
       const savedCoupon = JSON.parse(localStorage.getItem('virtu_coupon') || 'null');
-      if (savedCoupon?.code) {
+      if (savedCoupon?.code && savedCoupon?.pct) {
         const input = document.getElementById('cupomInput');
-        if (input && !input.value) {
-          input.value = savedCoupon.code;
+        if (input) input.value = savedCoupon.code;
+        // Aplica o desconto diretamente sem re-validar (já validado no carrinho)
+        cupomAplicado = { codigo: savedCoupon.code, tipo: 'percentual', valor: savedCoupon.pct };
+        const msgEl = document.getElementById('cupomMsg');
+        if (msgEl) {
+          msgEl.textContent = `✓ Cupom ${savedCoupon.code} aplicado — ${savedCoupon.pct}% de desconto`;
+          msgEl.style.color = '#27ae60';
+          msgEl.style.display = 'block';
         }
+        renderOrderSummary(getCart());
       }
     } catch {}
   })();
@@ -326,6 +335,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!firstName || !lastName || !email || !cpf || !phone) {
       highlightEmptyFields(['firstName', 'lastName', 'email', 'cpf', 'phone']);
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showFreteMsg('E-mail inválido.', 'error');
+      document.getElementById('email')?.classList.add('error');
+      return;
+    }
+    if (cpf.replace(/\D/g, '').length !== 11) {
+      showFreteMsg('CPF inválido — informe os 11 dígitos.', 'error');
+      document.getElementById('cpf')?.classList.add('error');
+      return;
+    }
+    if (phone.replace(/\D/g, '').length < 10) {
+      showFreteMsg('Telefone inválido.', 'error');
+      document.getElementById('phone')?.classList.add('error');
       return;
     }
 
@@ -613,18 +637,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Garante que o frete foi calculado e CEP é do Nordeste
+    // Garante que o frete foi calculado
     const cepRaw = document.getElementById('cep')?.value.replace(/\D/g, '');
     if (!cepRaw) { alert('Informe o CEP de entrega.'); goToStep(2); return; }
-    const ufEntrega = document.getElementById('state')?.value || '';
-    if (!NORDESTE_STATES.includes(ufEntrega)) {
-      alert('No momento, entregamos apenas para estados do Nordeste.'); goToStep(2); return;
-    }
-    // Cupom de frete grátis só vale para João Pessoa cidade
-    const cepNumFinal = parseInt(cepRaw, 10);
-    if (cupomAplicado?.tipo === 'frete' && !(cepNumFinal >= CEP_JP_MIN && cepNumFinal <= CEP_JP_MAX)) {
-      alert('O cupom de frete grátis (FRETEGRATIS) é válido apenas para entregas em João Pessoa (CEPs 58000‑58099).\nRemova o cupom ou altere o endereço de entrega.'); goToStep(2); return;
-    }
+    if (!freteCalculado) { alert('Calcule o frete antes de continuar.'); goToStep(2); return; }
 
     btn.innerHTML = 'Processando…';
     btn.disabled  = true;

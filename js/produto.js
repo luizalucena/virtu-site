@@ -76,7 +76,7 @@ async function carregarProduto(produtoId) {
     // Categoria (overline)
     const catEl = document.querySelector('[data-produto-categoria]');
     if (catEl) {
-      catEl.textContent = cap(p.categoria || '') + (p.nova_colecao ? ' · Nova Coleção' : '');
+      catEl.textContent = cap(p.categoria || '') + (p.novidade ? ' · Nova Coleção' : '');
     }
 
     // Nome H1
@@ -248,7 +248,7 @@ async function renderPecasRelacionadas(currentId, categoria) {
     // 1) Busca até 4 da mesma categoria, excluindo o atual
     let { data: rel } = await supabaseClient
       .from('produtos')
-      .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, nova_colecao, destaque')
+      .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, novidade, destaque')
       .eq('ativo', true)
       .eq('categoria', categoria)
       .neq('id', currentId)
@@ -261,7 +261,7 @@ async function renderPecasRelacionadas(currentId, categoria) {
       const excludeIds = [currentId, ...rel.map(p => p.id)];
       const { data: extra } = await supabaseClient
         .from('produtos')
-        .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, nova_colecao, destaque')
+        .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, novidade, destaque')
         .eq('ativo', true)
         .not('id', 'in', `(${excludeIds.map(i => `"${i}"`).join(',')})`)
         .limit(4 - rel.length);
@@ -275,7 +275,7 @@ async function renderPecasRelacionadas(currentId, categoria) {
       const bg     = p.imagem_url
         ? `url('${p.imagem_url}') center/cover no-repeat`
         : (p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)');
-      const badge  = p.nova_colecao
+      const badge  = p.novidade
         ? `<span class="product-card__badge">Novo</span>`
         : p.destaque
           ? `<span class="product-card__badge">Mais Vendido</span>`
@@ -574,7 +574,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const preco = parseFloat(document.querySelector('[data-preco]')?.dataset?.preco) || 0;
     const cor   = document.querySelector('#coresContainer .produto-cor--active')
                     ?.getAttribute('aria-label') || selectedColor || '';
-    const imgBg = document.getElementById('mainPlaceholder')?.style?.background || '';
+    const imgBg  = document.getElementById('mainPlaceholder')?.style?.background || '';
+    const imgUrl = document.querySelector('#mainImg img')?.src || '';
 
     let cart = [];
     try { cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch {}
@@ -591,6 +592,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         tamanho:             selectedSize,
         cor_nome:            cor,
         preco,
+        imagem_url:          imgUrl,
         imagem_placeholder:  imgBg,
         qty:                 1
       });
