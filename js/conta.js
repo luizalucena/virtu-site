@@ -369,15 +369,23 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled    = true;
     btn.textContent = 'Salvando…';
 
+    const novoEmail = dadosEmail?.value.trim();
+    const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
+    const emailMudou = novoEmail && novoEmail !== currentUser?.email;
+
     const updates = { data: { nome, telefone } };
-    if (senha) updates.password = senha;
+    if (senha)      updates.password = senha;
+    if (emailMudou) updates.email    = novoEmail;
 
     const { error } = await supabaseClient.auth.updateUser(updates);
 
     if (error) {
       showMsg(dadosMsg, error.message, 'erro');
     } else {
-      showMsg(dadosMsg, 'Dados atualizados com sucesso!', 'ok');
+      const msgEmail = emailMudou
+        ? ' Verifique o novo e-mail para confirmar a alteração.'
+        : '';
+      showMsg(dadosMsg, 'Dados atualizados com sucesso!' + msgEmail, 'ok');
       if (dadosSenha)     dadosSenha.value     = '';
       if (dadosSenhaConf) dadosSenhaConf.value = '';
 

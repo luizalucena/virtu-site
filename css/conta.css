@@ -213,11 +213,7 @@
   border-bottom-color: var(--color-gold, #c4934a);
 }
 
-.conta-form__input[readonly] {
-  color: var(--color-text-light, #aaa);
-  cursor: not-allowed;
-  border-bottom-style: dashed;
-}
+/* campo readonly (removido do fluxo de dados — mantido para outros usos) */
 
 .conta-form__input::placeholder { color: #ccc; }
 
