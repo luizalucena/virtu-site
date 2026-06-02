@@ -103,10 +103,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sidebar
     const nome = user.user_metadata?.nome || user.email.split('@')[0];
-    const initial = nome.charAt(0).toUpperCase();
-    if (sidebarInitial) sidebarInitial.textContent = initial;
-    if (sidebarName)    sidebarName.textContent    = nome;
-    if (sidebarEmail)   sidebarEmail.textContent   = user.email;
+
+    // Iniciais: primeira letra de cada palavra (máx 2)
+    const initials = nome
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(w => w.charAt(0).toUpperCase())
+      .join('');
+
+    // Troca o ícone pelas iniciais
+    const icon     = document.getElementById('sidebarIcon');
+    const initialsEl = document.getElementById('sidebarInitials');
+    if (icon)       icon.style.display     = 'none';
+    if (initialsEl) { initialsEl.textContent = initials; initialsEl.style.display = 'inline'; }
+
+    if (sidebarName)  sidebarName.textContent = nome;
+    // Email permanece oculto (removido do layout)
 
     // Dados form pre-fill
     if (dadosNome)  dadosNome.value  = user.user_metadata?.nome     || '';
@@ -371,8 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update sidebar name
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
-        if (sidebarName) sidebarName.textContent = user.user_metadata?.nome || user.email.split('@')[0];
-        if (sidebarInitial) sidebarInitial.textContent = (user.user_metadata?.nome || user.email).charAt(0).toUpperCase();
+        const nomeAtualizado = user.user_metadata?.nome || user.email.split('@')[0];
+        if (sidebarName) sidebarName.textContent = nomeAtualizado;
+        const newInitials = nomeAtualizado.split(/\s+/).filter(Boolean).slice(0,2).map(w => w.charAt(0).toUpperCase()).join('');
+        const initialsEl2 = document.getElementById('sidebarInitials');
+        if (initialsEl2) initialsEl2.textContent = newInitials;
       }
     }
 
