@@ -259,13 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   navPedidos?.addEventListener('click', () => showView('pedidos'));
-  navDados?.addEventListener('click', async () => {
+  navDados?.addEventListener('click', () => {
     showView('dados');
-    // Preenche o email somente ao abrir a aba — nunca sobrescreve o que o usuário digitou
-    if (dadosEmail && !dadosEmail.dataset.userEdited) {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) dadosEmail.value = user.email;
-    }
+    // Email não é preenchido automaticamente — cliente digita se quiser alterar
   });
 
   // Marca o campo como editado pelo usuário para evitar sobrescrita
@@ -381,6 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.textContent = 'Salvando…';
 
     const novoEmail = dadosEmail?.value.trim();
+    // Só altera email se o campo foi preenchido com um valor diferente do atual
     const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
     const emailMudou = novoEmail && novoEmail !== currentUser?.email;
 
