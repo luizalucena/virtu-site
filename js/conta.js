@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const dadosSenha    = document.getElementById('dadosSenha');
   const dadosSenhaConf= document.getElementById('dadosSenhaConf');
   const dadosMsg      = document.getElementById('dadosMsg');
-  const formDados     = document.getElementById('formDados');
+  const formDados     = document.getElementById('dadosForm');
 
   // Auth dot (navbar)
   const authDot = document.getElementById('authDot');
@@ -264,12 +264,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (error || !pedidos?.length) {
       pedidosList.innerHTML = `
         <div class="conta-empty">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
           </svg>
-          <p>Você ainda não fez nenhum pedido.</p>
+          <p class="conta-empty__title">Nenhum pedido ainda</p>
+          <p>Explore a coleção e encontre peças que combinam com você.</p>
           <a href="catalogo.html">Ver coleção</a>
         </div>`;
       return;

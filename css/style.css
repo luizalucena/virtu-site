@@ -97,6 +97,9 @@
   padding: 0;
 }
 
+/* Garante que o atributo hidden funcione mesmo com display: flex/grid */
+[hidden] { display: none !important; }
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;
