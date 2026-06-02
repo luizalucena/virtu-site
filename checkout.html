@@ -160,26 +160,13 @@
               </select>
             </div>
 
-            <!-- OPÇÕES DE FRETE — calculadas pelo CEP -->
+            <!-- OPÇÕES DE FRETE — renderizadas dinamicamente pelo Melhor Envio -->
             <div id="freteResult" style="display:none;margin-top:var(--space-4);">
               <fieldset class="shipping-options" aria-label="Escolha o método de entrega">
                 <legend class="shipping-options__legend">Método de entrega</legend>
-                <label class="shipping-option" id="shippingStdOption">
-                  <input type="radio" name="shipping" value="standard" checked class="shipping-option__radio" id="shippingStdRadio" />
-                  <div class="shipping-option__info">
-                    <span class="shipping-option__name">Entrega padrão</span>
-                    <span class="shipping-option__time" id="shippingStdTime">2–4 dias úteis</span>
-                  </div>
-                  <span class="shipping-option__price" id="shippingStdPrice">R$ 10,00</span>
-                </label>
-                <label class="shipping-option">
-                  <input type="radio" name="shipping" value="motoboy" class="shipping-option__radio" />
-                  <div class="shipping-option__info">
-                    <span class="shipping-option__name">Motoboy (João Pessoa)</span>
-                    <span class="shipping-option__time">Hoje, até 20h</span>
-                  </div>
-                  <span class="shipping-option__price">R$ 15,00</span>
-                </label>
+                <div id="freteOpcoes">
+                  <!-- cards injetados por calcularFrete() -->
+                </div>
               </fieldset>
             </div>
             <p id="freteMsg" class="form-hint" style="color:var(--color-error,#c62828);display:none;margin-top:var(--space-3);"></p>

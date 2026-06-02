@@ -376,51 +376,71 @@ document.addEventListener('DOMContentLoaded', () => {
     el.style.color = type === 'error' ? 'var(--color-error, #c62828)' : 'var(--color-success, #2e7d32)';
   }
 
+  const FRETE_EDGE = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/calcular-frete';
+
   async function calcularFrete(cep) {
-    const num         = parseInt(cep.replace(/\D/g, ''), 10);
     const freteResult = document.getElementById('freteResult');
+    const freteOpcoes = document.getElementById('freteOpcoes');
     const freteMsg    = document.getElementById('freteMsg');
-    const uf          = document.getElementById('state')?.value || '';
 
-    if (!NORDESTE_STATES.includes(uf)) {
-      // Estado fora do Nordeste ✗
-      if (freteResult) freteResult.style.display = 'none';
-      showFreteMsg('No momento, entregamos apenas para estados do Nordeste.', 'error');
-      freteBase = 0;
-      updateTotalWithFrete(0);
-      return;
-    }
-
-    // Nordeste válido ✓
-    freteCalculado = true;
+    if (freteOpcoes) freteOpcoes.innerHTML = '<p style="font-size:0.82rem;color:#888;padding:0.5rem 0">Consultando transportadoras…</p>';
     if (freteResult) freteResult.style.display = 'block';
     if (freteMsg)    freteMsg.style.display    = 'none';
 
-    // Motoboy apenas em João Pessoa cidade
-    const isJP = num >= CEP_JP_MIN && num <= CEP_JP_MAX;
-    const motoboyOption = [...document.querySelectorAll('.shipping-option')]
-      .find(el => el.querySelector('[value="motoboy"]'));
-    if (motoboyOption) {
-      motoboyOption.style.display = isJP ? '' : 'none';
+    const subtotal = getCart().reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
+
+    try {
+      const res  = await fetch(FRETE_EDGE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cep, valor: subtotal }),
+      });
+      const data = await res.json();
+
+      if (data.error || !data.opcoes?.length) {
+        if (freteResult) freteResult.style.display = 'none';
+        showFreteMsg(data.error || 'Nenhuma opção de entrega disponível para este CEP.', 'error');
+        freteCalculado = false;
+        return;
+      }
+
+      // Renderiza cards de opção
+      const cards = data.opcoes.map((op, i) => `
+        <label class="shipping-option" style="cursor:pointer;display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1rem;border:1px solid #e8ddd4;border-radius:4px;margin-bottom:0.5rem;background:#fff;transition:border-color 0.15s">
+          <input type="radio" name="shipping" value="${op.id}" class="shipping-option__radio"
+            data-preco="${op.preco}" ${i === 0 ? 'checked' : ''} style="accent-color:#1c2e3e;flex-shrink:0" />
+          <div class="shipping-option__info" style="flex:1;min-width:0">
+            <span class="shipping-option__name" style="display:block;font-size:0.85rem;font-weight:500;color:#1c2e3e">${op.nome}</span>
+            <span class="shipping-option__time" style="display:block;font-size:0.75rem;color:#aaa;margin-top:0.1rem">${op.descricao ? op.descricao + ' · ' : ''}${op.prazo}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span style="font-size:0.9rem;font-weight:600;color:${op.preco === 0 ? '#27ae60' : '#1c2e3e'}">${op.precoFormatado}</span>
+            ${op.precoOriginal ? `<span style="display:block;font-size:0.72rem;color:#aaa;text-decoration:line-through">${op.precoOriginal}</span>` : ''}
+          </div>
+        </label>`).join('');
+
+      if (freteOpcoes) freteOpcoes.innerHTML = cards;
+
+      // Seleciona a primeira opção por padrão
+      const primeira = data.opcoes[0];
+      freteBase = primeira.preco;
+      freteCalculado = true;
+      updateTotalWithFrete(primeira.preco);
+
+      // Listener para troca de opção
+      freteOpcoes?.querySelectorAll('input[name="shipping"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          freteBase = parseFloat(radio.dataset.preco) || 0;
+          updateTotalWithFrete(freteBase);
+        });
+      });
+
+    } catch (err) {
+      console.error('[Frete]', err);
+      if (freteResult) freteResult.style.display = 'none';
+      showFreteMsg('Erro ao calcular frete. Verifique o CEP e tente novamente.', 'error');
+      freteCalculado = false;
     }
-    // Se motoboy estava selecionado mas não está disponível, volta para padrão
-    const motoboyRadio = document.querySelector('[value="motoboy"]');
-    if (motoboyRadio?.checked && !isJP) {
-      const stdRadio = document.querySelector('[value="standard"]');
-      if (stdRadio) stdRadio.checked = true;
-    }
-
-    // Preço padrão: R$10 para João Pessoa, R$18 para restante do Nordeste
-    const fretePadrao = isJP ? FRETE_STANDARD : FRETE_NORDESTE;
-    const stdPriceEl  = document.getElementById('shippingStdPrice');
-    if (stdPriceEl) stdPriceEl.textContent = `R$ ${fretePadrao.toFixed(2).replace('.', ',')}`;
-
-    // Delivery time hint
-    const stdTimeEl = document.getElementById('shippingStdTime');
-    if (stdTimeEl) stdTimeEl.textContent = isJP ? '2–4 dias úteis' : '5–10 dias úteis';
-
-    freteBase = fretePadrao;
-    updateTotalWithFrete(fretePadrao);
   }
 
   document.getElementById('lookupCep')?.addEventListener('click', async () => {
@@ -459,20 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await calcularFrete(cep);
   });
 
-  // Atualiza frete ao trocar opção de envio
-  document.addEventListener('change', e => {
-    if (e.target.name === 'shipping') {
-      const val = e.target.value;
-      const cepNum2 = parseInt((document.getElementById('cep')?.value || '').replace(/\D/g, ''), 10);
-      const isJP2   = cepNum2 >= CEP_JP_MIN && cepNum2 <= CEP_JP_MAX;
-      if (val === 'motoboy') {
-        freteBase = FRETE_MOTOBOY;
-      } else {
-        freteBase = isJP2 ? FRETE_STANDARD : FRETE_NORDESTE;
-      }
-      updateTotalWithFrete(freteBase);
-    }
-  });
+  // Troca de opção de frete agora tratada dentro de calcularFrete() por listener dinâmico
 
   // Formata CEP
   document.getElementById('cep')?.addEventListener('input', function () {
