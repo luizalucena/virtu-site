@@ -480,13 +480,17 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
   <footer class="footer" role="contentinfo">
     <div class="container">
       <div class="footer__grid">
+
+        <!-- Coluna 1: Marca -->
         <div>
           <div class="footer__brand-logo">
             <img src="images/logo-concha.png" alt="" width="28" height="22" aria-hidden="true" style="filter:brightness(0) invert(1);opacity:0.85" />
             <span class="footer__logo-text">VIRTÙ</span>
           </div>
           <p class="footer__tagline">há virtude no vestir</p>
-          <p class="footer__desc" style="margin-top:var(--space-4)">Moda feminina que une o clássico ao contemporâneo. Peças pensadas para durar — no tecido, no corte e no significado.</p>
+          <p class="footer__desc" style="margin-top:var(--space-4);">
+            Moda feminina que une o clássico ao contemporâneo. Peças pensadas para durar — no tecido, no corte e no significado.
+          </p>
           <div class="footer__socials">
             <a href="https://instagram.com/wear.virtu" class="footer__social-btn" aria-label="Instagram" target="_blank" rel="noopener">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -499,20 +503,24 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
             </a>
           </div>
         </div>
+
+        <!-- Coluna 2 -->
         <div>
           <p class="footer__col-title">Loja</p>
-          <nav class="footer__links">
+          <nav class="footer__links" aria-label="Links da loja">
             <a href="catalogo.html?cat=novidades" class="footer__link">Novidades</a>
             <a href="catalogo.html?cat=vestidos" class="footer__link">Vestidos</a>
             <a href="catalogo.html?cat=blusas" class="footer__link">Blusas</a>
             <a href="catalogo.html?cat=calcas" class="footer__link">Calças</a>
             <a href="catalogo.html?cat=essenciais" class="footer__link">Essenciais</a>
-            <a href="catalogo.html?cat=sale" class="footer__link" style="color:var(--color-gold)">Sale ✦</a>
+            <a href="catalogo.html?cat=sale" class="footer__link" style="color:var(--color-gold);">Sale ✦</a>
           </nav>
         </div>
+
+        <!-- Coluna 3 -->
         <div>
           <p class="footer__col-title">Ajuda</p>
-          <nav class="footer__links">
+          <nav class="footer__links" aria-label="Links de ajuda">
             <a href="politicas.html#como-funciona" class="footer__link">Como funciona</a>
             <a href="politicas.html#trocas" class="footer__link">Trocas e devoluções</a>
             <a href="politicas.html#tamanhos" class="footer__link">Guia de tamanhos</a>
@@ -520,23 +528,30 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
             <a href="contato.html" class="footer__link">Fale conosco</a>
           </nav>
         </div>
+
+        <!-- Coluna 4 -->
         <div>
           <p class="footer__col-title">Virtù</p>
-          <nav class="footer__links">
+          <nav class="footer__links" aria-label="Links institucionais">
             <a href="sobre.html" class="footer__link">Nossa história</a>
-            <a href="politicas.html#sustentabilidade" class="footer__link">Sustentabilidade</a>
-            <a href="politicas.html#trabalhe-conosco" class="footer__link">Trabalhe conosco</a>
             <a href="politicas.html#privacidade" class="footer__link">Política de privacidade</a>
           </nav>
-          <div style="margin-top:var(--space-6)">
+          <div style="margin-top:var(--space-6);">
             <p class="footer__col-title">Atendimento</p>
-            <a href="https://wa.me/5583999947734" class="footer__link" target="_blank" rel="noopener">WhatsApp</a>
+            <nav class="footer__links">
+              <a href="https://wa.me/5583999947734" class="footer__link" target="_blank" rel="noopener">WhatsApp</a>
+              <a href="contato.html" class="footer__link">Fale conosco</a>
+            </nav>
           </div>
         </div>
-      </div>
+
+      </div><!-- /footer__grid -->
+
       <div class="footer__bottom">
         <p class="footer__copy">© 2026 Virtù. Todos os direitos reservados.</p>
-        <span style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Visa · Mastercard · Pix</span>
+        <div class="footer__payments" aria-label="Formas de pagamento aceitas">
+          <span style="font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; text-transform:uppercase;">Visa · Mastercard · Pix · Boleto</span>
+        </div>
       </div>
     </div>
   </footer>
