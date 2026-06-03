@@ -259,6 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ── REDIRECIONA SE CARRINHO VAZIO ────────────────────────
+  if (getCart().length === 0) {
+    window.location.href = 'carrinho.html';
+  }
+
   // ── CARREGA DADOS INICIAIS DO SUPABASE ───────────────────
   (async () => {
     renderOrderSummary(getCart());
@@ -738,6 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Limpa carrinho
       localStorage.removeItem('virtu_cart');
       localStorage.removeItem('virtu_gift');
+      localStorage.removeItem('virtu_coupon');
       if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
 
       // ── PIX: exibe QR Code ───────────────────────

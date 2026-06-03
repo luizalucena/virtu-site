@@ -113,7 +113,17 @@
       window.supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           _user = session.user;
+          // Salva favoritos locais no Supabase antes de sobrescrever com dados do servidor
+          const localFavs = lsGet();
           await carregarDoSupabase(session.user.id);
+          // Sincroniza localStorage → Supabase (itens favoritos antes de fazer login)
+          for (const id of localFavs) {
+            if (!_favoritos.has(id)) {
+              _favoritos.add(id);
+              adicionarNoSupabase(id);
+            }
+          }
+          lsSet(_favoritos);
         } else {
           _user = null;
           _favoritos = lsGet();

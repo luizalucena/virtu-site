@@ -295,7 +295,7 @@ async function renderPecasRelacionadas(currentId, categoria) {
           <div class="product-card__image-wrap">
             <div class="product-card__placeholder" style="background:${bg};width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${label}</div>
             ${badge}
-            <button class="product-card__wishlist" aria-label="Favoritar">${heartSVG}</button>
+            <button class="product-card__wishlist" data-wishlist-id="${p.id}" aria-label="Adicionar aos favoritos" aria-pressed="false">${heartSVG}</button>
             <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
           </div>
           <div class="product-card__info">
@@ -308,13 +308,8 @@ async function renderPecasRelacionadas(currentId, categoria) {
 
     grid.innerHTML = rel.map(cardHTML).join('');
 
-    // Handlers dinâmicos — wishlist e quick-add
-    grid.querySelectorAll('.product-card__wishlist').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.preventDefault(); e.stopPropagation();
-        btn.classList.toggle('active');
-      });
-    });
+    // wishlist.js gerencia os corações via event delegation global
+    // Quick-add:
     grid.querySelectorAll('.product-card__quick-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
@@ -640,20 +635,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   buyNowBtn?.addEventListener('click', () => validateAndAdd(true));
   stickyAddBtn?.addEventListener('click', () => validateAndAdd(true));
 
-  // ── WISHLIST ───────────────────────────────
-  const wishlistBtn = document.getElementById('wishlistBtn');
-  wishlistBtn?.addEventListener('click', () => {
-    wishlistBtn.classList.toggle('active');
-    const isActive = wishlistBtn.classList.contains('active');
-    wishlistBtn.setAttribute('aria-label', isActive ? 'Remover da lista de desejos' : 'Adicionar à lista de desejos');
-    wishlistBtn.innerHTML = isActive ? '♥' : '♡';
-
-    // Mini feedback
-    wishlistBtn.animate([
-      { transform: 'scale(1.3)' },
-      { transform: 'scale(1)' }
-    ], { duration: 300, easing: 'ease-out' });
-  });
+  // wishlist.js gerencia o coração via event delegation global
 
   // ── ACCORDION ──────────────────────────────
   document.querySelectorAll('.accordion-header').forEach(trigger => {
@@ -717,40 +699,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  document.getElementById('bundleAddBtn')?.addEventListener('click', () => {
-    const selected = [...document.querySelectorAll('.bundle-check')].filter(cb => cb.checked).length;
-    if (selected === 0) return;
-    cartCount += selected;
-    if (cartBadge) cartBadge.textContent = cartCount;
-
-    const btn = document.getElementById('bundleAddBtn');
-    if (btn) {
-      const orig = btn.innerHTML;
-      btn.innerHTML = `✓ ${selected} ${selected === 1 ? 'peça adicionada' : 'peças adicionadas'}!`;
-      btn.disabled = true;
-      setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 2000);
-    }
-  });
-
-  // ── QUICK ADD (PEÇAS RELACIONADAS) ─────────
-  document.querySelectorAll('.product-card__quick-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation();
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✓ Adicionado!';
-      btn.style.cssText = 'background:var(--color-navy);color:white;';
-      cartCount++;
-      if (cartBadge) cartBadge.textContent = cartCount;
-      setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1400);
-    });
-  });
-
-  document.querySelectorAll('.product-card__wishlist').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation();
-      btn.classList.toggle('active');
-    });
-  });
+  // bundleAddBtn e bundle-check: HTML removido — sem dead code aqui
+  // wishlist.js e initCardEvents em products.js gerenciam os cards de peças relacionadas
 
   // ── SCROLL REVEAL ──────────────────────────
   const revealObs = new IntersectionObserver(entries => {

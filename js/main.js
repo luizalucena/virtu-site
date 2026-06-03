@@ -161,18 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ──────────────────────────────────────────
-  // 6. WISHLIST TOGGLE
-  // ──────────────────────────────────────────
-  document.querySelectorAll('.product-card__wishlist').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      btn.classList.toggle('active');
-      const isActive = btn.classList.contains('active');
-      btn.setAttribute('aria-label', isActive ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
-    });
-  });
+  // Wishlist: gerenciado pelo wishlist.js via event delegation global
 
   // ──────────────────────────────────────────
   // 7. PRODUCT SWATCH SELECTION

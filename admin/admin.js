@@ -453,6 +453,7 @@ function resetForm() {
   document.getElementById('discountPreview').textContent   = '—';
   document.querySelectorAll('.admin-size-check input').forEach(cb => cb.checked = false);
   document.querySelectorAll('.admin-input.error').forEach(el => el.classList.remove('error'));
+  buildGaleriaRows([]); // Limpa inputs de galeria
 }
 
 // ── SALVAR PRODUTO NO SUPABASE ──────────────

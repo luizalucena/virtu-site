@@ -754,6 +754,8 @@ h4 { font-size: var(--text-lg); }
   opacity: 0;
   transition: all var(--transition-fast);
   cursor: pointer;
+  z-index: 2;
+  border: none;
 }
 
 .product-card__wishlist svg {
@@ -771,7 +773,8 @@ h4 { font-size: var(--text-lg); }
   stroke: var(--color-gold);
 }
 
-.product-card:hover .product-card__wishlist {
+.product-card:hover .product-card__wishlist,
+.product-card__wishlist.active {
   opacity: 1;
 }
 

@@ -297,14 +297,7 @@ const VirtuProducts = (() => {
 
   /* ── EVENTOS DOS CARDS ────────────────────── */
   function initCardEvents(container) {
-    // Wishlist toggle
-    container.querySelectorAll('.product-card__wishlist').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.preventDefault(); e.stopPropagation();
-        btn.classList.toggle('active');
-        btn.animate([{ transform:'scale(1.3)' },{ transform:'scale(1)' }], { duration:300, easing:'ease-out' });
-      });
-    });
+    // Wishlist: gerenciado pelo wishlist.js via event delegation global (sem stopPropagation)
 
     // Quick add
     container.querySelectorAll('.product-card__quick-btn').forEach(btn => {
