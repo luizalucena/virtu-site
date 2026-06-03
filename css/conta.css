@@ -686,3 +686,138 @@
 }
 
 .navbar__account-dot--visible { display: block; }
+
+/* ────────────────────────────────────────────────────────────
+   FAVORITOS
+──────────────────────────────────────────────────────────── */
+.favoritos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.favorito-card {
+  background: #fff;
+  border: 1px solid var(--color-border, #e8ddd4);
+  transition: box-shadow 0.2s;
+}
+
+.favorito-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+.favorito-card__img {
+  display: block;
+  position: relative;
+  aspect-ratio: 3/4;
+  background: #ede5da;
+  overflow: hidden;
+}
+
+.favorito-card__remove {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0392b;
+  transition: background 0.15s, transform 0.15s;
+  z-index: 1;
+}
+
+.favorito-card__remove:hover {
+  background: #fff;
+  transform: scale(1.1);
+}
+
+.favorito-card__info {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.favorito-card__cat {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-light, #aaa);
+  margin-bottom: 0.25rem;
+}
+
+.favorito-card__nome {
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+.favorito-card__nome a {
+  color: var(--color-navy, #1c2e3e);
+  text-decoration: none;
+}
+
+.favorito-card__nome a:hover { text-decoration: underline; }
+
+.favorito-card__preco {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.favorito-card__preco-atual {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-navy, #1c2e3e);
+}
+
+.favorito-card__preco-orig {
+  font-size: 0.75rem;
+  color: var(--color-text-light, #aaa);
+  text-decoration: line-through;
+}
+
+.favorito-card__btn {
+  display: block;
+  text-align: center;
+  padding: 0.55rem;
+  background: var(--color-navy, #1c2e3e);
+  color: #fff;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-family: var(--font-sans, 'Jost', sans-serif);
+  transition: background 0.2s;
+}
+
+.favorito-card__btn:hover { background: #0f1d28; }
+
+@media (max-width: 600px) {
+  .favoritos-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+}
+
+/* Coração ativo nos cards do catálogo */
+.product-card__wishlist {
+  cursor: pointer;
+  background: rgba(255,255,255,0.85);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.product-card__wishlist:hover { background: #fff; transform: scale(1.1); }
+
+.product-card__wishlist.active svg {
+  fill: #c0392b;
+  stroke: #c0392b;
+  color: #c0392b;
+}

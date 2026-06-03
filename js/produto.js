@@ -145,6 +145,14 @@ async function carregarProduto(produtoId) {
     if (stickyName)  stickyName.textContent  = p.nome;
     if (stickyPrice) stickyPrice.textContent = fmt(preco);
 
+    // Coração de favorito — atribui ID para o wishlist.js reconhecer
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    if (wishlistBtn) {
+      wishlistBtn.dataset.wishlistId = p.id;
+      // Atualiza visual se já carregado
+      if (window.VirtuWishlist) window.VirtuWishlist.atualizarBotoes(p.id);
+    }
+
     // Galeria de imagens — monta thumbnails dinamicamente
     const imagens = (Array.isArray(p.imagens) && p.imagens.length
       ? p.imagens

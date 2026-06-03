@@ -21,14 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarEmail   = document.getElementById('sidebarEmail');
 
   // Nav buttons
-  const navPedidos = document.getElementById('navPedidos');
-  const navDados   = document.getElementById('navDados');
-  const navLogout  = document.getElementById('navLogout');
+  const navPedidos   = document.getElementById('navPedidos');
+  const navFavoritos = document.getElementById('navFavoritos');
+  const navDados     = document.getElementById('navDados');
+  const navLogout    = document.getElementById('navLogout');
 
   // Content views
-  const viewPedidos = document.getElementById('viewPedidos');
-  const viewDados   = document.getElementById('viewDados');
-  const pedidosList = document.getElementById('pedidosList');
+  const viewPedidos   = document.getElementById('viewPedidos');
+  const viewFavoritos = document.getElementById('viewFavoritos');
+  const viewDados     = document.getElementById('viewDados');
+  const pedidosList   = document.getElementById('pedidosList');
 
   // Dados form
   const dadosNome     = document.getElementById('dadosNome');
@@ -244,14 +246,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── VIEW SWITCH ─────────────────────────────────────────────
   function showView(view) {
     viewPedidos?.setAttribute('hidden', '');
+    viewFavoritos?.setAttribute('hidden', '');
     viewDados?.setAttribute('hidden', '');
 
     navPedidos?.classList.remove('conta-nav__item--active');
+    navFavoritos?.classList.remove('conta-nav__item--active');
     navDados?.classList.remove('conta-nav__item--active');
 
     if (view === 'pedidos') {
       viewPedidos?.removeAttribute('hidden');
       navPedidos?.classList.add('conta-nav__item--active');
+    } else if (view === 'favoritos') {
+      viewFavoritos?.removeAttribute('hidden');
+      navFavoritos?.classList.add('conta-nav__item--active');
     } else if (view === 'dados') {
       viewDados?.removeAttribute('hidden');
       navDados?.classList.add('conta-nav__item--active');
@@ -259,6 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   navPedidos?.addEventListener('click', () => showView('pedidos'));
+
+  navFavoritos?.addEventListener('click', async () => {
+    showView('favoritos');
+    await loadFavoritos();
+  });
+
   navDados?.addEventListener('click', () => {
     showView('dados');
     // Email não é preenchido automaticamente — cliente digita se quiser alterar
@@ -351,6 +364,94 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       </div>`;
+  }
+
+  // ── FAVORITOS ────────────────────────────────────────────────
+  async function loadFavoritos() {
+    const el = document.getElementById('favoritosList');
+    if (!el) return;
+
+    el.innerHTML = '<p style="color:var(--color-text-light);font-size:0.88rem;padding:1rem 0">Carregando favoritos…</p>';
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+
+    const { data: favs, error } = await supabaseClient
+      .from('favoritos')
+      .select('produto_id, criado_em')
+      .eq('user_id', user.id)
+      .order('criado_em', { ascending: false });
+
+    if (error || !favs?.length) {
+      el.innerHTML = `
+        <div class="conta-empty">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <p class="conta-empty__title">Nenhum favorito ainda</p>
+          <p>Clique no coração nas peças que você gostar para salvá-las aqui.</p>
+          <a href="catalogo.html">Explorar coleção</a>
+        </div>`;
+      return;
+    }
+
+    // Busca dados dos produtos favoritos
+    const ids = favs.map(f => f.produto_id);
+    const { data: produtos } = await supabaseClient
+      .from('produtos')
+      .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder')
+      .in('id', ids)
+      .eq('ativo', true);
+
+    if (!produtos?.length) {
+      el.innerHTML = `<p style="color:var(--color-text-light);font-size:0.85rem">Alguns produtos favoritos podem ter sido removidos da loja.</p>`;
+      return;
+    }
+
+    const fmt = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+    el.innerHTML = `<div class="favoritos-grid">${produtos.map(p => {
+      const preco = p.preco_desconto ?? p.preco_original;
+      const temDesc = !!p.preco_desconto;
+      const img = p.imagem_url
+        ? `background:url('${p.imagem_url}') center/cover no-repeat`
+        : `background:${p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)'}`;
+      return `
+        <div class="favorito-card">
+          <a href="produto.html?id=${p.id}" class="favorito-card__img" style="${img}">
+            <button class="favorito-card__remove" data-wishlist-id="${p.id}"
+              aria-label="Remover dos favoritos" aria-pressed="true"
+              title="Remover dos favoritos">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+          </a>
+          <div class="favorito-card__info">
+            <p class="favorito-card__cat">${(p.categoria || '').charAt(0).toUpperCase() + (p.categoria || '').slice(1)}</p>
+            <h3 class="favorito-card__nome"><a href="produto.html?id=${p.id}">${p.nome}</a></h3>
+            <div class="favorito-card__preco">
+              <span class="favorito-card__preco-atual">${fmt(preco)}</span>
+              ${temDesc ? `<span class="favorito-card__preco-orig">${fmt(p.preco_original)}</span>` : ''}
+            </div>
+            <a href="produto.html?id=${p.id}" class="favorito-card__btn">Ver peça</a>
+          </div>
+        </div>`;
+    }).join('')}</div>`;
+
+    // Atualiza corações (todos marcados como ativos) e adiciona listener para remover
+    el.querySelectorAll('.favorito-card__remove').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = btn.dataset.wishlistId;
+        if (window.VirtuWishlist) await window.VirtuWishlist.toggle(id);
+        // Remove o card da tela imediatamente
+        btn.closest('.favorito-card')?.remove();
+        // Se não há mais favoritos, mostra estado vazio
+        if (!el.querySelector('.favorito-card')) await loadFavoritos();
+      });
+    });
   }
 
   // ── DADOS PESSOAIS ───────────────────────────────────────────
