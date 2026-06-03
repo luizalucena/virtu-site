@@ -7,7 +7,7 @@
 const CART_KEY    = 'virtu_cart';
 // Cupons validados via Supabase (não exponha códigos no frontend)
 
-let freeShippingThreshold = 300;  // sobrescrito pelo Supabase
+let freeShippingThreshold = 699;  // R$699 = frete grátis em todo o Brasil (sobrescrito pelo Supabase se configurado)
 let discount              = 0;
 let appliedCoupon         = null;
 let giftWrap              = false;
@@ -240,11 +240,11 @@ function updateSummary() {
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
     if (isFree && baseParaFrete > 0) {
-      text.textContent = '🎉 Frete grátis para João Pessoa!';
+      text.textContent = '🎉 Frete grátis em todo o Brasil!';
       text.style.color = '#2e7d32';
     } else if (baseParaFrete > 0) {
       const remaining = freeShippingThreshold - baseParaFrete;
-      text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis (João Pessoa)`;
+      text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis em todo o Brasil`;
       text.style.color = '';
     } else {
       text.textContent = '';
