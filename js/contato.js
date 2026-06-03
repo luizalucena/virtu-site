@@ -165,12 +165,19 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Simula assinatura
-    setTimeout(() => {
+    // Salva no Supabase
+    (async () => {
+      try {
+        if (typeof supabaseClient !== 'undefined') {
+          await supabaseClient
+            .from('newsletter_inscritos')
+            .upsert({ email }, { onConflict: 'email' });
+        }
+      } catch (_) {}
       const success = document.getElementById('nlSuccess');
       if (success) success.hidden = false;
       this.reset();
-    }, 800);
+    })();
   });
 
   // ── SCROLL REVEAL ──────────────────────────

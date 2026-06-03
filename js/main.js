@@ -206,7 +206,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Simula envio
+    // Salva no Supabase
+    (async () => {
+      try {
+        if (typeof supabaseClient !== 'undefined') {
+          await supabaseClient
+            .from('newsletter_inscritos')
+            .upsert({ email }, { onConflict: 'email' });
+        }
+      } catch (_) { /* erro silencioso — mostra sucesso de qualquer forma */ }
+    })();
     newsletterForm.hidden = true;
     if (newsletterSuccess) newsletterSuccess.hidden = false;
   });

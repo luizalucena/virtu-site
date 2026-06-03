@@ -634,11 +634,11 @@ function populateConfig() {
         <p style="font-size:0.8rem;color:#888;margin-bottom:0.5rem">Card ${i+1}</p>
         <div class="admin-form-group">
           <label class="admin-label">Título</label>
-          <input type="text" class="admin-input" id="cfgDif${i}Titulo" value="${d.titulo||''}" />
+          <input type="text" class="admin-input" id="cfgDif${i}Titulo" value="${escHtml(d.titulo||'')}" />
         </div>
         <div class="admin-form-group">
           <label class="admin-label">Descrição</label>
-          <input type="text" class="admin-input" id="cfgDif${i}Desc" value="${d.descricao||''}" />
+          <input type="text" class="admin-input" id="cfgDif${i}Desc" value="${escHtml(d.descricao||'')}" />
         </div>
       </div>`).join('');
   }
@@ -652,7 +652,7 @@ function populateConfig() {
         <p style="font-size:0.8rem;color:#888;margin-bottom:0.5rem">Pergunta ${i+1}</p>
         <div class="admin-form-group">
           <label class="admin-label">Pergunta</label>
-          <input type="text" class="admin-input" id="cfgFaq${i}P" value="${f.pergunta||''}" />
+          <input type="text" class="admin-input" id="cfgFaq${i}P" value="${escHtml(f.pergunta||'')}" />
         </div>
         <div class="admin-form-group">
           <label class="admin-label">Resposta</label>

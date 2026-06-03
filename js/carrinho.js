@@ -10,6 +10,9 @@ const CART_KEY    = 'virtu_cart';
 let freeShippingThreshold = 699;  // R$699 = frete grátis em todo o Brasil (sobrescrito pelo Supabase se configurado)
 let discount              = 0;
 let appliedCoupon         = null;
+let appliedPct            = 0;    // % do cupom ativo (para recalcular ao remover item)
+let appliedTipo           = null; // tipo do cupom ativo
+let appliedValorFixo      = 0;    // valor fixo do cupom ativo
 let giftWrap              = false;
 let giftWrapPrice         = 15;   // sobrescrito pelo Supabase
 
@@ -203,7 +206,15 @@ function updateSummary() {
   const items       = getCart();
   const subtotal    = items.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
   const giftExtra   = giftWrap ? giftWrapPrice : 0;
-  const baseParaFrete = subtotal + giftExtra;          // embalagem conta para frete grátis
+  const baseParaFrete = subtotal + giftExtra;
+
+  // Recalcula desconto com base no subtotal atual (corrige bug ao remover itens)
+  if (appliedCoupon && appliedPct > 0) {
+    discount = Math.round(subtotal * appliedPct / 100);
+  } else if (appliedCoupon && appliedValorFixo > 0) {
+    discount = Math.min(appliedValorFixo, subtotal);
+  }
+
   const isFree      = baseParaFrete >= freeShippingThreshold;
   const total       = Math.max(0, subtotal - discount + giftExtra); // frete calculado no checkout
   const installment = total / 12;
@@ -402,16 +413,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof supabaseClient === 'undefined') throw new Error('Supabase não disponível');
         const { data, error } = await supabaseClient.rpc('validar_cupom', { p_codigo: code });
         if (error || !data || !data.valido) {
-          showFeedback('Cupom inválido ou expirado.', 'error');
+          showFeedback(data?.erro || 'Cupom inválido ou expirado.', 'error');
           return;
         }
-        const pct      = data.desconto_pct || 0;
+        const tipo     = data.tipo || 'percentual';
+        const valor    = data.valor || 0;
         const subtotal = getCart().reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
-        discount       = Math.round(subtotal * pct / 100);
+        // Calcula desconto conforme tipo
+        if (tipo === 'percentual') {
+          discount = Math.round(subtotal * valor / 100);
+        } else if (tipo === 'fixo') {
+          discount = Math.min(valor, subtotal);
+        } else {
+          discount = 0; // frete: tratado no checkout
+        }
         appliedCoupon  = code;
-        showFeedback(`✓ Cupom ${code} aplicado! −${pct}% de desconto`, 'success');
+        appliedPct     = tipo === 'percentual' ? valor : 0;
+        const label = tipo === 'percentual' ? `−${valor}%` : tipo === 'fixo' ? `−R$${valor}` : 'Frete grátis';
+        showFeedback(`✓ Cupom ${code} aplicado! ${label}`, 'success');
         if (input) input.disabled = true;
-        localStorage.setItem('virtu_coupon', JSON.stringify({ code, pct, discount }));
+        localStorage.setItem('virtu_coupon', JSON.stringify({ code, tipo, pct: tipo === 'percentual' ? valor : 0, valor, discount }));
         updateSummary();
       } catch (err) {
         console.warn('[Carrinho] Erro ao validar cupom:', err);

@@ -518,8 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
     this.classList.remove('error', 'success');
     // Esconde frete anterior ao digitar novo CEP
     freteCalculado = false;
-    document.getElementById('freteResult').style.display = 'none';
-    document.getElementById('freteMsg').style.display    = 'none';
+    const _fr = document.getElementById('freteResult');
+    const _fm = document.getElementById('freteMsg');
+    if (_fr) _fr.style.display = 'none';
+    if (_fm) _fm.style.display = 'none';
   });
 
   // ── HIGHLIGHT CAMPOS VAZIOS ──────────────────────────────
@@ -676,14 +678,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ── Monta payload base ───────────────────────
+    const freteNome = document.querySelector('input[name="shipping"]:checked')
+      ?.closest('label')
+      ?.querySelector('.shipping-option__name')?.textContent?.trim()
+      || document.querySelector('#freteOpcoes label')?.querySelector('span:first-of-type')?.textContent?.trim()
+      || 'Entrega padrão';
+
     const payload = {
-      tipo:          isPix ? 'pix' : 'cartao',
-      total:         finalTotal,
-      subtotal:      baseTotal,
-      frete:         freteReal,
-      desconto:      descontoCupom + (isPix ? +(totalBruto * 0.05).toFixed(2) : 0),
-      cupom_codigo:  cupomAplicado?.codigo || null,
-      itens:         cart,
+      tipo:               isPix ? 'pix' : 'cartao',
+      total:              finalTotal,
+      subtotal:           baseTotal,
+      frete:              freteReal,
+      frete_selecionado:  freteNome,
+      desconto:           descontoCupom + (isPix ? +((baseTotal - descontoCupom) * 0.05).toFixed(2) : 0),
+      cupom_codigo:       cupomAplicado?.codigo || null,
+      itens:              cart,
       cliente,
       endereco,
     };
@@ -740,11 +749,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try { await supabaseClient.rpc('usar_cupom', { p_codigo: cupomAplicado.codigo }); } catch {}
       }
 
-      // Limpa carrinho
-      localStorage.removeItem('virtu_cart');
-      localStorage.removeItem('virtu_gift');
-      localStorage.removeItem('virtu_coupon');
-      if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
+      // Para PIX: mantém carrinho em backup — só limpa após confirmação real
+      // Para Cartão aprovado: limpa imediatamente
+      if (!isPix) {
+        localStorage.removeItem('virtu_cart');
+        localStorage.removeItem('virtu_gift');
+        localStorage.removeItem('virtu_coupon');
+        if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
+      } else {
+        // Backup do carrinho em sessionStorage para recuperação se necessário
+        sessionStorage.setItem('virtu_cart_pix_backup', localStorage.getItem('virtu_cart') || '[]');
+      }
 
       // ── PIX: exibe QR Code ───────────────────────
       if (isPix) {
@@ -767,6 +782,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btn.innerHTML = '✓ QR Code gerado!';
         btn.disabled  = false;
+        // Agora que o pedido foi criado, limpa o carrinho
+        localStorage.removeItem('virtu_cart');
+        localStorage.removeItem('virtu_gift');
+        localStorage.removeItem('virtu_coupon');
+        sessionStorage.removeItem('virtu_cart_pix_backup');
+        if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
         return; // Não fecha — aguarda pagamento
       }
 
@@ -822,10 +843,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (bodyEl && cfg.pedido_msg_corpo) {
-            // Substitui placeholders: {nome} e {numero}
+            // Substitui placeholders e permite apenas tags seguras (sem XSS)
             const corpo = cfg.pedido_msg_corpo
               .replace(/\{nome\}/g, nome || 'cliente')
-              .replace(/\{numero\}/g, num);
+              .replace(/\{numero\}/g, num)
+              .replace(/<(?!\/?(?:b|strong|em|br|p)\b)[^>]+>/gi, ''); // strip unsafe tags
             bodyEl.innerHTML = corpo;
           }
         }

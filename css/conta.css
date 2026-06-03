@@ -288,6 +288,7 @@
 
 /* ── Sidebar ─────────────────────────────────────────────── */
 .conta-sidebar {
+  position: -webkit-sticky;
   position: sticky;
   top: 88px;
 }

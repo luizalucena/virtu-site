@@ -119,6 +119,7 @@
 .cat-pills-wrap {
   background: var(--color-white);
   border-bottom: 1px solid var(--border-color);
+  position: -webkit-sticky;
   position: sticky;
   top: var(--navbar-height);
   z-index: 50;
@@ -177,6 +178,7 @@
    SIDEBAR
    ---------------------------- */
 .cat-sidebar {
+  position: -webkit-sticky;
   position: sticky;
   top: calc(var(--navbar-height) + 50px);
   max-height: calc(100vh - var(--navbar-height) - 80px);
