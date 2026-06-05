@@ -82,14 +82,16 @@ document.addEventListener('DOMContentLoaded', () => {
   menuOverlay?.addEventListener('click', closeMenu);
 
   // ── SEARCH OVERLAY ─────────────────────────
-  const searchOverlay = document.getElementById('searchOverlay');
-  const searchToggle  = document.getElementById('searchToggle');
-  const searchClose   = document.getElementById('searchClose');
+  const searchOverlay       = document.getElementById('searchOverlay');
+  const searchToggle        = document.getElementById('searchToggle');
+  const searchToggleDesktop = document.getElementById('searchToggleDesktop');
+  const searchClose         = document.getElementById('searchClose');
 
   const openSearch  = () => { searchOverlay?.classList.add('open'); searchOverlay?.setAttribute('aria-hidden','false'); document.body.style.overflow = 'hidden'; setTimeout(() => searchOverlay?.querySelector('.search-overlay__input')?.focus(), 100); };
   const closeSearch = () => { searchOverlay?.classList.remove('open'); searchOverlay?.setAttribute('aria-hidden','true'); document.body.style.overflow = ''; };
 
   searchToggle?.addEventListener('click', openSearch);
+  searchToggleDesktop?.addEventListener('click', openSearch);
   searchClose?.addEventListener('click', closeSearch);
   searchOverlay?.addEventListener('click', e => { if (e.target === searchOverlay) closeSearch(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMenu(); closeSearch(); } });
@@ -160,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const name  = document.getElementById('nlName')?.value.trim();
     const email = document.getElementById('nlEmail')?.value.trim();
+
+    // Oculta mensagem de sucesso anterior
+    const successEl = document.getElementById('nlSuccess');
+    if (successEl) successEl.hidden = true;
 
     if (!name || !email) {
       ['nlName', 'nlEmail'].forEach(id => {

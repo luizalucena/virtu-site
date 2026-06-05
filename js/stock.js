@@ -24,7 +24,9 @@ const VirtuStock = (() => {
 
   /* ── UTILITÁRIOS ────────────────────────────────────────── */
   function log(msg, ...args) {
-    console.log(`[VirtuStock] ${msg}`, ...args);
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      console.log(`[VirtuStock] ${msg}`, ...args);
+    }
   }
 
   function formatCurrency(v) {

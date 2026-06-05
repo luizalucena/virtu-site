@@ -66,8 +66,15 @@ function addGaleriaRow(url = '', num = null) {
     preview.style.background = v ? `url('${v}') center/cover` : '#f5f0eb';
     input.value = v; // substitui pelo URL convertido
   });
-  // Remover linha
-  row.querySelector('.galeria-remove-btn')?.addEventListener('click', () => row.remove());
+  // Remover linha — e reexibir botão de adicionar se ficou abaixo do limite
+  row.querySelector('.galeria-remove-btn')?.addEventListener('click', () => {
+    row.remove();
+    const remaining = container.querySelectorAll('.galeria-input-row').length;
+    if (remaining < 5) {
+      const btnAdd = document.getElementById('btnAddFoto');
+      if (btnAdd) btnAdd.style.display = '';
+    }
+  });
   container.appendChild(row);
 }
 

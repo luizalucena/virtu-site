@@ -869,6 +869,14 @@ document.addEventListener('DOMContentLoaded', () => {
     modal?.classList.add('open');
     modal?.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    // ESC fecha o modal e restaura scroll
+    const closeModal = () => {
+      modal?.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); }, { once: true });
+    modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); }, { once: true });
   }
 
   // ── INIT ──────────────────────────────────────────────────

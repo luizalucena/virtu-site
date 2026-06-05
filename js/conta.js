@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sidebar info
   const sidebarInitial = document.getElementById('sidebarInitial');
   const sidebarName    = document.getElementById('sidebarName');
-  const sidebarEmail   = document.getElementById('sidebarEmail');
+  // sidebarEmail removido do layout — elemento não existe no HTML
 
   // Nav buttons
   const navPedidos   = document.getElementById('navPedidos');
@@ -317,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
       pago: 'Pago', pendente: 'Pendente', recusado: 'Recusado',
       cancelado: 'Cancelado', reembolsado: 'Reembolsado'
     };
-    const statusClass = p.status_pagamento || 'pendente';
+    // Suporta tanto o schema novo (status, total, payment_method) quanto nomes legados
+    const statusClass = p.status || p.status_pagamento || 'pendente';
     const label       = statusLabel[statusClass] || statusClass;
 
     // Itens: pode ser array ou JSON string
@@ -329,23 +330,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const itensHtml = itens.map(it => `
       <div class="conta-pedido__item">
         <div class="conta-pedido__item-img"
-          style="${it.imagem ? `background-image:url('${it.imagem}');background-size:cover;background-position:center` : ''}">
+          style="${(it.imagem_url || it.imagem) ? `background-image:url('${it.imagem_url || it.imagem}');background-size:cover;background-position:center` : ''}">
         </div>
         <div>
           <div class="conta-pedido__item-name">${it.nome || it.name || 'Produto'}</div>
           <div class="conta-pedido__item-meta">
             ${it.tamanho ? `Tam: ${it.tamanho}` : ''}
-            ${it.cor     ? ` · Cor: ${it.cor}` : ''}
-            ${it.quantidade ? ` · Qtd: ${it.quantidade}` : ''}
+            ${it.cor_nome || it.cor ? ` · Cor: ${it.cor_nome || it.cor}` : ''}
+            ${(it.qty || it.quantidade) ? ` · Qtd: ${it.qty || it.quantidade}` : ''}
           </div>
         </div>
       </div>`).join('');
 
-    const total  = fmtPrice(p.valor_total);
-    const method = p.metodo_pagamento === 'pix' ? 'PIX' :
-                   p.metodo_pagamento === 'credito' ? 'Cartão de crédito' :
-                   p.metodo_pagamento === 'debito'  ? 'Cartão de débito' :
-                   p.metodo_pagamento || '';
+    const total  = fmtPrice(p.total || p.valor_total);
+    const pm     = p.payment_method || p.metodo_pagamento || '';
+    const method = pm === 'pix'    ? 'PIX' :
+                   pm === 'cartao' || pm === 'credito' ? 'Cartão de crédito' :
+                   pm === 'debito' ? 'Cartão de débito' : pm;
 
     return `
       <div class="conta-pedido">

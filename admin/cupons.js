@@ -6,7 +6,7 @@
 
 // ── Estado ─────────────────────────────────────────────────
 let todosOsCupons = [];
-let filtroAtual   = 'todos';
+let filtroAtualCupons   = 'todos';
 
 // ── Inicialização ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -127,11 +127,11 @@ function renderTabela() {
 
 function filtrarCupons() {
   return todosOsCupons.filter(c => {
-    if (filtroAtual === 'todos')      return true;
-    if (filtroAtual === 'ativo')      return c.ativo && !expirado(c);
-    if (filtroAtual === 'inativo')    return !c.ativo || expirado(c);
-    if (filtroAtual === 'percentual') return c.tipo === 'percentual';
-    if (filtroAtual === 'fixo')       return c.tipo === 'fixo';
+    if (filtroAtualCupons === 'todos')      return true;
+    if (filtroAtualCupons === 'ativo')      return c.ativo && !expirado(c);
+    if (filtroAtualCupons === 'inativo')    return !c.ativo || expirado(c);
+    if (filtroAtualCupons === 'percentual') return c.tipo === 'percentual';
+    if (filtroAtualCupons === 'fixo')       return c.tipo === 'fixo';
     return true;
   });
 }
@@ -312,7 +312,7 @@ function bindEventos() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      filtroAtual = btn.dataset.filter;
+      filtroAtualCupons = btn.dataset.filter;
       renderTabela();
     });
   });

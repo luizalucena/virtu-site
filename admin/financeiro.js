@@ -208,7 +208,7 @@ async function popularCategorias() {
     .from('fluxo_caixa')
     .select('categoria');
 
-  const cats = [...new Set((data || []).map(r => r.categoria))].sort();
+  const cats = [...new Set((data || []).map(r => r.categoria).filter(Boolean))].sort();
   const sel  = document.getElementById('filtroCategoria');
   cats.forEach(c => {
     const opt = document.createElement('option');
