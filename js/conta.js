@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const { data: pedidos, error } = await supabaseClient
       .from('pedidos')
       .select('*')
-      .eq('email_cliente', email)
+      .eq('email_cliente', email.toLowerCase())
       .order('criado_em', { ascending: false });
 
     if (error || !pedidos?.length) {

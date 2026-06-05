@@ -136,15 +136,22 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled = true;
     }
 
-    // Simula envio
-    setTimeout(() => {
+    // Salva no Supabase
+    const assunto = document.getElementById('cSubject')?.value.trim() || '';
+    const formEl = this;
+    (async () => {
+      try {
+        if (typeof supabaseClient !== 'undefined') {
+          await supabaseClient.from('mensagens_contato').insert({ nome: name, email, assunto, mensagem: message });
+        }
+      } catch (_) {}
       const success = document.getElementById('contactSuccess');
       if (success) success.hidden = false;
       if (btn) { btn.innerHTML = '✓ Enviado'; }
-      this.reset();
+      formEl.reset();
       if (charCount) charCount.textContent = '0';
       success?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 1200);
+    })();
   });
 
   // ── NEWSLETTER ─────────────────────────────

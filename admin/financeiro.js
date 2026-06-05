@@ -268,9 +268,8 @@ async function exportarCSV() {
 // MODAL — NOVO LANÇAMENTO MANUAL
 // ══════════════════════════════════════════════════════════════
 function abrirModalLancamento() {
-  document.getElementById('lData').value = new Date().toISOString().slice(0, 10);
   document.getElementById('formLancamento').reset();
-  document.getElementById('lData').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('lData').value = new Date().toLocaleDateString('sv-SE');
   document.getElementById('modalLancamento').classList.add('open');
 }
 

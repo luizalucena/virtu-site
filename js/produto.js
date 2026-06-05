@@ -271,7 +271,7 @@ async function renderPecasRelacionadas(currentId, categoria) {
         .from('produtos')
         .select('id, nome, categoria, preco_original, preco_desconto, imagem_url, imagem_placeholder, novidade, destaque')
         .eq('ativo', true)
-        .not('id', 'in', `(${excludeIds.map(i => `"${i}"`).join(',')})`)
+        .not('id', 'in', `(${excludeIds.join(',')})`)
         .limit(4 - rel.length);
       if (extra) rel = [...rel, ...extra];
     }
@@ -683,23 +683,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     stickyObs.observe(productActions);
   }
 
-  // ── COMPRE JUNTO ───────────────────────────
-  let bundleCount = 0;
-  const bundleTotal = document.getElementById('bundleTotal');
-  const bundlePrices = [420, 185, 195]; // preços dos itens do bundle
-  const bundleBase   = bundlePrices.reduce((a, b) => a + b, 0);
-
-  document.querySelectorAll('.bundle-check').forEach((cb, i) => {
-    cb.addEventListener('change', () => {
-      const total = bundlePrices.reduce((acc, price, idx) => {
-        const checkbox = document.querySelectorAll('.bundle-check')[idx];
-        return checkbox?.checked ? acc + price : acc;
-      }, 0);
-      if (bundleTotal) bundleTotal.textContent = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    });
-  });
-
-  // bundleAddBtn e bundle-check: HTML removido — sem dead code aqui
+  // Compre Junto: renderizado dinamicamente por renderCompreJunto() acima
   // wishlist.js e initCardEvents em products.js gerenciam os cards de peças relacionadas
 
   // ── SCROLL REVEAL ──────────────────────────

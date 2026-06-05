@@ -272,18 +272,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto-aplica cupom validado no carrinho
     try {
       const savedCoupon = JSON.parse(localStorage.getItem('virtu_coupon') || 'null');
-      if (savedCoupon?.code && savedCoupon?.pct) {
+      if (savedCoupon?.code && (savedCoupon?.pct || savedCoupon?.valor)) {
         const input = document.getElementById('cupomInput');
         if (input) input.value = savedCoupon.code;
-        // Aplica o desconto diretamente sem re-validar (já validado no carrinho)
-        cupomAplicado = { codigo: savedCoupon.code, tipo: 'percentual', valor: savedCoupon.pct };
+        // Preserva tipo e valor exatos do cupom validado no carrinho
+        const tipo  = savedCoupon.tipo  || 'percentual';
+        const valor = tipo === 'percentual' ? (savedCoupon.pct || 0) : (savedCoupon.valor || 0);
+        cupomAplicado = { codigo: savedCoupon.code, tipo, valor };
+        const label = tipo === 'percentual' ? `${valor}% de desconto`
+                    : tipo === 'fixo'       ? `R$${valor} de desconto`
+                    : 'Frete grátis';
         const msgEl = document.getElementById('cupomMsg');
         if (msgEl) {
-          msgEl.textContent = `✓ Cupom ${savedCoupon.code} aplicado — ${savedCoupon.pct}% de desconto`;
+          msgEl.textContent = `✓ Cupom ${savedCoupon.code} aplicado — ${label}`;
           msgEl.style.color = '#27ae60';
           msgEl.style.display = 'block';
         }
         renderOrderSummary(getCart());
+        // Atualiza linha de desconto imediatamente
+        updateTotalWithFrete(freteValorSelecionado);
       }
     } catch {}
   })();

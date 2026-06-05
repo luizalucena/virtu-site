@@ -28,7 +28,7 @@ let giftWrapPrice         = 15;   // sobrescrito pelo Supabase
     if (!cfg) return;
 
     if (cfg.frete_gratis_acima != null) {
-      freeShippingThreshold = parseFloat(cfg.frete_gratis_acima) || 300;
+      freeShippingThreshold = cfg.frete_gratis_acima != null ? parseFloat(cfg.frete_gratis_acima) : 699;
     }
     if (cfg.preco_embalagem_presente != null) {
       giftWrapPrice = parseFloat(cfg.preco_embalagem_presente) || 15;
@@ -427,8 +427,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           discount = 0; // frete: tratado no checkout
         }
-        appliedCoupon  = code;
-        appliedPct     = tipo === 'percentual' ? valor : 0;
+        appliedCoupon    = code;
+        appliedPct       = tipo === 'percentual' ? valor : 0;
+        appliedValorFixo = tipo === 'fixo'       ? valor : 0;
+        appliedTipo      = tipo;
         const label = tipo === 'percentual' ? `−${valor}%` : tipo === 'fixo' ? `−R$${valor}` : 'Frete grátis';
         showFeedback(`✓ Cupom ${code} aplicado! ${label}`, 'success');
         if (input) input.disabled = true;

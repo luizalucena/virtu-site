@@ -138,7 +138,9 @@ function filtrarCupons() {
 
 function expirado(c) {
   if (!c.validade) return false;
-  return new Date(c.validade) < new Date(new Date().toDateString());
+  // Compara datas como strings YYYY-MM-DD para evitar problemas de fuso UTC vs local
+  const hoje = new Date().toLocaleDateString('sv-SE'); // formato YYYY-MM-DD local
+  return c.validade < hoje;
 }
 
 // ── Ativar / Desativar ─────────────────────────────────────

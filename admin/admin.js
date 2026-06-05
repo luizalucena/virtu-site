@@ -475,6 +475,7 @@ async function saveProduct() {
   if (desconto !== null && desconto >= preco) {
     toast('O preço de desconto deve ser menor que o preço original.', 'error');
     document.getElementById('formPrecoDesconto')?.classList.add('error');
+    if (btnSave) { btnSave.disabled = false; btnSave.textContent = 'Salvar Produto'; }
     return;
   }
   const tamanhos = [...document.querySelectorAll('.admin-size-check input:checked')].map(cb => cb.value);
@@ -1058,7 +1059,7 @@ function fmt(v) {
 
 function slugify(str) {
   return str.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
 }
 
