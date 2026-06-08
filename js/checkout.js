@@ -684,6 +684,11 @@ document.addEventListener('DOMContentLoaded', () => {
       estado:      document.getElementById('state')?.value,
     };
 
+    // ── Salva endereço para próxima compra ────────────────────
+    if (typeof window.vtSalvarEndereco === 'function') {
+      window.vtSalvarEndereco(endereco).catch(() => {});
+    }
+
     // ── Monta payload base ───────────────────────
     const freteNome = document.querySelector('input[name="shipping"]:checked')
       ?.closest('label')
