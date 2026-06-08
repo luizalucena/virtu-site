@@ -41,6 +41,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         Avaliações
       </button>
+      <button class="admin-nav-btn" data-view="funcionalidades">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Funcionalidades
+      </button>
       <button class="admin-nav-btn" data-view="configuracoes">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Configurações
@@ -963,6 +967,75 @@
       document.querySelectorAll('.admin-nav-btn[data-view="stock"]').forEach(btn => {
         btn.addEventListener('click', () => carregarProdutosNoSelect());
       });
+    });
+  </script>
+
+    <!-- VIEW: FUNCIONALIDADES -->
+    <div id="view-funcionalidades" class="admin-view" style="display:none">
+      <div class="admin-view__header">
+        <h1 class="admin-view__title">Funcionalidades</h1>
+        <p class="admin-view__sub">Ative ou desative recursos do site.</p>
+      </div>
+      <div class="admin-card" style="max-width:600px">
+        <h3 style="font-size:13px;font-weight:600;color:#1c2e3e;margin:0 0 20px;letter-spacing:.08em;text-transform:uppercase;">Checkout</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid #f0ebe5;">
+          <div>
+            <p style="font-size:14px;font-weight:500;color:#1c2e3e;margin:0 0 4px;">Endereço salvo (1-click checkout)</p>
+            <p style="font-size:12px;color:#999;margin:0;line-height:1.5;">Pré-preenche o endereço da última compra para clientes logados.</p>
+          </div>
+          <label style="flex-shrink:0;margin-left:24px;position:relative;display:inline-block;width:44px;height:24px;">
+            <input type="checkbox" id="toggleEnderecoSalvo" onchange="salvarToggle('endereco_salvo_ativo',this.checked)" style="opacity:0;width:0;height:0;position:absolute" />
+            <span id="sliderEnderecoSalvo" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:24px;transition:.3s;"></span>
+            <span id="knobEnderecoSalvo" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;"></span>
+          </label>
+        </div>
+        <p id="funcSaveMsg" style="font-size:12px;color:#27ae60;margin:12px 0 0;min-height:16px;"></p>
+      </div>
+    </div>
+  
+  <script>
+    // ── Funcionalidades: toggle helper ──────────────────────
+    async function salvarToggle(campo, valor) {
+      try {
+        await supabaseClient.from('configuracoes').update({ [campo]: valor }).eq('id', 1);
+        const msg = document.getElementById('funcSaveMsg');
+        if (msg) { msg.textContent = '✓ Salvo'; setTimeout(() => msg.textContent = '', 2000); }
+      } catch(e) {
+        const msg = document.getElementById('funcSaveMsg');
+        if (msg) { msg.textContent = 'Erro ao salvar'; msg.style.color = '#c62828'; }
+      }
+    }
+
+    // Atualiza visual do toggle customizado
+    function aplicarToggleVisual(checked) {
+      const slider = document.getElementById('sliderEnderecoSalvo');
+      const knob   = document.getElementById('knobEnderecoSalvo');
+      if (slider) slider.style.background = checked ? '#2B3F54' : '#ccc';
+      if (knob)   knob.style.transform    = checked ? 'translateX(20px)' : 'translateX(0)';
+    }
+
+    // Carrega estado ao entrar na aba Funcionalidades
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (btn.dataset.view !== 'funcionalidades') return;
+          try {
+            const { data } = await supabaseClient
+              .from('configuracoes')
+              .select('endereco_salvo_ativo')
+              .eq('id', 1)
+              .maybeSingle();
+            const ativo = data?.endereco_salvo_ativo !== false;
+            const chk   = document.getElementById('toggleEnderecoSalvo');
+            if (chk) chk.checked = ativo;
+            aplicarToggleVisual(ativo);
+          } catch {}
+        });
+      });
+
+      // Atualiza visual quando usuário clica no toggle
+      const chk = document.getElementById('toggleEnderecoSalvo');
+      if (chk) chk.addEventListener('change', () => aplicarToggleVisual(chk.checked));
     });
   </script>
 </body>
