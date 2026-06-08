@@ -184,6 +184,17 @@
             <span class="produto-parcelamento"></span>
           </div>
 
+          <!-- Mini rating inline (clicável → scroll para avaliações) -->
+          <div id="produtoRatingInline" style="display:none;margin-top:0.5rem">
+            <a href="#secaoAvaliacoes" style="display:inline-flex;align-items:center;gap:0.4rem;text-decoration:none;">
+              <span id="ratingEstrelinhas" style="display:flex;gap:1px"></span>
+              <span id="ratingTextoInline" style="font-size:0.78rem;color:var(--color-text-light);border-bottom:1px solid #ddd;"></span>
+            </a>
+          </div>
+
+          <!-- Badges de exclusividade -->
+          <div class="produto-exclusividade" id="produtoBadges" hidden></div>
+
           <hr class="divider" style="margin-block: var(--space-5);" />
 
           <!-- CORES -->
@@ -333,6 +344,55 @@
         </div>
       </div>
     </div>
+
+    <!-- AVALIAÇÕES -->
+    <section class="container" id="secaoAvaliacoes" style="padding-bottom:var(--space-12)">
+      <div class="produto-avaliacoes">
+        <div class="produto-avaliacoes__header">
+          <h2 class="produto-avaliacoes__title">O que nossas clientes dizem</h2>
+          <div class="produto-rating-resumo" id="ratingResumo" hidden>
+            <span class="produto-rating-nota" id="ratingNota">—</span>
+            <div>
+              <div class="produto-rating-estrelas" id="ratingEstrelasResumo"></div>
+              <p class="produto-rating-count" id="ratingCount"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de avaliações -->
+        <div class="avaliacoes-lista" id="avaliacoesLista">
+          <p style="color:var(--color-text-light);font-size:0.85rem">Carregando avaliações…</p>
+        </div>
+
+        <!-- Formulário de nova avaliação -->
+        <div class="avaliacao-form-wrap">
+          <h3>Avalie esta peça</h3>
+          <div id="avaliacaoSucesso" class="avaliacao-form__sucesso">
+            ✓ Obrigada pela avaliação! Ela será publicada após revisão.
+          </div>
+          <form id="formAvaliacao" novalidate>
+            <div class="avaliacao-estrelas-input" id="estrelasBtns" role="group" aria-label="Selecione a nota">
+              <!-- gerado pelo JS -->
+            </div>
+            <div class="avaliacao-form__grid">
+              <div class="avaliacao-form__field">
+                <label class="avaliacao-form__label" for="avNome">Seu nome *</label>
+                <input type="text" id="avNome" class="avaliacao-form__input" placeholder="Ex: Ana Lima" required />
+              </div>
+              <div class="avaliacao-form__field">
+                <label class="avaliacao-form__label" for="avFoto">Foto do perfil (URL, opcional)</label>
+                <input type="url" id="avFoto" class="avaliacao-form__input" placeholder="https://..." />
+              </div>
+            </div>
+            <div class="avaliacao-form__field">
+              <label class="avaliacao-form__label" for="avComentario">Seu comentário *</label>
+              <textarea id="avComentario" class="avaliacao-form__textarea" placeholder="Como foi a experiência? O caimento, a qualidade do tecido..." required></textarea>
+            </div>
+            <button type="submit" class="avaliacao-form__submit" id="btnEnviarAvaliacao">Enviar avaliação</button>
+          </form>
+        </div>
+      </div>
+    </section>
 
     <!-- COMPRE JUNTO -->
     <section class="section bg-white compre-junto" aria-labelledby="compre-junto-title">

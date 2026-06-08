@@ -188,12 +188,13 @@ function bindEvents() {
       document.querySelectorAll('.admin-view').forEach(v => v.classList.add('admin-view--hidden'));
       document.getElementById(`view${capitalize(view)}`)?.classList.remove('admin-view--hidden');
       // Títulos legíveis na topbar
-      const viewTitles = { produtos: 'Produtos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock' };
+      const viewTitles = { produtos: 'Produtos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes' };
       document.getElementById('viewTitle').textContent = viewTitles[view] || capitalize(view);
       // Ocultar/mostrar botão Novo Produto
       document.getElementById('btnNewProduct').style.display = view === 'produtos' ? '' : 'none';
       if (view === 'configuracoes') populateConfig();
       if (view === 'sobre')        populateSobre();
+      if (view === 'avaliacoes')   carregarAvaliacoesAdmin();
     });
   });
 
@@ -416,6 +417,7 @@ function openModal(id) {
     document.getElementById('formDestaque').checked       = !!p.destaque;
     document.getElementById('formNovidade').checked       = !!p.novidade;
     document.getElementById('formEssencial').checked      = !!p.essencial;
+    document.getElementById('formExclusivo').checked      = !!p.exclusivo;
     document.getElementById('formAtivo').checked          = p.ativo !== false;
 
     document.querySelectorAll('.admin-size-check input').forEach(cb => {
@@ -454,6 +456,7 @@ function resetForm() {
   document.getElementById('formDestaque').checked  = false;
   document.getElementById('formNovidade').checked  = false;
   document.getElementById('formEssencial').checked = false;
+  document.getElementById('formExclusivo').checked = false;
   document.getElementById('formAtivo').checked     = true;
   document.getElementById('formPctDesconto').value = 0;
   document.getElementById('colorPreview').style.background = '';
@@ -512,6 +515,7 @@ async function saveProduct() {
     destaque:           document.getElementById('formDestaque')?.checked,
     novidade:           document.getElementById('formNovidade')?.checked,
     essencial:          document.getElementById('formEssencial')?.checked,
+    exclusivo:          document.getElementById('formExclusivo')?.checked || false,
     ativo:              document.getElementById('formAtivo')?.checked,
     estoque:            parseInt(document.getElementById('formEstoque')?.value) || 0,
     compre_junto:       (document.getElementById('formCompreJunto')?.value || '')
@@ -1082,3 +1086,111 @@ function capitalize(str) {
 window.openModal     = openModal;
 window.toggleAtivo   = toggleAtivo;
 window.deleteProduct = deleteProduct;
+
+/* ============================================================
+   ADMIN — AVALIAÇÕES
+   ============================================================ */
+async function carregarAvaliacoesAdmin() {
+  const lista   = document.getElementById('avaliacoesAdminLista');
+  const filtroEl= document.getElementById('filtroAvaliacoes');
+  if (!lista) return;
+
+  lista.innerHTML = '<p style="color:#aaa;font-size:0.85rem">Carregando…</p>';
+  const filtro = filtroEl?.value || 'todas';
+
+  let query = supabaseClient
+    .from('avaliacoes')
+    .select('id, produto_id, nome_cliente, nota, comentario, aprovado, destaque, criado_em')
+    .order('criado_em', { ascending: false });
+
+  if (filtro === 'pendentes')  query = query.eq('aprovado', false);
+  if (filtro === 'aprovadas')  query = query.eq('aprovado', true);
+  if (filtro === 'destaque')   query = query.eq('destaque', true).eq('aprovado', true);
+
+  const { data, error } = await query;
+  if (error) { lista.innerHTML = `<p style="color:red">${error.message}</p>`; return; }
+  if (!data?.length) { lista.innerHTML = '<p style="color:#aaa;font-size:0.85rem">Nenhuma avaliação encontrada.</p>'; return; }
+
+  const fmtNota = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const fmtDate = iso => new Date(iso).toLocaleDateString('pt-BR');
+
+  lista.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+    <thead><tr style="border-bottom:2px solid #e0d8d0">
+      <th style="text-align:left;padding:0.5rem">Cliente</th>
+      <th style="text-align:left;padding:0.5rem">Produto ID</th>
+      <th style="padding:0.5rem">Nota</th>
+      <th style="text-align:left;padding:0.5rem">Comentário</th>
+      <th style="padding:0.5rem">Data</th>
+      <th style="padding:0.5rem">Status</th>
+      <th style="padding:0.5rem">Ações</th>
+    </tr></thead>
+    <tbody>${data.map(a => `
+      <tr style="border-bottom:1px solid #f0ebe4" id="av-row-${a.id}">
+        <td style="padding:0.5rem;font-weight:500">${a.nome_cliente}</td>
+        <td style="padding:0.5rem;color:#999;font-size:0.75rem">${a.produto_id?.slice(0,12) || '—'}</td>
+        <td style="padding:0.5rem;text-align:center;color:#C4934A">${fmtNota(a.nota)}</td>
+        <td style="padding:0.5rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.comentario || '—'}</td>
+        <td style="padding:0.5rem;text-align:center;color:#999">${fmtDate(a.criado_em)}</td>
+        <td style="padding:0.5rem;text-align:center">
+          <span style="font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:2px;background:${a.aprovado ? '#f0fdf4' : '#fef2f2'};color:${a.aprovado ? '#15803d' : '#b91c1c'}">${a.aprovado ? '✓ Aprovada' : '⏳ Pendente'}</span>
+          ${a.destaque ? '<br><span style="font-size:0.65rem;color:#C4934A;margin-top:2px;display:block">⭐ Home</span>' : ''}
+        </td>
+        <td style="padding:0.5rem;text-align:center;white-space:nowrap">
+          ${!a.aprovado ? `<button onclick="aprovarAvaliacao('${a.id}')" style="font-size:0.72rem;padding:0.2rem 0.5rem;background:#1c2e3e;color:#fff;border:none;cursor:pointer;margin-right:4px">Aprovar</button>` : ''}
+          ${a.aprovado && !a.destaque ? `<button onclick="destacarAvaliacao('${a.id}', true)" style="font-size:0.72rem;padding:0.2rem 0.5rem;background:#C4934A;color:#fff;border:none;cursor:pointer;margin-right:4px">+ Home</button>` : ''}
+          ${a.destaque ? `<button onclick="destacarAvaliacao('${a.id}', false)" style="font-size:0.72rem;padding:0.2rem 0.5rem;background:#aaa;color:#fff;border:none;cursor:pointer;margin-right:4px">- Home</button>` : ''}
+          <button onclick="excluirAvaliacao('${a.id}')" style="font-size:0.72rem;padding:0.2rem 0.5rem;background:#fef2f2;color:#b91c1c;border:1px solid #b91c1c;cursor:pointer">✕</button>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+
+  // Filtro
+  filtroEl?.addEventListener('change', carregarAvaliacoesAdmin, { once: true });
+
+  // Botão nova avaliação
+  document.getElementById('btnNovaAvaliacao')?.addEventListener('click', () => {
+    const modal = document.getElementById('modalAvaliacao');
+    if (modal) { modal.style.display = 'flex'; }
+  }, { once: true });
+  document.getElementById('btnFecharModalAv')?.addEventListener('click', () => {
+    document.getElementById('modalAvaliacao').style.display = 'none';
+  }, { once: true });
+  document.getElementById('btnSalvarAvaliacao')?.addEventListener('click', async () => {
+    const produto_id   = document.getElementById('avAdmProduto')?.value.trim();
+    const nome_cliente = document.getElementById('avAdmNome')?.value.trim();
+    const foto_cliente = document.getElementById('avAdmFoto')?.value.trim() || null;
+    const nota         = parseInt(document.getElementById('avAdmNota')?.value || '5');
+    const comentario   = document.getElementById('avAdmComentario')?.value.trim();
+    const aprovado     = document.getElementById('avAdmAprovado')?.checked;
+    const destaque     = document.getElementById('avAdmDestaque')?.checked;
+    if (!produto_id || !nome_cliente) { toast('Preencha produto ID e nome', 'error'); return; }
+    const { error } = await supabaseClient.from('avaliacoes').insert({ produto_id, nome_cliente, foto_cliente, nota, comentario, aprovado, destaque });
+    if (error) { toast(error.message, 'error'); return; }
+    toast('Avaliação adicionada!');
+    document.getElementById('modalAvaliacao').style.display = 'none';
+    carregarAvaliacoesAdmin();
+  }, { once: true });
+}
+
+window.aprovarAvaliacao = async (id) => {
+  const { error } = await supabaseClient.from('avaliacoes').update({ aprovado: true }).eq('id', id);
+  if (error) { toast(error.message, 'error'); return; }
+  toast('Avaliação aprovada!');
+  carregarAvaliacoesAdmin();
+};
+
+window.destacarAvaliacao = async (id, destaque) => {
+  const { error } = await supabaseClient.from('avaliacoes').update({ destaque }).eq('id', id);
+  if (error) { toast(error.message, 'error'); return; }
+  toast(destaque ? '⭐ Adicionado à home!' : 'Removido da home');
+  carregarAvaliacoesAdmin();
+};
+
+window.excluirAvaliacao = async (id) => {
+  if (!confirm('Excluir esta avaliação?')) return;
+  const { error } = await supabaseClient.from('avaliacoes').delete().eq('id', id);
+  if (error) { toast(error.message, 'error'); return; }
+  toast('Avaliação excluída');
+  document.getElementById(`av-row-${id}`)?.remove();
+};

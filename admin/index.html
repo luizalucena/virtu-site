@@ -37,6 +37,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
         Cupons
       </a>
+      <button class="admin-nav-btn" data-view="avaliacoes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Avaliações
+      </button>
       <button class="admin-nav-btn" data-view="configuracoes">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Configurações
@@ -414,6 +418,64 @@
         <div class="admin-empty-state" style="text-align:center;padding:3rem 0;color:var(--text-muted);">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3;margin-bottom:1rem;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
           <p>Selecione um produto para gerir o seu stock.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         VIEW: AVALIAÇÕES
+    ══════════════════════════════════════ -->
+    <div class="admin-view admin-view--hidden" id="viewAvaliacoes">
+      <div style="max-width:900px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+          <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:400;font-style:italic">Avaliações de Clientes</h2>
+          <div style="display:flex;gap:0.5rem">
+            <select id="filtroAvaliacoes" class="admin-input" style="width:auto;padding:0.4rem 0.75rem">
+              <option value="todas">Todas</option>
+              <option value="pendentes">Pendentes</option>
+              <option value="aprovadas">Aprovadas</option>
+              <option value="destaque">Em destaque (home)</option>
+            </select>
+            <button class="admin-btn admin-btn--primary" id="btnNovaAvaliacao">+ Adicionar manualmente</button>
+          </div>
+        </div>
+        <div id="avaliacoesAdminLista">
+          <p style="color:#aaa;font-size:0.85rem">Carregando…</p>
+        </div>
+      </div>
+
+      <!-- Modal de avaliação manual -->
+      <div id="modalAvaliacao" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center">
+        <div style="background:#fff;padding:2rem;max-width:480px;width:90%;max-height:90vh;overflow-y:auto">
+          <h3 style="font-family:var(--font-display);font-style:italic;font-size:1.2rem;margin-bottom:1.5rem">Adicionar Avaliação</h3>
+          <div style="display:flex;flex-direction:column;gap:1rem">
+            <div><label class="admin-label">Produto (ID)</label><input id="avAdmProduto" class="admin-input" placeholder="ID do produto" /></div>
+            <div><label class="admin-label">Nome da cliente</label><input id="avAdmNome" class="admin-input" placeholder="Ana Lima" /></div>
+            <div><label class="admin-label">Foto (URL, opcional)</label><input id="avAdmFoto" class="admin-input" placeholder="https://..." /></div>
+            <div>
+              <label class="admin-label">Nota</label>
+              <select id="avAdmNota" class="admin-input" style="width:auto">
+                <option value="5">★★★★★ (5)</option>
+                <option value="4">★★★★☆ (4)</option>
+                <option value="3">★★★☆☆ (3)</option>
+                <option value="2">★★☆☆☆ (2)</option>
+                <option value="1">★☆☆☆☆ (1)</option>
+              </select>
+            </div>
+            <div><label class="admin-label">Comentário</label><textarea id="avAdmComentario" class="admin-input" rows="3" style="resize:vertical"></textarea></div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <input type="checkbox" id="avAdmAprovado" checked />
+              <label for="avAdmAprovado" style="font-size:0.82rem">Aprovar imediatamente</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <input type="checkbox" id="avAdmDestaque" />
+              <label for="avAdmDestaque" style="font-size:0.82rem">Exibir como depoimento na home</label>
+            </div>
+          </div>
+          <div style="display:flex;gap:1rem;margin-top:1.5rem">
+            <button class="admin-btn admin-btn--primary" id="btnSalvarAvaliacao">Salvar</button>
+            <button class="admin-btn" id="btnFecharModalAv">Cancelar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -813,6 +875,7 @@
                 <label class="admin-flag-check"><input type="checkbox" id="formDestaque" /> Produto em Destaque</label>
                 <label class="admin-flag-check"><input type="checkbox" id="formNovidade" /> Novidade</label>
                 <label class="admin-flag-check"><input type="checkbox" id="formEssencial" /> Essencial <span style="font-size:0.75rem;opacity:0.6;font-weight:400">(aparece em "Essenciais" sem mudar a categoria)</span></label>
+                <label class="admin-flag-check"><input type="checkbox" id="formExclusivo" /> ⭐ Peça Exclusiva <span style="font-size:0.75rem;opacity:0.6;font-weight:400">(exibe badge dourado na página do produto)</span></label>
                 <label class="admin-flag-check"><input type="checkbox" id="formAtivo" checked /> Ativo (visível no site)</label>
               </div>
             </div>

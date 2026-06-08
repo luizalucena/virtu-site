@@ -753,3 +753,408 @@
 
   .guia-modal__content { padding: var(--space-5); }
 }
+
+/* ─────────────────────────────────────────────────────────
+   BADGE DE EXCLUSIVIDADE
+───────────────────────────────────────────────────────── */
+.produto-exclusividade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: var(--space-4);
+}
+
+.badge-exclusivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.65rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.badge-exclusivo--gold {
+  background: rgba(196,147,74,0.12);
+  border: 1px solid rgba(196,147,74,0.45);
+  color: var(--color-gold);
+}
+
+.badge-exclusivo--navy {
+  background: rgba(43,63,84,0.08);
+  border: 1px solid rgba(43,63,84,0.25);
+  color: var(--color-navy);
+}
+
+.badge-exclusivo--red {
+  background: rgba(192,57,43,0.08);
+  border: 1px solid rgba(192,57,43,0.3);
+  color: #c0392b;
+}
+
+/* ─────────────────────────────────────────────────────────
+   AVALIAÇÕES
+───────────────────────────────────────────────────────── */
+.produto-avaliacoes {
+  margin-top: var(--space-10);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.produto-avaliacoes__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: var(--space-6);
+}
+
+.produto-avaliacoes__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--color-navy);
+  font-weight: 400;
+}
+
+.produto-rating-resumo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.produto-rating-nota {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-navy);
+  line-height: 1;
+}
+
+.produto-rating-estrelas {
+  display: flex;
+  gap: 2px;
+}
+
+.estrela {
+  width: 16px;
+  height: 16px;
+  color: var(--color-gold);
+}
+
+.estrela--vazia { color: #e0d8d0; }
+
+.produto-rating-count {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  letter-spacing: 0.04em;
+}
+
+/* Lista de avaliações */
+.avaliacoes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: var(--space-8);
+}
+
+.avaliacao-card {
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  position: relative;
+}
+
+.avaliacao-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.avaliacao-card__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-navy);
+  color: var(--color-gold);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avaliacao-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avaliacao-card__nome {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-navy);
+}
+
+.avaliacao-card__data {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+  margin-left: auto;
+}
+
+.avaliacao-card__estrelas {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.avaliacao-card__texto {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  line-height: 1.65;
+}
+
+.avaliacao-card__verificado {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #27ae60;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Formulário de avaliação */
+.avaliacao-form-wrap {
+  background: #faf9f7;
+  border: 1px solid var(--color-border);
+  padding: 1.75rem;
+}
+
+.avaliacao-form-wrap h3 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--color-navy);
+  font-weight: 400;
+  margin-bottom: 1.25rem;
+}
+
+.avaliacao-estrelas-input {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.avaliacao-estrelas-input button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15rem;
+  transition: transform 0.1s;
+}
+
+.avaliacao-estrelas-input button:hover { transform: scale(1.2); }
+
+.avaliacao-estrelas-input button svg {
+  width: 28px;
+  height: 28px;
+  transition: color 0.15s;
+}
+
+.avaliacao-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 500px) {
+  .avaliacao-form__grid { grid-template-columns: 1fr; }
+}
+
+.avaliacao-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.avaliacao-form__label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+
+.avaliacao-form__input,
+.avaliacao-form__textarea {
+  padding: 0.7rem 0;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  transition: border-color 0.2s;
+}
+
+.avaliacao-form__input:focus,
+.avaliacao-form__textarea:focus {
+  outline: none;
+  border-bottom-color: var(--color-gold);
+}
+
+.avaliacao-form__textarea {
+  resize: vertical;
+  min-height: 80px;
+  width: 100%;
+  margin-bottom: 1.25rem;
+}
+
+.avaliacao-form__submit {
+  padding: 0.85rem 2.5rem;
+  background: var(--color-navy);
+  color: #fff;
+  border: none;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.avaliacao-form__submit:hover { background: var(--color-navy-dark); }
+.avaliacao-form__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.avaliacao-form__sucesso {
+  padding: 1rem;
+  background: #f0fdf4;
+  border-left: 3px solid #27ae60;
+  color: #15803d;
+  font-size: 0.88rem;
+  display: none;
+}
+
+/* ─────────────────────────────────────────────────────────
+   DEPOIMENTOS NA HOME
+───────────────────────────────────────────────────────── */
+.depoimentos {
+  padding-block: var(--space-16);
+  background: var(--color-navy);
+}
+
+.depoimentos__header {
+  text-align: center;
+  margin-bottom: var(--space-10);
+}
+
+.depoimentos__overline {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: 0.75rem;
+}
+
+.depoimentos__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  color: #fff;
+  font-weight: 300;
+}
+
+.depoimentos__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.depoimento-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 1.75rem;
+  position: relative;
+}
+
+.depoimento-card::before {
+  content: '\201C';
+  font-family: var(--font-display);
+  font-size: 4rem;
+  color: var(--color-gold);
+  opacity: 0.4;
+  position: absolute;
+  top: 0.5rem;
+  left: 1.25rem;
+  line-height: 1;
+}
+
+.depoimento-card__estrelas {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 1rem;
+}
+
+.depoimento-card__texto {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+  font-style: italic;
+}
+
+.depoimento-card__cliente {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.depoimento-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(196,147,74,0.25);
+  border: 1px solid rgba(196,147,74,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--color-gold);
+  font-size: 1rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.depoimento-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.depoimento-card__nome {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.depoimento-card__produto {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 0.1rem;
+}
+
+@media (max-width: 768px) {
+  .depoimentos__grid { grid-template-columns: 1fr; }
+  .avaliacao-form-wrap { padding: 1.25rem; }
+}

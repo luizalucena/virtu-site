@@ -268,4 +268,46 @@ document.addEventListener('DOMContentLoaded', () => {
     VirtuProducts.applyHomeExtras();
   }
 
+  // ── DEPOIMENTOS EM DESTAQUE ─────────────────
+  if (typeof supabaseClient !== 'undefined') {
+    (async () => {
+      const { data } = await supabaseClient
+        .from('avaliacoes')
+        .select('*')
+        .eq('aprovado', true)
+        .eq('destaque', true)
+        .order('criado_em', { ascending: false })
+        .limit(3);
+
+      const grid    = document.getElementById('depoimentosGrid');
+      const section = document.getElementById('depoimentosSection');
+      if (!grid || !data?.length) return;
+
+      const stars = n => [1,2,3,4,5].map(i =>
+        `<svg width="13" height="13" viewBox="0 0 24 24" fill="${i<=n?'#C4934A':'#e0d8d0'}" stroke="none">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>`).join('');
+
+      grid.innerHTML = data.map(a => {
+        const inicial = (a.nome_cliente || 'C').charAt(0).toUpperCase();
+        const avatar  = a.foto_cliente
+          ? `<img src="${a.foto_cliente}" alt="${a.nome_cliente}" loading="lazy" />`
+          : inicial;
+        return `
+          <div class="depoimento-card">
+            <div class="depoimento-card__estrelas">${stars(a.nota)}</div>
+            <p class="depoimento-card__texto">${a.comentario || ''}</p>
+            <div class="depoimento-card__cliente">
+              <div class="depoimento-card__avatar">${avatar}</div>
+              <div>
+                <p class="depoimento-card__nome">${a.nome_cliente}</p>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      section.style.display = 'block';
+    })();
+  }
+
 });

@@ -442,6 +442,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   let _produtoCarregado = null;
   if (_urlId && typeof supabaseClient !== 'undefined') {
     _produtoCarregado = await carregarProduto(_urlId);
+    if (_produtoCarregado) {
+      renderBadgesExclusividade(_produtoCarregado);
+      carregarAvaliacoes(_urlId);
+      iniciarFormAvaliacao(_urlId);
+    }
   }
 
   // ── NAVBAR SCROLL ──────────────────────────
@@ -759,3 +764,191 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
 });
+
+/* ============================================================
+   BADGES DE EXCLUSIVIDADE
+   ============================================================ */
+function renderBadgesExclusividade(p) {
+  const wrap = document.getElementById('produtoBadges');
+  if (!wrap) return;
+
+  const badges = [];
+
+  if (p.exclusivo) {
+    badges.push(`<span class="badge-exclusivo badge-exclusivo--gold">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Peça exclusiva
+    </span>`);
+  }
+
+  if (p.novidade) {
+    badges.push(`<span class="badge-exclusivo badge-exclusivo--navy">Nova coleção</span>`);
+  }
+
+  if (p.badge && p.badge.toLowerCase().includes('sale')) {
+    // já mostrado no badge normal
+  }
+
+  // Estoque baixo — verificado via variações se disponíveis
+  const totalEstoque = p.estoque || 0;
+  if (totalEstoque > 0 && totalEstoque <= 5 && !p.exclusivo) {
+    badges.push(`<span class="badge-exclusivo badge-exclusivo--red">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Últimas unidades
+    </span>`);
+  }
+
+  if (badges.length > 0) {
+    wrap.innerHTML = badges.join('');
+    wrap.removeAttribute('hidden');
+  }
+}
+
+/* ============================================================
+   AVALIAÇÕES DO PRODUTO
+   ============================================================ */
+function starsHtml(nota, size = 14) {
+  return [1,2,3,4,5].map(i =>
+    `<svg class="estrela ${i <= nota ? '' : 'estrela--vazia'}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </svg>`
+  ).join('');
+}
+
+async function carregarAvaliacoes(produtoId) {
+  const lista  = document.getElementById('avaliacoesLista');
+  const resumo = document.getElementById('ratingResumo');
+  if (!lista || typeof supabaseClient === 'undefined') return;
+
+  const { data, error } = await supabaseClient
+    .from('avaliacoes')
+    .select('*')
+    .eq('produto_id', produtoId)
+    .eq('aprovado', true)
+    .order('criado_em', { ascending: false });
+
+  if (error || !data?.length) {
+    lista.innerHTML = `<p style="color:var(--color-text-light);font-size:0.85rem;font-style:italic">Seja a primeira a avaliar esta peça ✨</p>`;
+    return;
+  }
+
+  // Resumo
+  const media = data.reduce((s, a) => s + a.nota, 0) / data.length;
+  const notaFmt = media.toFixed(1);
+  const count = data.length;
+
+  document.getElementById('ratingNota').textContent = notaFmt;
+  document.getElementById('ratingEstrelasResumo').innerHTML = starsHtml(Math.round(media));
+  document.getElementById('ratingCount').textContent = `${count} avaliação${count !== 1 ? 'ões' : ''}`;
+  resumo?.removeAttribute('hidden');
+
+  // Rating inline (próximo ao preço)
+  const inlineWrap = document.getElementById('produtoRatingInline');
+  if (inlineWrap) {
+    document.getElementById('ratingEstrelinhas').innerHTML = starsHtml(Math.round(media), 13);
+    document.getElementById('ratingTextoInline').textContent = `${notaFmt} (${count} avaliação${count !== 1 ? 'ões' : ''})`;
+    inlineWrap.style.display = 'block';
+  }
+
+  // Cards de avaliação
+  const fmtDate = iso => new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+  lista.innerHTML = data.map(a => {
+    const inicial = (a.nome_cliente || 'A').charAt(0).toUpperCase();
+    const avatar  = a.foto_cliente
+      ? `<img src="${a.foto_cliente}" alt="${a.nome_cliente}" loading="lazy" />`
+      : inicial;
+    return `
+      <div class="avaliacao-card">
+        <div class="avaliacao-card__header">
+          <div class="avaliacao-card__avatar">${avatar}</div>
+          <span class="avaliacao-card__nome">${a.nome_cliente}</span>
+          <span class="avaliacao-card__data">${fmtDate(a.criado_em)}</span>
+        </div>
+        <div class="avaliacao-card__estrelas">${starsHtml(a.nota)}</div>
+        ${a.comentario ? `<p class="avaliacao-card__texto">${a.comentario}</p>` : ''}
+        <p class="avaliacao-card__verificado">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Compra verificada
+        </p>
+      </div>`;
+  }).join('');
+}
+
+function iniciarFormAvaliacao(produtoId) {
+  const form    = document.getElementById('formAvaliacao');
+  const btns    = document.getElementById('estrelasBtns');
+  const sucesso = document.getElementById('avaliacaoSucesso');
+  if (!form || !btns) return;
+
+  // Gera botões de estrela
+  let notaSelecionada = 0;
+  btns.innerHTML = [1,2,3,4,5].map(i =>
+    `<button type="button" data-nota="${i}" aria-label="${i} estrela${i > 1 ? 's' : ''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+    </button>`
+  ).join('');
+
+  function highlightStars(nota) {
+    btns.querySelectorAll('button').forEach((btn, idx) => {
+      const svg = btn.querySelector('svg');
+      if (svg) {
+        svg.style.fill   = idx < nota ? 'var(--color-gold)' : 'none';
+        svg.style.stroke = idx < nota ? 'var(--color-gold)' : 'currentColor';
+      }
+    });
+  }
+
+  btns.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      notaSelecionada = parseInt(btn.dataset.nota);
+      highlightStars(notaSelecionada);
+    });
+    btn.addEventListener('mouseenter', () => highlightStars(parseInt(btn.dataset.nota)));
+    btn.addEventListener('mouseleave', () => highlightStars(notaSelecionada));
+  });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const nome      = document.getElementById('avNome')?.value.trim();
+    const foto      = document.getElementById('avFoto')?.value.trim() || null;
+    const comentario= document.getElementById('avComentario')?.value.trim();
+    const btn       = document.getElementById('btnEnviarAvaliacao');
+
+    if (!nome || !comentario) {
+      ['avNome','avComentario'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim()) el.style.borderBottomColor = 'var(--color-error, #c62828)';
+      });
+      return;
+    }
+    if (notaSelecionada === 0) {
+      btns.style.outline = '2px solid var(--color-error, #c62828)';
+      setTimeout(() => btns.style.outline = '', 1500);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    try {
+      if (typeof supabaseClient === 'undefined') throw new Error('Supabase não disponível');
+      const { error } = await supabaseClient.from('avaliacoes').insert({
+        produto_id:   produtoId,
+        nome_cliente: nome,
+        foto_cliente: foto,
+        nota:         notaSelecionada,
+        comentario,
+        aprovado:     false,
+      });
+      if (error) throw error;
+      form.style.display = 'none';
+      if (sucesso) sucesso.style.display = 'block';
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Enviar avaliação';
+      console.error('[Avaliações]', err);
+    }
+  });
+}
