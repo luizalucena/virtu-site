@@ -1,1 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrinhos Abandonados — Virtù Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* ── CARRINHOS ──────────────────────────── */
+    .ca-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .ca-stat {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+    .ca-stat__label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-light);
+      margin-bottom: 0.35rem;
+    }
+    .ca-stat__value {
+      font-size: 1.6rem;
+      font-family: var(--font-disp);
+      color: var(--navy);
+      font-weight: 500;
+    }
+    .ca-stat__value--green { color: #27ae60; }
+    .ca-stat__value--gold  { color: var(--gold); }
 
+    /* ── FILTROS ────────────────────────────── */
+    .ca-filter {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .filter-btn {
+      padding: 0.4rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #fff;
+      font-family: var(--font);
+      font-size: 0.78rem;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: all 0.15s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+
+    /* ── BUSCA ──────────────────────────────── */
+    .ca-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .ca-search {
+      flex: 1;
+      max-width: 320px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.9rem;
+      font-family: var(--font);
+      font-size: 0.85rem;
+      outline: none;
+      background: #fff;
+    }
+    .ca-search:focus { border-color: var(--gold); }
+
+    /* ── TABELA ─────────────────────────────── */
+    .ca-table-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .ca-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .ca-table th {
+      background: var(--navy);
+      color: rgba(255,255,255,0.85);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .ca-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .ca-table tr:last-child td { border-bottom: none; }
+    .ca-table tr:hover td { background: #faf9f7; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .badge--pendente   { background: #fef3c7; color: #92400e; }
+    .badge--recuperado { background: #d1fae5; color: #065f46; }
+    .badge--checkout   { background: #dbeafe; color: #1e40af; }
+    .badge--popup      { background: #ede9fe; color: #5b21b6; }
+    .badge--mobile     { background: #fce7f3; color: #9d174d; }
+
+    .ca-itens-resumo {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ca-valor {
+      font-weight: 600;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+    .ca-telefone {
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+    }
+    .ca-nome { font-weight: 500; }
+    .ca-data  { font-size: 0.78rem; color: var(--text-light); white-space: nowrap; }
+
+    .ca-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: nowrap;
+    }
+    .btn-icon {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--text);
+      transition: all 0.15s;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn-icon:hover { background: var(--off-white); }
+    .btn-icon--wpp  { border-color: #25D366; color: #25D366; }
+    .btn-icon--wpp:hover { background: #25D366; color: #fff; }
+    .btn-icon--rec  { border-color: #27ae60; color: #27ae60; }
+    .btn-icon--rec:hover { background: #27ae60; color: #fff; }
+    .btn-icon--del  { border-color: #e74c3c; color: #e74c3c; }
+    .btn-icon--del:hover { background: #e74c3c; color: #fff; }
+
+    .ca-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+    .ca-empty svg { margin-bottom: 0.75rem; opacity: 0.3; }
+
+    /* ── PAINEL WEBHOOK ─────────────────────── */
+    .ca-config-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .ca-config-card h3 {
+      font-family: var(--font-disp);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--navy);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .ca-config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 640px) { .ca-config-grid { grid-template-columns: 1fr; } }
+    .ca-field label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-light);
+      margin-bottom: 0.4rem;
+    }
+    .ca-field input,
+    .ca-field textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.55rem 0.8rem;
+      font-family: var(--font);
+      font-size: 0.85rem;
+      outline: none;
+      resize: vertical;
+    }
+    .ca-field input:focus,
+    .ca-field textarea:focus { border-color: var(--gold); }
+    .ca-field .ca-hint {
+      font-size: 0.72rem;
+      color: var(--text-light);
+      margin-top: 0.3rem;
+    }
+    .ca-config-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .ca-toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--navy);
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.25s;
+      pointer-events: none;
+    }
+    .ca-toast.show { opacity: 1; transform: translateY(0); }
+    .ca-toast.success { background: #27ae60; }
+    .ca-toast.error   { background: #e74c3c; }
+
+    /* Modal de itens */
+    .ca-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,25,35,.6);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .ca-modal-overlay.open { display: flex; }
+    .ca-modal {
+      background: #fff;
+      border-radius: var(--radius);
+      max-width: 480px;
+      width: 100%;
+      padding: 1.75rem;
+      position: relative;
+    }
+    .ca-modal h3 {
+      font-family: var(--font-disp);
+      font-size: 1.1rem;
+      color: var(--navy);
+      margin-bottom: 1rem;
+    }
+    .ca-modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: none; border: none;
+      font-size: 1.1rem; cursor: pointer;
+      color: var(--text-light);
+    }
+    .ca-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      gap: 0.5rem;
+    }
+    .ca-item-row:last-child { border-bottom: none; }
+    .ca-item-name { flex: 1; }
+    .ca-item-qty  { color: var(--text-light); font-size: 0.78rem; }
+    .ca-item-price { font-weight: 600; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <span class="admin-sidebar__virtu">VIRTÙ</span>
+      <span class="admin-sidebar__tag">Admin</span>
+    </div>
+    <nav class="admin-sidebar__nav">
+      <a href="index.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Produtos
+      </a>
+      <a href="index.html#sobre" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Página Sobre
+      </a>
+      <a href="financeiro.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Financeiro
+      </a>
+      <a href="cupons.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
+        Cupons
+      </a>
+      <a href="carrinhos.html" class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Carrinhos
+      </a>
+      <a href="index.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Configurações
+      </a>
+    </nav>
+    <div class="admin-sidebar__footer">
+      <p>Virtù Admin v1.1</p>
+      <button class="admin-logout-btn" id="btnLogout" title="Sair do painel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <h1 class="admin-topbar__title">Carrinhos Abandonados</h1>
+        <span class="admin-topbar__count" id="caCount"></span>
+      </div>
+      <div class="admin-topbar__actions">
+        <button class="admin-btn admin-btn--ghost" id="btnRecarregar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Recarregar
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content" style="padding:1.5rem">
+
+      <!-- STATS -->
+      <div class="ca-stats" id="caStats">
+        <div class="ca-stat">
+          <p class="ca-stat__label">Total abandonos</p>
+          <p class="ca-stat__value" id="statTotal">—</p>
+        </div>
+        <div class="ca-stat">
+          <p class="ca-stat__label">Pendentes</p>
+          <p class="ca-stat__value" id="statPendentes">—</p>
+        </div>
+        <div class="ca-stat">
+          <p class="ca-stat__label">Recuperados</p>
+          <p class="ca-stat__value ca-stat__value--green" id="statRecuperados">—</p>
+        </div>
+        <div class="ca-stat">
+          <p class="ca1stat__label">Valor em risco</p>
+          <p class="ca-stat__value ca-stat__value--gold" id="statValor">—</p>
+        </div>
+      </div>
+
+      <!-- CONFIG WEBHOOK -->
+      <div class="ca-config-card" id="configCard">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.58a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17v-.08z"/></svg>
+          Recuperação Automática por WhatsApp
+        </h3>
+        <div class="ca-config-grid">
+          <div class="ca-field">
+            <label>URL do Webhook (Zapier / Make / Z-API)</label>
+            <input type="url" id="webhookUrl" placeholder="https://hooks.zapier.com/…" />
+            <p class="ca-hint">Deixe vazio para desativar o envio automático.</p>
+          </div>
+          <div class="ca-field">
+            <label>Mensagem de recuperação</label>
+            <textarea id="webhookMsg" rows="3" placeholder="Olá {nome}! Você deixou itens no carrinho da Virtù: {link}"></textarea>
+            <p class="ca-hint">Variáveis: {nome} {link} {total}</p>
+          </div>
+        </div>
+        <div class="ca-config-actions">
+          <button class="admin-btn admin-btn--ghost" id="btnTestarWebhook">Testar envio</button>
+          <button class="admin-btn admin-btn--primary" id="btnSalvarConfig">Salvar configuração</button>
+        </div>
+      </div>
+
+      <!-- FILTROS + BUSCA -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+        <div class="ca-filter" id="caFilter">
+          <button class="filter-btn active" data-filter="todos">Todos</button>
+          <button class="filter-btn" data-filter="pendente">Pendentes</button>
+          <button class="filter-btn" data-filter="recuperado">Recuperados</button>
+          <button class="filter-btn" data-filter="exit_popup">Exit Popup</button>
+          <button class="filter-btn" data-filter="checkout">Checkout</button>
+        </div>
+        <input type="search" class="ca-search" id="caBusca" placeholder="Buscar por nome ou telefone…" />
+      </div>
+
+      <!-- TABELA -->
+      <div class="ca-table-wrap">
+        <table class="ca-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Telefone</th>
+              <th>Itens</th>
+              <th>Valor</th>
+              <th>Origem</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="caTbody">
+            <tr><td colspan="8" class="ca-empty">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <br>Carregando carrinhos…
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /admin-content -->
+  </div><!-- /admin-main -->
+
+  <!-- MODAL DE ITENS -->
+  <div class="ca-modal-overlay" id="itensModal">
+    <div class="ca-modal">
+      <button class="ca-modal-close" id="modalClose">✕</button>
+      <h3>Itens do carrinho</h3>
+      <div id="modalItens"></div>
+      <p id="modalTotal" style="text-align:right;font-weight:600;margin-top:1rem;font-size:0.9rem;"></p>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="ca-toast" id="caToast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    const VIRTU_WPP = '5583999947734';
+    let allCarrinhos = [];
+    let filtroAtual  = 'todos';
+    let buscaAtual   = '';
+
+    /* ─── Toast ──────────────────────────────── */
+    function toast(msg, type = '') {
+      const el = document.getElementById('caToast');
+      el.textContent = msg;
+      el.className   = 'ca-toast' + (type ? ' ' + type : '');
+      void el.offsetWidth;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    /* ─── Formatadores ───────────────────────── */
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit' })
+           + ' ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    }
+    function fmtMoney(v) {
+      return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+    }
+    function fmtPhone(raw) {
+      const d = String(raw || '').replace(/\D/g,'');
+      if (d.length === 13) return `+${d.slice(0,2)} (${d.slice(2,4)}) ${d.slice(4,9)}-${d.slice(9)}`;
+      if (d.length === 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+      return raw;
+    }
+    function origemBadge(origem) {
+      const map = {
+        exit_popup:     ['badge--popup',   'Exit Popup'],
+        checkout:       ['badge--checkout','Checkout'],
+        carrinho:       ['badge--pendente','Carrinho'],
+        carrinho_mobile:['badge--mobile',  'Mobile'],
+      };
+      const [cls, label] = map[origem] || ['badge--pendente', origem || '—'];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+    function itensResumo(itens) {
+      if (!Array.isArray(itens) || !itens.length) return '<em>sem itens</em>';
+      const nomes = itens.map(i => i.nome || i.name || 'Item').join(', ');
+      return nomes;
+    }
+    function buildWppLink(telefone, nome, total, urlRec) {
+      const urlEncoded = encodeURIComponent(urlRec || window.location.origin + '/carrinho.html?recuperar=1');
+      const msg = encodeURIComponent(
+        `Olá${nome ? ' ' + nome.split(' ')[0] : ''}! 👋 Notamos que você deixou itens no carrinho da *Virtù* (total: ${fmtMoney(total)}).\n\nSeus itens ainda estão te esperando! Clique aqui para retomar: ${decodeURIComponent(urlEncoded)}`
+      );
+      const tel = String(telefone || '').replace(/\D/g,'');
+      return `https://wa.me/${tel}?text=${msg}`;
+    }
+
+    /* ─── Carregar carrinhos ─────────────────── */
+    async function carregarCarrinhos() {
+      document.getElementById('caTbody').innerHTML =
+        '<tr><td colspan="8" class="ca-empty">Carregando…</td></tr>';
+      try {
+        const { data, error } = await supabaseClient
+          .from('carrinhos_abandonados')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(200);
+        if (error) throw error;
+        allCarrinhos = data || [];
+        renderStats();
+        renderTabela();
+        document.getElementById('caCount').textContent = `${allCarrinhos.length} registros`;
+      } catch (e) {
+        toast('Erro ao carregar: ' + e.message, 'error');
+        document.getElementById('caTbody').innerHTML =
+          '<tr><td colspan="8" class="ca-empty">Erro ao carregar dados.</td></tr>';
+      }
+    }
+
+    /* ─── Stats ──────────────────────────────── */
+    function renderStats() {
+      const pendentes   = allCarrinhos.filter(c => !c.recuperado);
+      const recuperados = allCarrinhos.filter(c => c.recuperado);
+      const valorRisco  = pendentes.reduce((s, c) => s + Number(c.valor_total || 0), 0);
+      document.getElementById('statTotal').textContent       = allCarrinhos.length;
+      document.getElementById('statPendentes').textContent   = pendentes.length;
+      document.getElementById('statRecuperados').textContent = recuperados.length;
+      document.getElementById('statValor').textContent       = fmtMoney(valorRisco);
+    }
+
+    /* ─── Tabela ─────────────────────────────── */
+    function renderTabela() {
+      let lista = allCarrinhos;
+      if (filtroAtual === 'pendente')   lista = lista.filter(c => !c.recuperado);
+      if (filtroAtual === 'recuperado') lista = lista.filter(c =>  c.recuperado);
+      if (['exit_popup','checkout','carrinho','carrinho_mobile'].includes(filtroAtual))
+        lista = lista.filter(c => c.origem === filtroAtual);
+      if (buscaAtual) {
+        const q = buscaAtual.toLowerCase();
+        lista = lista.filter(c =>
+          (c.nome || '').toLowerCase().includes(q) ||
+          (c.email || '').toLowerCase().includes(q) ||
+          (c.telefone || '').includes(q)
+        );
+      }
+
+      const tbody = document.getElementById('caTbody');
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="ca-empty">Nenhum carrinho encontrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = lista.map(c => {
+        const wppUrl = buildWppLink(c.telefone, c.nome, c.valor_total, c.url_recuperacao);
+        const iRec   = c.recuperado;
+        return `
+          <tr>
+            <td>
+              <span class="ca-nome">${escHtml(c.nome || '—')}</span>
+              ${c.email ? `<br><small style="color:var(--text-light);font-size:0.75rem">${escHtml(c.email)}</small>` : ''}
+            </td>
+            <td><span class="ca-telefone">${fmtPhone(c.telefone)}</span></td>
+            <td>
+              <span class="ca-itens-resumo" title="${escHtml(itensResumo(c.itens))}">${escHtml(itensResumo(c.itens))}</span>
+              ${Array.isArray(c.itens) && c.itens.length
+                ? `<br><button class="btn-icon" style="margin-top:4px;font-size:0.72rem" onclick="verItens('${c.id}')">ver ${c.itens.length} item(ns)</button>`
+                : ''}
+            </td>
+            <td><span class="ca-valor">${fmtMoney(c.valor_total)}</span></td>
+            <td>${origemBadge(c.origem)}</td>
+            <td><span class="ca-data">${fmtDate(c.created_at)}</span></td>
+            <td>
+              <span class="badge ${iRec ? 'badge--recuperado' : 'badge--pendente'}">
+                ${iRec ? '✓ Recuperado' : '● Pendente'}
+              </span>
+            </td>
+            <td>
+              <div class="ca-actions">
+                <a href="${wppUrl}" target="_blank" rel="noopener" class="btn-icon btn-icon--wpp" title="Enviar WhatsApp">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.041L.784 23.216l4.297-1.374A11.934 11.934 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.793 9.793 0 0 1-5.002-1.374l-.36-.213-3.724 1.191 1.211-3.624-.234-.374A9.793 9.793 0 0 1 2.182 12C2.182 6.574 6.574 2.182 12 2.182c5.426 0 9.818 4.392 9.818 9.818 0 5.426-4.392 9.818-9.818 9.818z"/></svg>
+                  WhatsApp
+                </a>
+                ${!iRec ? `<button class="btn-icon btn-icon--rec" onclick="marcarRecuperado('${c.id}')" title="Marcar como recuperado">✓</button>` : ''}
+                <button class="btn-icon btn-icon--del" onclick="excluir('${c.id}')" title="Excluir">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    /* ─── Modal itens ────────────────────────── */
+    window.verItens = function (id) {
+      const c = allCarrinhos.find(x => x.id === id);
+      if (!c) return;
+      const itens = Array.isArray(c.itens) ? c.itens : [];
+      document.getElementById('modalItens').innerHTML = itens.map(item => {
+        const nome  = item.nome || item.name || 'Produto';
+        const qty   = item.qty || item.quantidade || 1;
+        const preco = item.preco_desconto || item.preco || item.price || 0;
+        return `<div class="ca-item-row">
+          <span class="ca-item-name">${escHtml(nome)}</span>
+          <span class="ca-item-qty">×${qty}</span>
+          <span class="ca-item-price">${fmtMoney(preco * qty)}</span>
+        </div>`;
+      }).join('') || '<p style="color:var(--text-light);font-size:.85rem">Sem itens registrados.</p>';
+      document.getElementById('modalTotal').textContent = 'Total: ' + fmtMoney(c.valor_total);
+      document.getElementById('itensModal').classList.add('open');
+    };
+
+    document.getElementById('modalClose').addEventListener('click', () =>
+      document.getElementById('itensModal').classList.remove('open'));
+    document.getElementById('itensModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('itensModal'))
+        document.getElementById('itensModal').classList.remove('open');
+    });
+
+    /* ─── Marcar recuperado ──────────────────── */
+    window.marcarRecuperado = async function (id) {
+      try {
+        const { error } = await supabaseClient
+          .from('carrinhos_abandonados')
+          .update({ recuperado: true, recuperado_em: new Date().toISOString() })
+          .eq('id', id);
+        if (error) throw error;
+        const c = allCarrinhos.find(x => x.id === id);
+        if (c) { c.recuperado = true; c.recuperado_em = new Date().toISOString(); }
+        renderStats();
+        renderTabela();
+        toast('Marcado como recuperado!', 'success');
+      } catch (e) {
+        toast('Erro: ' + e.message, 'error');
+      }
+    };
+
+    /* ─── Excluir ────────────────────────────── */
+    window.excluir = async function (id) {
+      if (!confirm('Excluir este registro permanentemente?')) return;
+      try {
+        const { error } = await supabaseClient
+          .from('carrinhos_abandonados')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+        allCarrinhos = allCarrinhos.filter(x => x.id !== id);
+        renderStats();
+        renderTabela();
+        document.getElementById('caCount').textContent = `${allCarrinhos.length} registros`;
+        toast('Registro excluído.', 'success');
+      } catch (e) {
+        toast('Erro: ' + e.message, 'error');
+      }
+    };
+
+    /* ─── Configurações webhook ──────────────── */
+    async function carregarConfig() {
+      try {
+        const { data } = await supabaseClient
+          .from('configuracoes')
+          .select('webhook_whatsapp, abandono_mensagem')
+          .eq('id', 1)
+          .maybeSingle();
+        if (data) {
+          document.getElementById('webhookUrl').value = data.webhook_whatsapp || '';
+          document.getElementById('webhookMsg').value = data.abandono_mensagem || '';
+        }
+      } catch { /* silencioso */ }
+    }
+
+    document.getElementById('btnSalvarConfig').addEventListener('click', async () => {
+      const url = document.getElementById('webhookUrl').value.trim();
+      const msg = document.getElementById('webhookMsg').value.trim();
+      try {
+        const { error } = await supabaseClient
+          .from('configuracoes')
+          .update({ webhook_whatsapp: url || null, abandono_mensagem: msg || null })
+          .eq('id', 1);
+        if (error) throw error;
+        toast('Configuração salva!', 'success');
+      } catch (e) {
+        toast('Erro ao salvar: ' + e.message, 'error');
+      }
+    });
+
+    document.getElementById('btnTestarWebhook').addEventListener('click', async () => {
+      const url = document.getElementById('webhookUrl').value.trim();
+      if (!url) { toast('Informe a URL do webhook antes de testar.', 'error'); return; }
+      try {
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            teste: true,
+            telefone: VIRTU_WPP,
+            mensagem: 'Teste de conexão — Virtù Admin',
+            timestamp: new Date().toISOString(),
+          }),
+        });
+        toast('Webhook disparado! Verifique o destino.', 'success');
+      } catch (e) {
+        toast('Erro ao testar webhook: ' + e.message, 'error');
+      }
+    });
+
+    /* ─── Filtros ────────────────────────────── */
+    document.getElementById('caFilter').addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      document.querySelectorAll('#caFilter .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filtroAtual = btn.dataset.filter;
+      renderTabela();
+    });
+
+    document.getElementById('caBusca').addEventListener('input', e => {
+      buscaAtual = e.target.value;
+      renderTabela();
+    });
+
+    document.getElementById('btnRecarregar').addEventListener('click', carregarCarrinhos);
+
+    /* ─── Logout ─────────────────────────────── */
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    /* ─── Escape HTML ────────────────────────── */
+    function escHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ─── Init ───────────────────────────────── */
+    async function init() {
+      if (typeof supabaseClient === 'undefined') { setTimeout(init, 300); return; }
+
+      // Auth guard
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) { window.location.href = 'index.html'; return; }
+
+      await Promise.all([carregarCarrinhos(), carregarConfig()]);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else { init(); }
+
+  })();
+  </script>
+</body>
+</html>
