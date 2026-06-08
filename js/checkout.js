@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-aplica cupom validado no carrinho
     try {
-      const savedCoupon = JSON.parse(localStorage.getItem('virtu_coupon') || 'null');
+      const savedCoupon = JSON.parse(sessionStorage.getItem('virtu_coupon') || localStorage.getItem('virtu_coupon') || 'null');
       if (savedCoupon?.code && (savedCoupon?.pct || savedCoupon?.valor)) {
         const input = document.getElementById('cupomInput');
         if (input) input.value = savedCoupon.code;
@@ -855,12 +855,17 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (bodyEl && cfg.pedido_msg_corpo) {
-            // Substitui placeholders e permite apenas tags seguras (sem XSS)
+            // Substitui placeholders — usa textContent para segurança (sem XSS)
             const corpo = cfg.pedido_msg_corpo
               .replace(/\{nome\}/g, nome || 'cliente')
-              .replace(/\{numero\}/g, num)
-              .replace(/<(?!\/?(?:b|strong|em|br|p)\b)[^>]+>/gi, ''); // strip unsafe tags
-            bodyEl.innerHTML = corpo;
+              .replace(/\{numero\}/g, num);
+            // Sanitização: só permite <b>, <strong>, <em>, <br> sem atributos
+            const sanitized = corpo
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/&lt;(\/?(?:b|strong|em|br))&gt;/gi, '<$1>');
+            bodyEl.innerHTML = sanitized;
           }
         }
       }
