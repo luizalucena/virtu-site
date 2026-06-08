@@ -671,5 +671,55 @@
   </script>
 
   <script src="js/wishlist.js"></script>
+
+  <!-- =============================================
+       POP-UP DE SAÍDA — Cupom Frete Grátis
+  ============================================== -->
+  <div id="vt-exit-overlay">
+    <div id="vt-exit-popup">
+      <button id="vt-close" onclick="vtClosePop()" aria-label="Fechar">&times;</button>
+      <p id="vt-eyebrow">Espere! Antes de ir…</p>
+      <h2 id="vt-headline">FRETE GRÁTIS<br>no seu pedido</h2>
+      <div id="vt-divider"></div>
+      <p id="vt-sub">Use o cupom abaixo ao finalizar sua compra:</p>
+      <div id="vt-coupon-box">
+        <span id="vt-coupon-code">FRETEGRATIS</span>
+        <button id="vt-copy-btn" onclick="vtCopyCoupon()">Copiar</button>
+      </div>
+      <p id="vt-copied-msg">✔ Copiado!</p>
+      <a href="catalogo.html" id="vt-cta" onclick="vtClosePop()">Quero aproveitar →</a>
+      <p id="vt-dismiss" onclick="vtClosePop()">Não, obrigado</p>
+    </div>
+  </div>
+
+  <style>
+    #vt-exit-overlay{display:none;position:fixed;inset:0;background:rgba(18,28,38,.65);z-index:99999;align-items:center;justify-content:center;padding:16px;animation:vtFadeIn .3s ease}
+    #vt-exit-popup{background:#1E2E3E;border:1px solid rgba(196,147,74,.35);border-radius:4px;max-width:420px;width:100%;padding:52px 40px 36px;position:relative;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5);font-family:Helvetica Neue,Arial,sans-serif}
+    #vt-close{position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,.4);line-height:1;padding:4px 8px;transition:color .2s}
+    #vt-close:hover{color:#fff}
+    #vt-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#C4934A;margin:0 0 14px}
+    #vt-headline{font-size:30px;font-weight:800;letter-spacing:-.5px;color:#fff;margin:0 0 18px;line-height:1.2}
+    #vt-divider{width:40px;height:2px;background:#C4934A;margin:0 auto 18px;border-radius:2px}
+    #vt-sub{font-size:14px;color:rgba(255,255,255,.6);margin:0 0 18px}
+    #vt-coupon-box{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(255,255,255,.06);border:1.5px dashed rgba(196,147,74,.5);border-radius:4px;padding:14px 18px;margin-bottom:6px}
+    #vt-coupon-code{font-size:20px;font-weight:700;letter-spacing:.14em;color:#C4934A}
+    #vt-copy-btn{background:#C4934A;color:#1E2E3E;border:none;border-radius:3px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s}
+    #vt-copy-btn:hover{background:#d4a35a}
+    #vt-copied-msg{font-size:12px;color:#7ecfa0;font-weight:600;height:16px;margin:0 0 18px;opacity:0;transition:opacity .3s}
+    #vt-copied-msg.show{opacity:1}
+    #vt-cta{display:block;width:100%;background:#C4934A;color:#1E2E3E;border:none;border-radius:3px;padding:16px;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-bottom:14px;text-decoration:none;transition:background .2s;box-sizing:border-box}
+    #vt-cta:hover{background:#d4a35a}
+    #vt-dismiss{font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;margin:0}
+    #vt-dismiss:hover{color:rgba(255,255,255,.6)}
+    @keyframes vtFadeIn{from{opacity:0}to{opacity:1}}
+    @media(max-width:480px){#vt-exit-popup{padding:44px 24px 28px}#vt-headline{font-size:24px}}
+  </style>
+
+  <script>
+    (function(){var K='vt_exit_shown',shown=false;if(sessionStorage.getItem(K))return;function show(){if(shown)return;shown=true;sessionStorage.setItem(K,'1');document.getElementById('vt-exit-overlay').style.display='flex';}document.addEventListener('mouseleave',function(e){if(e.clientY<=0)show();});var lastY=0,th=window.innerHeight*.75;window.addEventListener('scroll',function(){var y=window.scrollY;if(lastY-y>th)show();lastY=y;},{passive:true});document.getElementById('vt-exit-overlay').addEventListener('click',function(e){if(e.target===this)vtClosePop();});document.addEventListener('keydown',function(e){if(e.key==='Escape')vtClosePop();});})();
+    function vtClosePop(){var el=document.getElementById('vt-exit-overlay');el.style.opacity='0';el.style.transition='opacity .2s';setTimeout(function(){el.style.display='none';el.style.opacity='';},200);}
+    function vtCopyCoupon(){var c='FRETEGRATIS',m=document.getElementById('vt-copied-msg');function fb(){m.classList.add('show');setTimeout(function(){m.classList.remove('show');},2500);}if(navigator.clipboard){navigator.clipboard.writeText(c).then(fb);}else{var el=document.createElement('textarea');el.value=c;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);fb();}}
+  <\/script>
+  <!-- END POP-UP -->
 </body>
 </html>
