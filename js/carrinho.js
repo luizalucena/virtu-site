@@ -301,9 +301,14 @@ async function loadSuggestions() {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); revealObs.unobserve(e.target); } });
     }, { threshold: 0.08 });
 
-    const style = document.createElement('style');
-    style.textContent = '.revealed{opacity:1!important;transform:translateY(0)!important}';
-    document.head.appendChild(style);
+    if (!document.getElementById('vt-reveal-style')) {
+      if (!document.getElementById('vt-reveal-style')) {
+      const style = document.createElement('style');
+      style.id = 'vt-reveal-style';
+      style.textContent = '.revealed{opacity:1!important;transform:translateY(0)!important}';
+      document.head.appendChild(style);
+    }
+    }
 
     grid.querySelectorAll('.product-card').forEach((el, i) => {
       el.style.cssText = `opacity:0;transform:translateY(16px);transition:opacity 0.5s ease ${i * 0.06}s,transform 0.5s ease ${i * 0.06}s`;
@@ -318,7 +323,7 @@ async function loadSuggestions() {
 
 /* ── EXPÕE API GLOBAL (para produto.html usar) ─────────────── */
 window.VirtuCart = {
-  add(product, tamanho, corNome, corHex) {
+  add(product, tamanho, corNome, corHex, variacaoId) {
     const items = getCart();
     const existingIdx = items.findIndex(
       i => i.id === product.id && i.tamanho === tamanho && i.cor_nome === corNome
