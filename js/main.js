@@ -2,6 +2,16 @@
    VIRTÙ — Main JavaScript
    ============================================================ */
 
+// Escapa caracteres HTML para prevenir XSS
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ──────────────────────────────────────────
@@ -291,16 +301,16 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.innerHTML = data.map(a => {
         const inicial = (a.nome_cliente || 'C').charAt(0).toUpperCase();
         const avatar  = a.foto_cliente
-          ? `<img src="${a.foto_cliente}" alt="${a.nome_cliente}" loading="lazy" />`
+          ? `<img src="${encodeURI(a.foto_cliente || '')}" alt="${escHtml(a.nome_cliente)}" loading="lazy" />`
           : inicial;
         return `
           <div class="depoimento-card">
             <div class="depoimento-card__estrelas">${stars(a.nota)}</div>
-            <p class="depoimento-card__texto">${a.comentario || ''}</p>
+            <p class="depoimento-card__texto">${escHtml(a.comentario)}</p>
             <div class="depoimento-card__cliente">
               <div class="depoimento-card__avatar">${avatar}</div>
               <div>
-                <p class="depoimento-card__nome">${a.nome_cliente}</p>
+                <p class="depoimento-card__nome">${escHtml(a.nome_cliente)}</p>
               </div>
             </div>
           </div>`;
