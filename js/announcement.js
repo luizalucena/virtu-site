@@ -8,6 +8,16 @@
    Depende de: supabase CDN + js/supabase-config.js
    ============================================================ */
 
+// Escapa caracteres HTML para prevenir XSS
+function _escAnuncio(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 (async () => {
   if (typeof supabaseClient === 'undefined') return;
 
@@ -27,7 +37,7 @@
     // Duplica os itens para criar o efeito de loop contínuo
     const all = [...items, ...items];
     track.innerHTML = all
-      .map(txt => `<span class="announcement-bar__item"><span class="sep">✦</span> ${txt}</span>`)
+      .map(txt => `<span class="announcement-bar__item"><span class="sep">✦</span> ${_escAnuncio(txt)}</span>`)
       .join('');
 
   } catch {
