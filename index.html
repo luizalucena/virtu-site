@@ -14,13 +14,16 @@
   <link rel="canonical" href="https://wearvirtu.com" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/home.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
 
   <!-- =============================================
        ANNOUNCEMENT BAR
   ============================================== -->
-  <div class="announcement-bar" role="banner">
+  <div class="announcement-bar" role="region" aria-label="Anúncios da loja">
     <div class="announcement-bar__track" aria-label="Informações da loja">
       <!-- duplicado para loop contínuo -->
       <span class="announcement-bar__item">
@@ -116,7 +119,7 @@
           </svg>
           <span class="navbar__account-dot" id="authDot"></span>
         </a>
-        <a href="carrinho.html" class="navbar__action-btn" aria-label="Carrinho (0 itens)">
+        <a href="carrinho.html" class="navbar__action-btn" id="cartLink" aria-label="Carrinho (0 itens)">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
