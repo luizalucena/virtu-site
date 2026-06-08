@@ -7,6 +7,9 @@
   <title>Catálogo — Virtù</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/catalogo.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -132,7 +135,7 @@
         <div class="cat-header__content">
           <div>
             <h1 class="display-lg display-italic" id="catTitle">Todas as Peças</h1>
-            <p class="cat-header__count" id="catCount">24 produtos</p>
+            <p class="cat-header__count" id="catCount">Carregando…</p>
           </div>
           <div class="cat-header__view-toggle" role="group" aria-label="Modo de visualização">
             <button class="view-btn view-btn--active" id="view4" aria-label="4 colunas" aria-pressed="true">
@@ -247,7 +250,7 @@
 
         <!-- Barra de ordenação -->
         <div class="sort-bar">
-          <p class="sort-bar__count" id="sortCount">Exibindo <strong>24</strong> produtos</p>
+          <p class="sort-bar__count" id="sortCount">Exibindo produtos…</p>
           <div class="sort-bar__right">
             <!-- Filtro mobile -->
             <button class="sort-bar__filter-btn" id="filterToggleMobile" aria-label="Abrir filtros">
@@ -280,7 +283,7 @@
         </div>
 
         <!-- PAGINAÇÃO -->
-        <nav class="pagination" aria-label="Paginação">
+        <nav class="pagination" aria-label="Paginação" id="catalogoPagination" hidden>
           <button class="pagination__btn pagination__btn--prev" disabled aria-label="Página anterior">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
