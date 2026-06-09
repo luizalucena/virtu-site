@@ -7,7 +7,7 @@
 const CART_KEY    = 'virtu_cart';
 // Cupons validados via Supabase (não exponha códigos no frontend)
 
-let freeShippingThreshold = 300;  // default alinhado com banco (sobrescrito pelo Supabase — R$699 configurado pelo admin)
+let freeShippingThreshold = 699;  // default alinhado com banco (sobrescrito pelo Supabase — R$699 configurado pelo admin)
 let discount              = 0;
 let appliedCoupon         = null;
 let appliedPct            = 0;    // % do cupom ativo (para recalcular ao remover item)
