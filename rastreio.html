@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabase-config.js"></script>
+  <script src="js/supabase-config.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -234,7 +234,7 @@
     }
 
     function renderPedido(pedido) {
-      const info    = getStatusInfo(pedido.status_pedido);
+      const info    = getStatusInfo(pedido.status);
       const labels  = ['Confirmado', 'A caminho', 'Entregue'];
       const icons   = ['✓', '→', '⌂'];
 
@@ -262,7 +262,7 @@
 
         <div class="detalhes">
           <p><strong>Cliente:</strong> ${escHtml(pedido.nome_cliente || '—')}</p>
-          <p><strong>Data do pedido:</strong> ${fmtDate(pedido.created_at)}</p>
+          <p><strong>Data do pedido:</strong> ${fmtDate(pedido.criado_em)}</p>
           ${pedido.atualizado_em ? `<p><strong>Última atualização:</strong> ${fmtDate(pedido.atualizado_em)}</p>` : ''}
           ${pedido.codigo_rastreio ? `<p><strong>Código de rastreio:</strong> <strong>${escHtml(pedido.codigo_rastreio)}</strong></p>` : ''}
         </div>`;
@@ -288,7 +288,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('pedidos')
-          .select('id, nome_cliente, status_pedido, created_at, atualizado_em, codigo_rastreio')
+          .select('id, nome_cliente, status, criado_em, atualizado_em, codigo_rastreio')
           .eq('id', pedidoId)
           .maybeSingle();
 
