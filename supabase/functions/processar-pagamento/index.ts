@@ -174,8 +174,9 @@ Deno.serve(async (req) => {
 
     if (dbError) throw new Error('[DB Insert] ' + dbError.message);
 
-    // ── Decrementa estoque server-side ──────────────────
-    if (pedido?.id && itens?.length) {
+    // Decrementa estoque server-side (só cartão aprovado)
+    // PIX: estoque decrementado pelo trigger fn_pedido_pago_para_fluxo quando pago
+    if (pedido?.id && itens?.length && statusPedido === 'pago') {
       const decrements = (itens as any[])
         .filter((i) => i.variacao_id)
         .map((i) => supabase.rpc('comprar_variacao', {
@@ -185,7 +186,7 @@ Deno.serve(async (req) => {
       if (decrements.length > 0) await Promise.allSettled(decrements);
     }
 
-    // ── Notificação por e-mail (Resend) ────────────────
+    //  ── Notificação por e-mail (Resend) ────────────────
     try {
       const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
       if (RESEND_KEY && pedido?.id) {
