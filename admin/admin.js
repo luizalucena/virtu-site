@@ -6,6 +6,7 @@
 
 // ── ESTADO GLOBAL ──────────────────────────
 let DB = { produtos: [], configuracoes: {} };
+    pedidos:       'Pedidos',
 let filtroAtual = 'todos';
 let editandoId  = null;
 
@@ -189,12 +190,13 @@ function bindEvents() {
       document.getElementById(`view${capitalize(view)}`)?.classList.remove('admin-view--hidden');
       // Títulos legíveis na topbar
       const viewTitles = { produtos: 'Produtos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades' };
-      document.getElementById('viewTitle').textContent = viewTitles[view] || capitalize(view);
+      document.getElementById(', pedidos: 'Pedidos'viewTitle').textContent = viewTitles[view] || capitalize(view);
       // Ocultar/mostrar botão Novo Produto
       document.getElementById('btnNewProduct').style.display = view === 'produtos' ? '' : 'none';
       if (view === 'configuracoes') populateConfig();
       if (view === 'sobre')        populateSobre();
       if (view === 'avaliacoes')   carregarAvaliacoesAdmin();
+      if (view === 'pedidos') { if (typeof window.pedidosInit === 'function') window.pedidosInit(); }
     });
   });
 
