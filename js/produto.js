@@ -64,6 +64,46 @@ async function carregarProduto(produtoId) {
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.content = p.descricao || `${p.nome} — Virtù`;
 
+    // OG tags dinâmicos (compartilhar no WhatsApp/Instagram)
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDesc  = document.querySelector('meta[property="og:description"]');
+    const ogImg   = document.querySelector('meta[property="og:image"]');
+    const ogUrl   = document.querySelector('meta[property="og:url"]');
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
+    const twDesc  = document.querySelector('meta[name="twitter:description"]');
+    const twImg   = document.querySelector('meta[name="twitter:image"]');
+    if (ogTitle) ogTitle.content = `${p.nome} — Virtù`;
+    if (ogDesc)  ogDesc.content  = p.descricao || `${p.nome} — Moda feminina atemporal. Virtù.`;
+    if (ogImg && p.imagem_url)  ogImg.content  = p.imagem_url;
+    if (ogUrl)   ogUrl.content   = `https://wearvirtu.com/produto.html?id=${p.id}`;
+    if (twTitle) twTitle.content = `${p.nome} — Virtù`;
+    if (twDesc)  twDesc.content  = p.descricao || `${p.nome} — Moda feminina atemporal.`;
+    if (twImg && p.imagem_url)  twImg.content  = p.imagem_url;
+
+    // Schema.org Product (rich snippets no Google)
+    const existingLd = document.getElementById('ld-product');
+    if (existingLd) existingLd.remove();
+    const ldScript = document.createElement('script');
+    ldScript.type = 'application/ld+json';
+    ldScript.id   = 'ld-product';
+    ldScript.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type':    'Product',
+      name:        p.nome,
+      description: p.descricao || '',
+      image:       p.imagem_url || '',
+      url:         `https://wearvirtu.com/produto.html?id=${p.id}`,
+      brand:       { '@type': 'Brand', name: 'Virtù' },
+      offers: {
+        '@type':        'Offer',
+        price:          String(preco),
+        priceCurrency:  'BRL',
+        availability:   'https://schema.org/InStock',
+        url:            `https://wearvirtu.com/produto.html?id=${p.id}`,
+      },
+    });
+    document.head.appendChild(ldScript);
+
     // Breadcrumb
     const bcLinks = document.querySelectorAll('.breadcrumb__link');
     if (bcLinks[1]) {
@@ -178,7 +218,7 @@ async function carregarProduto(produtoId) {
             existing.src = url;
           } else {
             mainImg.innerHTML = `<img class="galeria-main__real-img"
-              src="${url}" alt="Foto do produto" />`;
+              src="${url}" alt="Foto do produto" loading="lazy" />`;
           }
           // Só revela quando a imagem está pronta
           mainImg.style.opacity = '1';
