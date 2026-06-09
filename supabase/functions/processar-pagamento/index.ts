@@ -172,7 +172,18 @@ Deno.serve(async (req) => {
       .select('id')
       .single();
 
-    if (dbError) console.error('[DB Error]', dbError.message);
+    if (dbError) throw new Error('[DB Insert] ' + dbError.message);
+
+    // ── Decrementa estoque server-side ──────────────────
+    if (pedido?.id && itens?.length) {
+      const decrements = (itens as any[])
+        .filter((i) => i.variacao_id)
+        .map((i) => supabase.rpc('comprar_variacao', {
+          p_variacao_id: i.variacao_id,
+          p_quantidade:  i.qty || 1,
+        }));
+      if (decrements.length > 0) await Promise.allSettled(decrements);
+    }
 
     // ── Notificação por e-mail (Resend) ────────────────
     try {
