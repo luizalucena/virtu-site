@@ -653,6 +653,34 @@
           </div>
         </div>
 
+        <!-- E-mail de Confirmação ao Cliente -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">E-mail de Confirmação ao Cliente</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted,#888);margin-bottom:1rem;line-height:1.5">E-mail enviado automaticamente ao cliente após a compra ser confirmada.</p>
+          <div class="admin-form-group">
+            <label class="admin-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="cfgEmailClienteAtivo" style="width:16px;height:16px">
+              Enviar e-mail de confirmação ao cliente
+            </label>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Assunto do e-mail</label>
+            <input type="text" class="admin-input" id="cfgEmailClienteAssunto" placeholder="Ex: Pedido confirmado! Obrigada pela sua compra 🛍️" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Saudação <span style="font-size:0.8rem;color:#999">(use {nome} para o nome da cliente)</span></label>
+            <input type="text" class="admin-input" id="cfgEmailClienteSaudacao" placeholder="Ex: Olá, {nome}! Sua compra foi confirmada." />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Mensagem principal</label>
+            <textarea class="admin-input admin-textarea" id="cfgEmailClienteMensagem" rows="3" placeholder="Mensagem de agradecimento e informações sobre o pedido..."></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Rodapé / despedida</label>
+            <input type="text" class="admin-input" id="cfgEmailClienteRodape" placeholder="Ex: Dúvidas? Fale com a gente pelo WhatsApp. ♥ Equipe Virtù" />
+          </div>
+        </div>
+
         <!-- GUIA DE TAMANHOS -->
         <div class="admin-card" style="grid-column:1/-1">
           <h3 class="admin-card__title">Guia de Tamanhos</h3>
