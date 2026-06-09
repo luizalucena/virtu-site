@@ -745,17 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(result.erro || `Erro ${res.status}`);
       }
 
-      // Decrementa estoque (independente do gateway)
-      if (typeof supabaseClient !== 'undefined' && cart.length) {
-        const decrements = cart
-          .filter(i => i.variacao_id)
-          .map(i => supabaseClient.rpc('comprar_variacao', {
-            p_variacao_id: i.variacao_id,
-            p_quantidade:  i.qty || 1,
-          }));
-        await Promise.allSettled(decrements);
-      }
-
       // Registra uso do cupom (se houver)
       if (cupomAplicado?.codigo && typeof supabaseClient !== 'undefined') {
         try { await supabaseClient.rpc('usar_cupom', { p_codigo: cupomAplicado.codigo }); } catch {}
