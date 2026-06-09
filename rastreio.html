@@ -1,1 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rastreio do Pedido — Virtù</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    body {
+      font-family: 'Jost', system-ui, sans-serif;
+      background: #F5F2EE;
+      color: #2B3F54;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 16px;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.2em;
+      color: #2B3F54;
+      margin-bottom: 48px;
+      text-decoration: none;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 4px;
+      max-width: 540px;
+      width: 100%;
+      padding: 48px 40px;
+      box-shadow: 0 2px 20px rgba(43,63,84,.07);
+    }
+
+    .pedido-id {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6E6660;
+      margin-bottom: 6px;
+    }
+
+    .pedido-titulo {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.6rem;
+      font-weight: 500;
+      color: #2B3F54;
+      margin-bottom: 32px;
+    }
+
+    /* Timeline */
+    .timeline {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .step::after {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #E2DDD7;
+      z-index: 0;
+    }
+
+    .step:last-child::after { display: none; }
+
+    .step.done::after  { background: #2B3F54; }
+    .step.active::after { background: linear-gradient(90deg, #2B3F54, #E2DDD7); }
+
+    .step-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #E2DDD7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #9E9690;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 8px;
+      transition: background 0.3s;
+    }
+
+    .step.done .step-dot   { background: #2B3F54; color: #fff; }
+    .step.active .step-dot { background: #C4934A; color: #fff; }
+
+    .step-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9E9690;
+      text-align: center;
+    }
+
+    .step.done .step-label   { color: #2B3F54; }
+    .step.active .step-label { color: #C4934A; }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 3px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .status-badge.preparando { background: #FEF3C7; color: #92400E; }
+    .status-badge.caminho    { background: #DBEAFE; color: #1E40AF; }
+    .status-badge.entregue   { background: #D1FAE5; color: #065F46; }
+
+    .status-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Detalhes */
+    .detalhes {
+      font-size: 0.85rem;
+      color: #6E6660;
+      line-height: 1.7;
+      border-top: 1px solid #E2DDD7;
+      padding-top: 24px;
+    }
+
+    .detalhes strong { color: #2B3F54; }
+
+    .loading {
+      text-align: center;
+      color: #9E9690;
+      font-size: 0.85rem;
+      padding: 20px 0;
+    }
+
+    .error-msg {
+      background: #FEE2E2;
+      color: #991B1B;
+      padding: 14px 18px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .btn-voltar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 32px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6E6660;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .btn-voltar:hover { color: #2B3F54; }
+
+    @media (max-width: 480px) {
+      .card { padding: 36px 24px; }
+      .step-label { font-size: 0.62rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="/index.html" class="logo">VIRTÙ</a>
+
+  <div class="card" id="rastreioCard">
+    <p class="loading" id="loadingMsg">Buscando seu pedido…</p>
+  </div>
+
+  <a href="/index.html" class="btn-voltar">← Voltar à loja</a>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ─── helpers ─────────────────────────────── */
+    function escHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('pt-BR', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function getStatusInfo(status) {
+      const s = (status || '').toLowerCase();
+
+      if (['entregue', 'entregado'].some(v => s.includes(v)))
+        return { fase: 'entregue',  label: 'Entregue',     badgeClass: 'entregue',   steps: [true,true,true]  };
+      if (['caminho','enviado','saiu','transporte'].some(v => s.includes(v)))
+        return { fase: 'caminho',   label: 'A caminho',    badgeClass: 'caminho',    steps: [true,true,false] };
+      if (['prepara','pago','confirmado'].some(v => s.includes(v)))
+        return { fase: 'preparando',label: 'Em preparação',badgeClass: 'preparando', steps: [true,false,false] };
+
+      return { fase: 'preparando', label: escHtml(status), badgeClass: 'preparando', steps: [true,false,false] };
+    }
+
+    function renderPedido(pedido) {
+      const info    = getStatusInfo(pedido.status_pedido);
+      const labels  = ['Confirmado', 'A caminho', 'Entregue'];
+      const icons   = ['✓', '→', '⌂'];
+
+      const stepsHtml = labels.map((lbl, i) => {
+        const done   = info.steps[i] && !(info.fase === 'caminho' && i === 1) && !(info.fase === 'preparando' && i === 0);
+        const active = (info.fase === 'preparando' && i === 0) ||
+                       (info.fase === 'caminho'    && i === 1) ||
+                       (info.fase === 'entregue'   && i === 2);
+        const cls    = active ? 'active' : (info.steps[i] ? 'done' : '');
+        return `
+          <div class="step ${cls}">
+            <div class="step-dot">${icons[i]}</div>
+            <span class="step-label">${lbl}</span>
+          </div>`;
+      }).join('');
+
+      const card = document.getElementById('rastreioCard');
+      card.innerHTML = `
+        <p class="pedido-id">Pedido</p>
+        <h1 class="pedido-titulo">#${escHtml(pedido.id)}</h1>
+
+        <div class="timeline">${stepsHtml}</div>
+
+        <div class="status-badge ${info.badgeClass}">${info.label}</div>
+
+        <div class="detalhes">
+          <p><strong>Cliente:</strong> ${escHtml(pedido.nome_cliente || '—')}</p>
+          <p><strong>Data do pedido:</strong> ${fmtDate(pedido.created_at)}</p>
+          ${pedido.atualizado_em ? `<p><strong>Última atualização:</strong> ${fmtDate(pedido.atualizado_em)}</p>` : ''}
+          ${pedido.codigo_rastreio ? `<p><strong>Código de rastreio:</strong> <strong>${escHtml(pedido.codigo_rastreio)}</strong></p>` : ''}
+        </div>`;
+    }
+
+    function renderError(msg) {
+      document.getElementById('rastreioCard').innerHTML =
+        `<p class="error-msg">⚠ ${escHtml(msg)}</p>`;
+    }
+
+    /* ─── init ────────────────────────────────── */
+    async function init() {
+      if (typeof supabaseClient === 'undefined') { setTimeout(init, 300); return; }
+
+      const params   = new URLSearchParams(window.location.search);
+      const pedidoId = params.get('id');
+
+      if (!pedidoId) {
+        renderError('Nenhum pedido encontrado. Verifique o link enviado por e-mail.');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('pedidos')
+          .select('id, nome_cliente, status_pedido, created_at, atualizado_em, codigo_rastreio')
+          .eq('id', pedidoId)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!data)  { renderError('Pedido não encontrado.'); return; }
+
+        renderPedido(data);
+
+        // Atualiza o status em tempo real
+        supabaseClient
+          .channel('pedido-status')
+          .on('postgres_changes', {
+            event:  'UPDATE',
+            schema: 'public',
+            table:  'pedidos',
+            filter: `id=eq.${pedidoId}`,
+          }, (payload) => renderPedido(payload.new))
+          .subscribe();
+
+      } catch (e) {
+        renderError('Erro ao buscar pedido. Tente novamente em instantes.');
+        console.error(e);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else { init(); }
+
+  })();
+  </script>
+</body>
+</html>
