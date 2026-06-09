@@ -688,6 +688,14 @@ function populateConfig() {
   set('cfgPedidoTitulo', cfg.pedido_msg_titulo);
   set('cfgPedidoCorpo',  cfg.pedido_msg_corpo);
 
+  // E-mail de confirmação ao cliente
+  const emailAtivoEl = document.getElementById('cfgEmailClienteAtivo');
+  if (emailAtivoEl) emailAtivoEl.checked = cfg.email_cliente_ativo !== false;
+  set('cfgEmailClienteAssunto',  cfg.email_cliente_assunto);
+  set('cfgEmailClienteSaudacao', cfg.email_cliente_saudacao);
+  set('cfgEmailClienteMensagem', cfg.email_cliente_mensagem);
+  set('cfgEmailClienteRodape',   cfg.email_cliente_rodape);
+
   // Guia de Tamanhos
   set('cfgGuiaTamanhoObs', cfg.guia_tamanhos_obs);
   renderGuiaTamanhos(cfg.guia_tamanhos || [
@@ -864,6 +872,12 @@ async function saveConfig() {
     // Pedido confirmado
     pedido_msg_titulo: document.getElementById('cfgPedidoTitulo')?.value.trim() || null,
     pedido_msg_corpo:  document.getElementById('cfgPedidoCorpo')?.value.trim()  || null,
+    // E-mail de confirmação ao cliente
+    email_cliente_ativo:     document.getElementById('cfgEmailClienteAtivo')?.checked ?? true,
+    email_cliente_assunto:   document.getElementById('cfgEmailClienteAssunto')?.value.trim()  || null,
+    email_cliente_saudacao:  document.getElementById('cfgEmailClienteSaudacao')?.value.trim() || null,
+    email_cliente_mensagem:  document.getElementById('cfgEmailClienteMensagem')?.value.trim() || null,
+    email_cliente_rodape:    document.getElementById('cfgEmailClienteRodape')?.value.trim()   || null,
     // Guia de Tamanhos
     guia_tamanhos:     collectGuiaTamanhos(),
     guia_tamanhos_obs: document.getElementById('cfgGuiaTamanhoObs')?.value.trim() || null,
