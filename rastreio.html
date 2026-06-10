@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="description" content="Acompanhe o status do seu pedido Virtù."/>
   <title>Rastreio do Pedido — Virtù</title>
+  <link rel="icon" href="images/logo-concha.png" type="image/png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js"></script>
+  <!-- Supabase carregado no final do body para não bloquear render -->
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -201,7 +204,10 @@
     <p class="loading" id="loadingMsg">Buscando seu pedido…</p>
   </div>
 
-  <a href="/index.html" class="btn-voltar">← Voltar à loja</a>
+  <a href="index.html" class="btn-voltar">← Voltar à loja</a>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
 
   <script>
   (function () {

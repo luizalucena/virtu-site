@@ -290,8 +290,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const colorGrid = document.getElementById('colorGrid');
     if (colorGrid) {
       colorGrid.innerHTML = cores.map(c => {
-        const hex = c.hex.toLowerCase();
-        const isLight = ['#f9f7f4','#e8d5b5','#ffffff','#ffffff'].includes(hex);
+        // Normaliza shorthand (#fff → #ffffff) para detecção correta de cor clara
+        const rawHex = c.hex.toLowerCase();
+        const hex = rawHex.length === 4
+          ? '#' + rawHex[1]+rawHex[1]+rawHex[2]+rawHex[2]+rawHex[3]+rawHex[3]
+          : rawHex;
+        const isLight = ['#f9f7f4','#e8d5b5','#ffffff','#fafafa','#f5f5f5'].includes(hex);
         return `<button class="color-btn" style="background:${c.hex}${isLight ? ';border:1px solid #ccc' : ''}"
                   title="${c.nome}" aria-label="${c.nome}" data-hex="${hex}"></button>`;
       }).join('');

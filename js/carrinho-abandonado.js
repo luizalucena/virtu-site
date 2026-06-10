@@ -37,7 +37,13 @@
 
   function formatPhone(raw) {
     // Garante formato internacional sem +
-    return raw.replace(/\D/g, '').replace(/^0/, '55');
+    const digits = raw.replace(/\D/g, '');
+    // Se o número não começa com código de país (55 para Brasil),
+    // prepend '55' para números com 10 ou 11 dígitos (DDD + número).
+    if (digits.length === 10 || digits.length === 11) return '55' + digits;
+    // Substitui prefixo 0 por 55 (ex: 0800...)
+    if (digits.startsWith('0')) return '55' + digits.slice(1);
+    return digits;
   }
 
   function buildRecoveryUrl() {
@@ -416,14 +422,23 @@
     if (!tel) return;
 
     try {
-      // Atualiza o registro mais recente desse telefone como recuperado
-      await supabaseClient
+      // Busca o registro mais recente para aquele telefone
+      const { data: row } = await supabaseClient
         .from('carrinhos_abandonados')
-        .update({ recuperado: true, recuperado_em: new Date().toISOString() })
+        .select('id')
         .eq('telefone', formatPhone(tel))
         .eq('recuperado', false)
         .order('created_at', { ascending: false })
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
+
+      // Atualiza apenas esse registro específico (evita UPDATE em cascata)
+      if (row?.id) {
+        await supabaseClient
+          .from('carrinhos_abandonados')
+          .update({ recuperado: true, recuperado_em: new Date().toISOString() })
+          .eq('id', row.id);
+      }
     } catch { /* silencioso */ }
   }
 

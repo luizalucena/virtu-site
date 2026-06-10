@@ -30,10 +30,10 @@ Deno.serve(async (req) => {
   try {
     const ZAPI_INSTANCE = Deno.env.get('ZAPI_INSTANCE_ID');
     const ZAPI_TOKEN    = Deno.env.get('ZAPI_TOKEN');
-    const ADMIN_PHONE   = Deno.env.get('ADMIN_WHATSAPP') || '5583999947734';
+    const ADMIN_PHONE   = Deno.env.get('ADMIN_WHATSAPP');
 
-    if (!ZAPI_INSTANCE || !ZAPI_TOKEN) {
-      console.error('[WhatsApp] Secrets ZAPI_INSTANCE_ID e ZAPI_TOKEN não configurados');
+    if (!ZAPI_INSTANCE || !ZAPI_TOKEN || !ADMIN_PHONE) {
+      console.error('[WhatsApp] Secrets obrigatórios não configurados: ZAPI_INSTANCE_ID, ZAPI_TOKEN ou ADMIN_WHATSAPP');
       // Retorna 200 para não interromper o fluxo do pedido
       return json({ ok: false, msg: 'Z-API não configurado — pedido salvo normalmente' });
     }

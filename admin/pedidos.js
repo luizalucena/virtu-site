@@ -247,32 +247,48 @@
     }
   };
 
+  let _realtimePedidosAtivo = false;
+
   window.pedidosInit = function () {
     const sf = document.getElementById('pedidosFiltroStatus');
     const bi = document.getElementById('pedidosBusca');
-    if (sf) sf.addEventListener('change', () => { _filtroStatus = sf.value; _page = 1; carregarPedidos(); });
+    // Usa { once: false } implícito mas impede listeners duplicados com flag
+    if (sf && !sf.dataset.listenerBound) {
+      sf.dataset.listenerBound = '1';
+      sf.addEventListener('change', () => { _filtroStatus = sf.value; _page = 1; carregarPedidos(); });
+    }
     let t;
-    if (bi) bi.addEventListener('input', () => {
-      clearTimeout(t);
-      t = setTimeout(() => { _filtroBusca = bi.value.trim(); _page = 1; carregarPedidos(); }, 400);
-    });
+    if (bi && !bi.dataset.listenerBound) {
+      bi.dataset.listenerBound = '1';
+      bi.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(() => { _filtroBusca = bi.value.trim(); _page = 1; carregarPedidos(); }, 400);
+      });
+    }
     const overlay = document.getElementById('pedidoModalOverlay');
-    if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+    if (overlay && !overlay.dataset.listenerBound) {
+      overlay.dataset.listenerBound = '1';
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+    }
 
-    // ── Realtime: atualiza a lista automaticamente quando um pedido muda ──
-    try {
-      supabaseClient
-        .channel('admin-pedidos-live')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
-          carregarKPIs();
-          carregarPedidos();
-          _setRealtimeStatus(true);
-        })
-        .subscribe(status => {
-          _setRealtimeStatus(status === 'SUBSCRIBED');
-        });
-    } catch (err) {
-      console.warn('[Pedidos Realtime]', err.message);
+    // ── Realtime: inicia apenas uma vez ─────────────────────────
+    if (!_realtimePedidosAtivo) {
+      _realtimePedidosAtivo = true;
+      try {
+        supabaseClient
+          .channel('admin-pedidos-live')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
+            carregarKPIs();
+            carregarPedidos();
+            _setRealtimeStatus(true);
+          })
+          .subscribe(status => {
+            _setRealtimeStatus(status === 'SUBSCRIBED');
+          });
+      } catch (err) {
+        _realtimePedidosAtivo = false;
+        console.warn('[Pedidos Realtime]', err.message);
+      }
     }
 
     carregarKPIs();

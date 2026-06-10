@@ -57,49 +57,56 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { data: pedido, error: findErr } = await supabase
-      .from('pedidos')
-      .select('id, status')
-      .eq('payment_id', paymentId)
-      .single();
-
-    if (findErr || !pedido) {
-      console.error('[Webhook] Pedido não encontrado:', paymentId);
-      return json({ erro: 'Pedido não encontrado' }, 404);
-    }
-
-    if (pedido.status === 'pago') {
-      return json({ ok: true, msg: 'Pedido já estava pago' });
-    }
-
-    const { error: updateErr } = await supabase
+    // ── Update atômico: só atualiza se ainda estiver 'pendente' ─
+    // Evita processamento duplo caso o MP dispare o webhook mais de uma vez.
+    const { data: updatedRows, error: updateErr } = await supabase
       .from('pedidos')
       .update({ status: 'pago', payment_status: 'approved', email_enviado: false })
-      .eq('id', pedido.id);
+      .eq('payment_id', paymentId)
+      .eq('status', 'pendente')  // condição atômica — só atualiza se ainda pendente
+      .select('id')
+      .maybeSingle();
 
     if (updateErr) {
       console.error('[Webhook] Erro ao atualizar pedido:', updateErr.message);
       return json({ erro: 'Falha ao atualizar pedido' }, 500);
     }
 
-    console.log(`[Webhook] PIX confirmado: pedido ${pedido.id} → pago`);
+    if (!updatedRows) {
+      // Nenhuma linha afetada — pedido não encontrado ou já estava pago
+      console.log(`[Webhook] PIX ignorado (pedido já pago ou não encontrado) — payment_id ${paymentId}`);
+      return json({ ok: true, msg: 'Pedido já processado ou não encontrado' });
+    }
 
-    // ── Notificação WhatsApp: PIX confirmado ─────────────
+    const pedidoId = updatedRows.id;
+    console.log(`[Webhook] PIX confirmado: pedido ${pedidoId} → pago`);
+
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
+
     if (SUPABASE_URL && ANON_KEY) {
+      // ── E-mail de confirmação para a cliente (fire-and-forget) ──
+      fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${ANON_KEY}`,
+        },
+        body: JSON.stringify({ pedido_id: pedidoId, status: 'pago' }),
+      }).catch(e => console.error('[Email PIX dispatch]', e));
+
+      // ── Notificação WhatsApp admin (fire-and-forget) ──────────
       fetch(`${SUPABASE_URL}/functions/v1/notificar-pedido-admin`, {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',
           'Authorization': `Bearer ${ANON_KEY}`,
         },
-        // Passa só o ID — a Edge Function busca os dados completos no banco
-        body: JSON.stringify({ pedido_id: pedido.id }),
+        body: JSON.stringify({ pedido_id: pedidoId }),
       }).catch(e => console.error('[WhatsApp PIX dispatch]', e));
     }
 
-    return json({ ok: true, pedido_id: pedido.id });
+    return json({ ok: true, pedido_id: pedidoId });
 
   } catch (err) {
     console.error('[Webhook] Erro inesperado:', err);

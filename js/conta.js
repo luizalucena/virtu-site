@@ -294,7 +294,15 @@ document.addEventListener('DOMContentLoaded', () => {
       .eq('email_cliente', email.toLowerCase())
       .order('criado_em', { ascending: false });
 
-    if (error || !pedidos?.length) {
+    if (error) {
+      pedidosList.innerHTML = `
+        <div class="conta-empty">
+          <p class="conta-empty__title" style="color:#ef4444">Não foi possível carregar seus pedidos</p>
+          <p>Tente recarregar a página. Se o problema persistir, entre em contato.</p>
+        </div>`;
+      return;
+    }
+    if (!pedidos?.length) {
       pedidosList.innerHTML = `
         <div class="conta-empty">
           <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">

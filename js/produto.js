@@ -2,6 +2,16 @@
    VIRTÙ — Produto JavaScript
    ============================================================ */
 
+/* ── SANITIZAÇÃO HTML — previne XSS de dados do banco ── */
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /* ── CONVERTE URL DO GOOGLE DRIVE ──────────── */
 function convertDriveUrl(url) {
   if (!url) return url;
@@ -155,7 +165,8 @@ async function carregarProduto(produtoId) {
     // Descrição
     const descEl = document.getElementById('acc-desc');
     if (descEl && p.descricao) {
-      descEl.innerHTML = `<p>${p.descricao.replace(/\n/g, '</p><p style="margin-top:var(--space-3);">')}</p>`;
+      // escHtml impede XSS: converte < > & " ' em entidades HTML
+      descEl.innerHTML = `<p>${escHtml(p.descricao).replace(/\n/g, '</p><p style="margin-top:var(--space-3);">')}</p>`;
     }
 
     // Composição & Cuidados
@@ -164,7 +175,7 @@ async function carregarProduto(produtoId) {
       compEl.innerHTML = p.composicao
         .split('\n')
         .filter(l => l.trim())
-        .map(l => `<p>${l}</p>`)
+        .map(l => `<p>${escHtml(l)}</p>`)
         .join('');
     }
 
@@ -174,7 +185,7 @@ async function carregarProduto(produtoId) {
       entregaEl.innerHTML = p.entrega_trocas
         .split('\n')
         .filter(l => l.trim())
-        .map(l => `<p>${l}</p>`)
+        .map(l => `<p>${escHtml(l)}</p>`)
         .join('');
     }
     // Se não há texto personalizado, mantém o HTML padrão que já está no produto.html
@@ -893,19 +904,20 @@ async function carregarAvaliacoes(produtoId) {
   // Cards de avaliação
   const fmtDate = iso => new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
   lista.innerHTML = data.map(a => {
-    const inicial = (a.nome_cliente || 'A').charAt(0).toUpperCase();
+    const nomeSeguro = escHtml(a.nome_cliente || 'Cliente');
+    const inicial = nomeSeguro.charAt(0).toUpperCase();
     const avatar  = a.foto_cliente
-      ? `<img src="${a.foto_cliente}" alt="${a.nome_cliente}" loading="lazy" />`
+      ? `<img src="${escHtml(a.foto_cliente)}" alt="${nomeSeguro}" loading="lazy" />`
       : inicial;
     return `
       <div class="avaliacao-card">
         <div class="avaliacao-card__header">
           <div class="avaliacao-card__avatar">${avatar}</div>
-          <span class="avaliacao-card__nome">${a.nome_cliente}</span>
+          <span class="avaliacao-card__nome">${nomeSeguro}</span>
           <span class="avaliacao-card__data">${fmtDate(a.criado_em)}</span>
         </div>
         <div class="avaliacao-card__estrelas">${starsHtml(a.nota)}</div>
-        ${a.comentario ? `<p class="avaliacao-card__texto">${a.comentario}</p>` : ''}
+        ${a.comentario ? `<p class="avaliacao-card__texto">${escHtml(a.comentario)}</p>` : ''}
         <p class="avaliacao-card__verificado">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
           Compra verificada

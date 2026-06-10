@@ -228,6 +228,17 @@
 }
 .cep-link a { color: var(--color-gold); text-decoration: underline; }
 
+/* ── MENSAGEM DE FRETE / HINT ────────────── */
+.form-hint {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+  color: var(--color-text-light);
+  min-height: 1.2em;
+}
+.form-hint--ok    { color: #22863a; }
+.form-hint--error { color: #e53e3e; }
+
 /* ── SHIPPING OPTIONS ────────────────────── */
 .shipping-options {
   border: none;

@@ -547,10 +547,10 @@ async function saveProduct() {
   }
   const tamanhos = [...document.querySelectorAll('.admin-size-check input:checked')].map(cb => cb.value);
 
-  // Preserva cores do produto existente
-  const coresExistentes = editandoId
-    ? (DB.produtos.find(p => p.id === editandoId)?.cores || [])
-    : [];
+  // Preserva cores e tamanhos_esgotados do produto existente
+  const produtoExistente = editandoId ? DB.produtos.find(p => p.id === editandoId) : null;
+  const coresExistentes          = produtoExistente?.cores             || [];
+  const tamanhosEsgotadosExist   = produtoExistente?.tamanhos_esgotados || [];
 
   const produto = {
     id:                 editandoId || slugify(nome),
@@ -568,7 +568,7 @@ async function saveProduct() {
                           || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)',
     cores:              coresExistentes,
     tamanhos:           tamanhos.length ? tamanhos : ['PP','P','M','G'],
-    tamanhos_esgotados: [],
+    tamanhos_esgotados: tamanhosEsgotadosExist, // preserva dados de esgotamento gerenciados pelo estoque
     destaque:           document.getElementById('formDestaque')?.checked,
     novidade:           document.getElementById('formNovidade')?.checked,
     essencial:          document.getElementById('formEssencial')?.checked,

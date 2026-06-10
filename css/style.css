@@ -651,7 +651,6 @@ h4 { font-size: var(--text-lg); }
   flex-direction: column;
   gap: var(--space-3);
   cursor: pointer;
-  group: true;
 }
 
 .product-card__image-wrap {
