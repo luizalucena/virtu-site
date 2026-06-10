@@ -6,7 +6,6 @@
 
 // ── ESTADO GLOBAL ──────────────────────────
 let DB = { produtos: [], configuracoes: {} };
-    pedidos:       'Pedidos',
 let filtroAtual = 'todos';
 let editandoId  = null;
 
@@ -123,7 +122,10 @@ function mostrarAdmin() {
 }
 
 // ── AUTH: EVENTOS DE LOGIN ──────────────────
+let _loginEventsBound = false;
 function bindLoginEvents() {
+  if (_loginEventsBound) return;
+  _loginEventsBound = true;
   const form     = document.getElementById('loginForm');
   const errorEl  = document.getElementById('loginError');
   const loginBtn = document.getElementById('loginBtn');
@@ -189,8 +191,8 @@ function bindEvents() {
       document.querySelectorAll('.admin-view').forEach(v => v.classList.add('admin-view--hidden'));
       document.getElementById(`view${capitalize(view)}`)?.classList.remove('admin-view--hidden');
       // Títulos legíveis na topbar
-      const viewTitles = { produtos: 'Produtos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades' };
-      document.getElementById(', pedidos: 'Pedidos'viewTitle').textContent = viewTitles[view] || capitalize(view);
+      const viewTitles = { produtos: 'Produtos', pedidos: 'Pedidos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades' };
+      document.getElementById('viewTitle').textContent = viewTitles[view] || capitalize(view);
       // Ocultar/mostrar botão Novo Produto
       document.getElementById('btnNewProduct').style.display = view === 'produtos' ? '' : 'none';
       if (view === 'configuracoes') populateConfig();
