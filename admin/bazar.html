@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazar — Virtù Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* ── BAZAR ─────────────────────────────── */
+    .bazar-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .bazar-stat {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+    .bazar-stat__label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-light);
+      margin-bottom: 0.3rem;
+    }
+    .bazar-stat__value {
+      font-size: 1.55rem;
+      font-family: var(--font-disp);
+      color: var(--navy);
+      font-weight: 500;
+    }
+
+    /* ── FILTROS ────────────────────────────── */
+    .bazar-filters {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .bazar-filters input,
+    .bazar-filters select {
+      height: 36px;
+      font-size: 0.83rem;
+    }
+    .bazar-filters input { width: 180px; }
+
+    /* ── TABELA ─────────────────────────────── */
+    .bazar-table-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .bazar-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .bazar-table th {
+      background: var(--navy);
+      color: rgba(255,255,255,0.85);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.73rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .bazar-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .bazar-table tr:last-child td { border-bottom: none; }
+    .bazar-table tr:hover td { background: #faf9f7; }
+
+    .bazar-sku {
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.06em;
+      color: var(--navy);
+      background: #f0ede8;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .bazar-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18rem 0.55rem;
+      border-radius: 20px;
+      font-size: 0.71rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .bazar-badge--disponivel { background: #d1fae5; color: #065f46; }
+    .bazar-badge--vendido    { background: #dbeafe; color: #1e40af; }
+    .bazar-badge--devolvido  { background: #fee2e2; color: #991b1b; }
+    .bazar-badge--reservado  { background: #fef3c7; color: #92400e; }
+
+    .bazar-divisao {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .bazar-divisao strong { color: var(--navy); }
+
+    .bazar-actions { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
+    .btn-bazar {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.3rem 0.55rem;
+      cursor: pointer;
+      font-size: 0.75rem;
+      color: var(--text);
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-bazar:hover { border-color: var(--navy); color: var(--navy); }
+    .btn-bazar--sell:hover { border-color: #1e40af; color: #1e40af; background: #eff6ff; }
+    .btn-bazar--return:hover { border-color: #991b1b; color: #991b1b; background: #fef2f2; }
+
+    /* ── RELATÓRIO ──────────────────────────── */
+    .bazar-relatorio {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .bazar-relatorio h3 {
+      font-family: var(--font-disp);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--navy);
+      margin: 0 0 1rem;
+    }
+    .bazar-relatorio-filtro {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .bazar-rel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+    .bazar-rel-item {
+      background: #faf9f7;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+    }
+    .bazar-rel-item__label { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.07em; }
+    .bazar-rel-item__value { font-size: 1.25rem; font-family: var(--font-disp); color: var(--navy); font-weight: 500; }
+    .bazar-rel-item--destaque .bazar-rel-item__value { color: #27ae60; }
+
+    /* ── MODAL ──────────────────────────────── */
+    .bazar-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(27,38,54,0.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .bazar-modal-overlay.open { opacity: 1; pointer-events: all; }
+    .bazar-modal {
+      background: #fff; border-radius: var(--radius);
+      width: min(500px, 96vw);
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      overflow: hidden; transform: translateY(16px); transition: transform 0.2s;
+    }
+    .bazar-modal-overlay.open .bazar-modal { transform: translateY(0); }
+    .bazar-modal__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--navy); color: #fff;
+    }
+    .bazar-modal__title { font-family: var(--font-disp); font-size: 1.15rem; font-weight: 400; }
+    .bazar-modal__close {
+      background: none; border: none; color: rgba(255,255,255,0.7);
+      cursor: pointer; font-size: 1.1rem; padding: 0.2rem;
+    }
+    .bazar-modal__close:hover { color: #fff; }
+    .bazar-modal__body { padding: 1.5rem; display: grid; gap: 1rem; }
+    .bazar-modal__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .bazar-modal__footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 0.75rem;
+    }
+
+    .bazar-sku-preview {
+      background: #f0ede8; border-radius: 6px;
+      padding: 0.75rem 1rem; text-align: center;
+      font-family: 'Courier New', monospace; font-size: 1.4rem;
+      font-weight: 700; letter-spacing: 0.1em; color: var(--navy);
+    }
+    .bazar-divisao-preview {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+      background: #f9f6f2; border-radius: 6px; padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+    }
+    .bazar-divisao-preview span { color: var(--text-light); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .bazar-divisao-preview strong { font-family: var(--font-disp); font-size: 1.1rem; color: var(--navy); }
+
+    @media (max-width: 640px) {
+      .bazar-table th:nth-child(5),
+      .bazar-table td:nth-child(5) { display: none; }
+      .bazar-modal__row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <span class="admin-sidebar__virtu">VIRTÙ</span>
+      <span class="admin-sidebar__tag">Admin</span>
+    </div>
+    <nav class="admin-sidebar__nav">
+      <a href="index.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Produtos
+      </a>
+      <a href="index.html#sobre" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Página Sobre
+      </a>
+      <a href="index.html#stock" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Stock
+      </a>
+      <a href="financeiro.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Financeiro
+      </a>
+      <a href="cupons.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
+        Cupons
+      </a>
+      <a href="index.html#avaliacoes" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Avaliações
+      </a>
+      <a href="index.html#funcionalidades" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Funcionalidades
+      </a>
+      <a href="index.html#configuracoes" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Configurações
+      </a>
+      <a href="index.html#pedidos" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Pedidos
+      </a>
+      <a href="carrinhos.html" class="admin-nav-btn" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Carrinhos
+      </a>
+      <a href="bazar.html" class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg>
+        Bazar
+      </a>
+    </nav>
+    <div class="admin-sidebar__footer">
+      <p>Virtù Admin v1.1</p>
+      <button class="admin-logout-btn" id="btnLogout" title="Sair do painel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <h1 class="admin-topbar__title">Bazar — Consignação</h1>
+        <span class="admin-topbar__count" id="bazarCount"></span>
+      </div>
+      <div class="admin-topbar__actions">
+        <button class="admin-btn admin-btn--ghost" id="btnRecarregar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Recarregar
+        </button>
+        <button class="admin-btn admin-btn--primary" id="btnNovaPeca">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Peça
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content" style="padding:1.5rem">
+
+      <!-- KPIs -->
+      <div class="bazar-stats" id="bazarStats">
+        <div class="bazar-stat">
+          <p class="bazar-stat__label">Total de peças</p>
+          <p class="bazar-stat__value" id="kpiTotal">—</p>
+        </div>
+        <div class="bazar-stat">
+          <p class="bazar-stat__label">Disponíveis</p>
+          <p class="bazar-stat__value" id="kpiDisponiveis" style="color:#065f46">—</p>
+        </div>
+        <div class="bazar-stat">
+          <p class="bazar-stat__label">Vendidas</p>
+          <p class="bazar-stat__value" id="kpiVendidas" style="color:#1e40af">—</p>
+        </div>
+        <div class="bazar-stat">
+          <p class="bazar-stat__label">A pagar (consig.)</p>
+          <p class="bazar-stat__value" id="kpiAPagar" style="color:#b45309">—</p>
+        </div>
+        <div class="bazar-stat">
+          <p class="bazar-stat__label">Comissão Virtù</p>
+          <p class="bazar-stat__value" id="kpiVirtu" style="color:#27ae60">—</p>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="bazar-filters">
+        <input type="text" id="filtroConsignataria" class="admin-input" placeholder="Buscar consignatária…" style="max-width:200px" />
+        <select id="filtroStatus" class="admin-input">
+          <option value="">Todos os status</option>
+          <option value="disponivel">Disponível</option>
+          <option value="vendido">Vendido</option>
+          <option value="reservado">Reservado</option>
+          <option value="devolvido">Devolvido</option>
+        </select>
+        <select id="filtroCategoria" class="admin-input">
+          <option value="">Todas as categorias</option>
+          <option value="Roupa">Roupa</option>
+          <option value="Acessório">Acessório</option>
+          <option value="Calçado">Calçado</option>
+          <option value="Bolsa">Bolsa</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+
+      <!-- TABELA -->
+      <div class="bazar-table-wrap">
+        <table class="bazar-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Consignatária</th>
+              <th>Descrição</th>
+              <th>Preço</th>
+              <th>Divisão (60% / 40%)</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="bazarTbody">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">Carregando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RELATÓRIO POR CONSIGNATÁRIA -->
+      <div class="bazar-relatorio">
+        <h3>Prestação de Contas por Consignatária</h3>
+        <div class="bazar-relatorio-filtro">
+          <input type="text" id="relIniciais" class="admin-input" placeholder="Iniciais (ex: MS)" style="max-width:140px;text-transform:uppercase" maxlength="4" />
+          <button class="admin-btn admin-btn--ghost" id="btnGerararRelatorio">Ver relatório</button>
+          <button class="admin-btn admin-btn--ghost" id="btnExportarRelatorio" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </button>
+        </div>
+        <div class="bazar-rel-grid" id="relatorioGrid" style="display:none"></div>
+        <p id="relatorioVazio" style="color:var(--text-light);font-size:0.85rem;display:none">Nenhuma peça encontrada para essas iniciais.</p>
+      </div>
+
+      <p id="bazarStatus" style="margin-top:1rem;font-size:0.82rem;color:var(--text-light)"></p>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVA / EDITAR PEÇA -->
+  <div class="bazar-modal-overlay" id="bazarModalOverlay">
+    <div class="bazar-modal" role="dialog" aria-modal="true">
+      <div class="bazar-modal__header">
+        <h2 class="bazar-modal__title" id="bazarModalTitulo">Nova Peça</h2>
+        <button class="bazar-modal__close" id="btnModalClose">✕</button>
+      </div>
+      <div class="bazar-modal__body">
+        <input type="hidden" id="formPecaId" />
+
+        <div class="bazar-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Consignatária *</label>
+            <input type="text" class="admin-input" id="formConsignataria" placeholder="Nome completo" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Iniciais para SKU *</label>
+            <input type="text" class="admin-input" id="formIniciais" placeholder="Ex: MS" maxlength="4"
+              style="text-transform:uppercase;font-family:monospace;font-size:1rem;letter-spacing:0.06em" />
+            <small style="font-size:0.73rem;color:var(--text-light);margin-top:0.2rem;display:block">2–4 letras. SKU gerado automaticamente.</small>
+          </div>
+        </div>
+
+        <!-- Preview do SKU (gerado ao digitar iniciais) -->
+        <div id="skuPreviewWrap" style="display:none">
+          <label class="admin-label">SKU gerado</label>
+          <div class="bazar-sku-preview" id="skuPreview">—</div>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-label">Descrição da peça *</label>
+          <input type="text" class="admin-input" id="formDescricao" placeholder="Ex: Vestido floral rosa, tam. M" />
+        </div>
+
+        <div class="bazar-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Categoria</label>
+            <select class="admin-input" id="formCategoria">
+              <option value="Roupa">Roupa</option>
+              <option value="Acessório">Acessório</option>
+              <option value="Calçado">Calçado</option>
+              <option value="Bolsa">Bolsa</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Tamanho</label>
+            <input type="text" class="admin-input" id="formTamanho" placeholder="P / M / G / Único…" />
+          </div>
+        </div>
+
+        <div class="bazar-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Cor</label>
+            <input type="text" class="admin-input" id="formCor" placeholder="Rosa, Azul, Preto…" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Preço de venda (R$) *</label>
+            <input type="number" class="admin-input" id="formPreco" placeholder="0,00" min="0.01" step="0.01" />
+          </div>
+        </div>
+
+        <!-- Preview da divisão 60/40 -->
+        <div id="divisaoPreviewWrap" style="display:none">
+          <label class="admin-label">Divisão do valor</label>
+          <div class="bazar-divisao-preview">
+            <div>
+              <span>60% — Consignatária</span><br>
+              <strong id="prevConsignataria">R$ 0,00</strong>
+            </div>
+            <div>
+              <span>40% — Virtù</span><br>
+              <strong id="prevVirtu">R$ 0,00</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-label">Observação</label>
+          <input type="text" class="admin-input" id="formObservacao" placeholder="Condição da peça, instrução especial…" />
+        </div>
+      </div>
+      <div class="bazar-modal__footer">
+        <button class="admin-btn admin-btn--ghost" id="btnModalCancelar">Cancelar</button>
+        <button class="admin-btn admin-btn--primary" id="btnSalvarPeca">Salvar Peça</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="bazar.js?v=1"></script>
+</body>
+</html>
