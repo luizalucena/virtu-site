@@ -458,4 +458,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sugestões
   loadSuggestions();
+
+  // ── AUTH GATE: bloqueia checkout se não logado ───────────────
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+          window.location.href = 'checkout.html';
+        } else {
+          sessionStorage.setItem('vt_redirect_after_login', 'checkout.html');
+          window.location.href = 'conta.html?redirect=checkout';
+        }
+      } catch {
+        window.location.href = 'checkout.html';
+      }
+    });
+  }
 });
