@@ -457,6 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (freteOpcoes) freteOpcoes.innerHTML = cards;
 
+      // Exibe o campo de cupom agora que o CEP e o frete são conhecidos
+      const cupomWrap = document.getElementById('cupomWrap');
+      if (cupomWrap) cupomWrap.style.display = '';
+
       // Seleciona a primeira opção por padrão
       const primeira = data.opcoes[0];
       freteBase = primeira.preco;
