@@ -997,24 +997,99 @@ body {
 .btn-icon:hover         { background: var(--off-white); color: var(--text); }
 .btn-icon--danger:hover { background: #fde8ea; color: #8b2635; border-color: #d46b6b; }
 
+/* ── INDICADOR REALTIME (ponto verde pulsante) ── */
+.realtime-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;      /* amarelo = conectando */
+  flex-shrink: 0;
+  transition: background 0.4s;
+  cursor: default;
+}
+.realtime-dot--live {
+  background: #22c55e;      /* verde = ao vivo */
+  animation: pulse-live 2s infinite;
+}
+@keyframes pulse-live {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(34,197,94,0);  }
+}
+
+/* ── TABELAS DE PEDIDOS — SCROLL HORIZONTAL ─ */
+.pedidos-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+}
+.pedidos-table-wrap table {
+  min-width: 640px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ── FINANCEIRO: SCROLL HORIZONTAL ───────── */
+.fin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.fin-table-wrap table {
+  min-width: 560px;
+}
+
 /* ── RESPONSIVE ──────────────────────────── */
 @media (max-width: 1200px) {
-  .admin-config-grid { grid-template-columns: 1fr 1fr; }
+  .admin-config-grid  { grid-template-columns: 1fr 1fr; }
   .admin-valores-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-numeros-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
 @media (max-width: 900px) {
   :root { --sidebar-w: 60px; }
   .admin-sidebar__virtu, .admin-sidebar__tag, .admin-nav-btn span,
   .admin-sidebar__footer, .admin-sidebar__logo span:last-child { display: none; }
   .admin-sidebar__logo { justify-content: center; }
   .admin-nav-btn { justify-content: center; padding: 0.7rem; }
-  .admin-modal__grid { grid-template-columns: 1fr; }
-  .admin-config-grid { grid-template-columns: 1fr; }
+  .admin-modal__grid  { grid-template-columns: 1fr; }
+  .admin-config-grid  { grid-template-columns: 1fr; }
   .admin-valores-grid { grid-template-columns: 1fr 1fr; }
   .admin-numeros-grid { grid-template-columns: 1fr 1fr; }
+  /* Topbar: compacta botões em tablets */
+  .admin-topbar { padding: 0 1rem; }
+  .admin-btn span { display: none; }
 }
+
 @media (max-width: 600px) {
   .admin-valores-grid { grid-template-columns: 1fr; }
   .admin-numeros-grid { grid-template-columns: 1fr; }
+  /* Topbar mobile: esconde textos dos botões, mantém ícones */
+  .admin-topbar__actions .admin-btn--ghost { display: none; }
+  .admin-topbar { gap: 0.5rem; }
+  .admin-view { padding: 1rem; }
+  /* Modal ocupa tela toda no celular */
+  .admin-modal__box {
+    margin: 0;
+    border-radius: 0;
+    max-height: 100dvh;
+    height: 100dvh;
+    max-width: 100vw;
+    width: 100vw;
+  }
+  /* KPIs financeiro em coluna */
+  .fin-kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+  /* Tabela pedidos: fonte menor */
+  .pedidos-table-wrap td,
+  .pedidos-table-wrap th {
+    font-size: 12px !important;
+    padding: 8px 8px !important;
+  }
+  /* Oculta coluna de e-mail em mobile (menos prioritária) */
+  .pedidos-col-email { display: none; }
 }

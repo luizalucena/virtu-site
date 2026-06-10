@@ -30,6 +30,25 @@ function hashRow(str) {
   return 'csv_' + Math.abs(h).toString(36);
 }
 
+// ── ALERTA NÃO-BLOQUEANTE ─────────────────────────────────────
+function _mostrarAlertaFinanceiro(msg) {
+  const bar = document.getElementById('finAlertaBar');
+  if (!bar) {
+    // Cria dinamicamente se não existir no HTML
+    const el = document.createElement('div');
+    el.id = 'finAlertaBar';
+    el.style.cssText = 'position:fixed;bottom:24px;right:24px;max-width:380px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;font-size:13px;color:#c62828;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1);display:flex;align-items:flex-start;gap:10px';
+    el.innerHTML = `<span style="flex-shrink:0;font-size:16px">⚠️</span><span id="finAlertaMsg">${msg}</span><button onclick="this.closest('#finAlertaBar').remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#c62828;font-size:16px;padding:0 0 0 8px;flex-shrink:0">✕</button>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 8000);
+  } else {
+    const msgEl = document.getElementById('finAlertaMsg');
+    if (msgEl) msgEl.textContent = msg;
+    bar.style.display = 'flex';
+    setTimeout(() => bar.remove(), 8000);
+  }
+}
+
 // ── INICIALIZAÇÃO ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -67,49 +86,86 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Bind modais
   bindModalLancamento();
   bindModalPlanilha();
+
+  // ── Realtime: KPIs e tabela atualizam ao vivo ─────────────
+  try {
+    const rtIndicator = document.getElementById('finRealtimeStatus');
+    supabaseClient
+      .channel('admin-fluxo-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fluxo_caixa' }, () => {
+        carregarKPIs();
+        carregarTabela();
+        if (rtIndicator) { rtIndicator.style.background = '#22c55e'; rtIndicator.title = 'Ao vivo ✓'; }
+      })
+      .subscribe(status => {
+        if (rtIndicator) {
+          rtIndicator.style.background = status === 'SUBSCRIBED' ? '#22c55e' : '#f59e0b';
+          rtIndicator.title = status === 'SUBSCRIBED' ? 'Ao vivo — atualizações em tempo real' : 'Conectando…';
+        }
+      });
+  } catch (err) {
+    console.warn('[Financeiro Realtime]', err.message);
+  }
 });
 
 // ── KPIs ──────────────────────────────────────────────────────
 async function carregarKPIs() {
-  const mes = document.getElementById('filtroMes')?.value || mesAtual();
-  const [ano, m] = mes.split('-');
-  const inicio = `${ano}-${m}-01`;
-  const fim    = new Date(parseInt(ano), parseInt(m), 0).toISOString().slice(0, 10); // último dia do mês
+  // Mostra placeholder enquanto carrega
+  ['kpiEntradas','kpiSaidas','kpiSaldo','kpiSaldoTotal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '…';
+  });
 
-  // Busca mês atual
-  const { data: rows } = await supabaseClient
-    .from('fluxo_caixa')
-    .select('tipo, valor')
-    .gte('data_lancamento', inicio)
-    .lte('data_lancamento', fim);
+  try {
+    const mes = document.getElementById('filtroMes')?.value || mesAtual();
+    const [ano, m] = mes.split('-');
+    const inicio = `${ano}-${m}-01`;
+    const fim    = new Date(parseInt(ano), parseInt(m), 0).toISOString().slice(0, 10);
 
-  const entradas = (rows || []).filter(r => r.tipo === 'entrada');
-  const saidas   = (rows || []).filter(r => r.tipo === 'saida');
-  const totE = entradas.reduce((s, r) => s + Number(r.valor), 0);
-  const totS = saidas  .reduce((s, r) => s + Number(r.valor), 0);
-  const saldo = totE - totS;
+    const [{ data: rows, error: e1 }, { data: total, error: e2 }] = await Promise.all([
+      supabaseClient.from('fluxo_caixa').select('tipo, valor').gte('data_lancamento', inicio).lte('data_lancamento', fim),
+      supabaseClient.from('fluxo_caixa').select('tipo, valor'),
+    ]);
 
-  document.getElementById('kpiEntradas').textContent      = fmt(totE);
-  document.getElementById('kpiEntradasCount').textContent = `${entradas.length} transação(ões)`;
-  document.getElementById('kpiSaidas').textContent        = fmt(totS);
-  document.getElementById('kpiSaidasCount').textContent   = `${saidas.length} transação(ões)`;
+    if (e1) throw e1;
+    if (e2) throw e2;
 
-  const saldoEl = document.getElementById('kpiSaldo');
-  saldoEl.textContent = fmt(Math.abs(saldo));
-  saldoEl.className   = `fin-kpi__value ${saldo >= 0 ? 'fin-kpi__value--saldo-pos' : 'fin-kpi__value--saldo-neg'}`;
+    const entradas = (rows || []).filter(r => r.tipo === 'entrada');
+    const saidas   = (rows || []).filter(r => r.tipo === 'saida');
+    const totE = entradas.reduce((s, r) => s + Number(r.valor || 0), 0);
+    const totS = saidas  .reduce((s, r) => s + Number(r.valor || 0), 0);
+    const saldo = totE - totS;
 
-  // Saldo acumulado (todos os tempos)
-  const { data: total } = await supabaseClient
-    .from('fluxo_caixa')
-    .select('tipo, valor');
+    const setEl = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    setEl('kpiEntradas',       fmt(totE));
+    setEl('kpiEntradasCount',  `${entradas.length} transação(ões)`);
+    setEl('kpiSaidas',         fmt(totS));
+    setEl('kpiSaidasCount',    `${saidas.length} transação(ões)`);
 
-  const totAcE = (total || []).filter(r => r.tipo === 'entrada').reduce((s, r) => s + Number(r.valor), 0);
-  const totAcS = (total || []).filter(r => r.tipo === 'saida')  .reduce((s, r) => s + Number(r.valor), 0);
-  const saldoAc = totAcE - totAcS;
+    const saldoEl = document.getElementById('kpiSaldo');
+    if (saldoEl) {
+      saldoEl.textContent = fmt(Math.abs(saldo));
+      saldoEl.className   = `fin-kpi__value ${saldo >= 0 ? 'fin-kpi__value--saldo-pos' : 'fin-kpi__value--saldo-neg'}`;
+    }
 
-  const saldoAcEl = document.getElementById('kpiSaldoTotal');
-  saldoAcEl.textContent = fmt(Math.abs(saldoAc));
-  saldoAcEl.className   = `fin-kpi__value ${saldoAc >= 0 ? 'fin-kpi__value--saldo-pos' : 'fin-kpi__value--saldo-neg'}`;
+    const totAcE  = (total || []).filter(r => r.tipo === 'entrada').reduce((s, r) => s + Number(r.valor || 0), 0);
+    const totAcS  = (total || []).filter(r => r.tipo === 'saida')  .reduce((s, r) => s + Number(r.valor || 0), 0);
+    const saldoAc = totAcE - totAcS;
+
+    const saldoAcEl = document.getElementById('kpiSaldoTotal');
+    if (saldoAcEl) {
+      saldoAcEl.textContent = fmt(Math.abs(saldoAc));
+      saldoAcEl.className   = `fin-kpi__value ${saldoAc >= 0 ? 'fin-kpi__value--saldo-pos' : 'fin-kpi__value--saldo-neg'}`;
+    }
+  } catch (err) {
+    console.error('[Financeiro KPIs]', err.message);
+    const el = document.getElementById('kpiEntradas');
+    if (el?.closest('.fin-kpi-grid')) {
+      // Mostra alerta não-bloqueante nos KPIs
+      el.textContent = '—';
+    }
+    _mostrarAlertaFinanceiro(`Erro ao carregar KPIs: ${err.message}`);
+  }
 }
 
 // ── TABELA ────────────────────────────────────────────────────
@@ -204,17 +260,22 @@ function renderPaginacao(total) {
 
 // ── CATEGORIAS (filtro dinâmico) ──────────────────────────────
 async function popularCategorias() {
-  const { data } = await supabaseClient
-    .from('fluxo_caixa')
-    .select('categoria');
-
-  const cats = [...new Set((data || []).map(r => r.categoria).filter(Boolean))].sort();
-  const sel  = document.getElementById('filtroCategoria');
-  cats.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    sel.appendChild(opt);
-  });
+  try {
+    const { data, error } = await supabaseClient.from('fluxo_caixa').select('categoria');
+    if (error) throw error;
+    const cats = [...new Set((data || []).map(r => r.categoria).filter(Boolean))].sort();
+    const sel  = document.getElementById('filtroCategoria');
+    if (!sel) return;
+    cats.forEach(c => {
+      // Evita duplicar opções se a função for chamada várias vezes
+      if (sel.querySelector(`option[value="${c}"]`)) return;
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    console.warn('[Financeiro popularCategorias]', err.message);
+  }
 }
 
 // ── EXCLUSÃO ─────────────────────────────────────────────────
@@ -554,15 +615,37 @@ async function importarCSV() {
   }
 
   // Upsert em lotes de 100 (evita timeout)
+  // ignoreDuplicates: true → ON CONFLICT DO NOTHING (não gera erro, apenas pula)
   let inseridos = 0;
   const BATCH = 100;
   for (let i = 0; i < registros.length; i += BATCH) {
     const lote = registros.slice(i, i + BATCH);
+
+    // Valida cada linha do lote antes de enviar (valor NaN ou negativo)
+    const loteValido = lote.filter(r => {
+      if (!r.valor || isNaN(r.valor) || r.valor <= 0) {
+        erros.push(`Valor inválido ignorado: "${r.descricao}" (${r.valor})`);
+        return false;
+      }
+      if (!r.data_lancamento || !r.tipo || !r.descricao) {
+        erros.push(`Registro incompleto ignorado: "${r.descricao}"`);
+        return false;
+      }
+      return true;
+    });
+
+    if (!loteValido.length) continue;
+
     const { error } = await supabaseClient
       .from('fluxo_caixa')
-      .upsert(lote, { onConflict: 'origem,fonte_id', ignoreDuplicates: true });
-    if (error) { console.error('[importar]', error); erros.push(error.message); break; }
-    inseridos += lote.length;
+      .upsert(loteValido, { onConflict: 'origem,fonte_id', ignoreDuplicates: true });
+    if (error) {
+      console.error('[importar lote]', error);
+      erros.push(`Erro no lote ${Math.floor(i / BATCH) + 1}: ${error.message}`);
+      // Não quebra o loop — tenta os próximos lotes
+    } else {
+      inseridos += loteValido.length;
+    }
   }
 
   btn.textContent = 'Importar registros →'; btn.disabled = false;

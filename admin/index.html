@@ -77,6 +77,8 @@
         <span class="admin-topbar__count" id="productCount"></span>
       </div>
       <div class="admin-topbar__actions">
+        <!-- Indicador Realtime -->
+        <span id="realtimeDot" class="realtime-dot" title="Conectando ao Realtime…" style="margin-right:4px"></span>
         <button class="admin-btn admin-btn--ghost" id="btnOpenFile" title="Recarregar dados do banco de dados">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           Recarregar
@@ -855,14 +857,20 @@
         <input type="text" id="pedidosBusca" class="admin-input" placeholder="Buscar por nome ou e-mail..." style="flex:1;min-width:200px">
       </div>
 
+      <!-- Indicador Realtime -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:12px;color:#888">
+        <span id="pedidosRealtimeStatus" class="realtime-dot" title="Conectando…"></span>
+        <span>Atualizações em tempo real</span>
+      </div>
+
       <!-- Tabela -->
-      <div style="overflow-x:auto;background:#fff;border:1px solid #eee;border-radius:6px">
-        <table width="100%" style="border-collapse:collapse;font-size:13px">
+      <div class="pedidos-table-wrap">
+        <table>
           <thead>
             <tr style="background:#f9f6f2;border-bottom:2px solid #eee">
               <th style="padding:10px 12px;text-align:left;font-weight:600;color:#888;white-space:nowrap">Pedido</th>
               <th style="padding:10px 12px;text-align:left;font-weight:600;color:#888">Cliente</th>
-              <th style="padding:10px 12px;text-align:left;font-weight:600;color:#888">E-mail</th>
+              <th class="pedidos-col-email" style="padding:10px 12px;text-align:left;font-weight:600;color:#888">E-mail</th>
               <th style="padding:10px 12px;text-align:left;font-weight:600;color:#888">Status</th>
               <th style="padding:10px 12px;text-align:left;font-weight:600;color:#888">Pagto</th>
               <th style="padding:10px 12px;text-align:right;font-weight:600;color:#888">Total</th>

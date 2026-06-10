@@ -57,13 +57,18 @@
   }
 
   async function carregarKPIs() {
-    const { data } = await supabaseClient.from('pedidos').select('status');
-    if (!data) return;
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('kpiPedidosTotal',    data.length);
-    set('kpiPedidosPendente', data.filter(r => r.status === 'pendente').length);
-    set('kpiPedidosPago',     data.filter(r => r.status === 'pago').length);
-    set('kpiPedidosEnviado',  data.filter(r => r.status === 'enviado' || r.status === 'entregue').length);
+    try {
+      const { data, error } = await supabaseClient.from('pedidos').select('status');
+      if (error) throw error;
+      if (!data) return;
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set('kpiPedidosTotal',    data.length);
+      set('kpiPedidosPendente', data.filter(r => r.status === 'pendente').length);
+      set('kpiPedidosPago',     data.filter(r => r.status === 'pago').length);
+      set('kpiPedidosEnviado',  data.filter(r => r.status === 'enviado' || r.status === 'entregue').length);
+    } catch (err) {
+      console.error('[Pedidos KPIs]', err.message);
+    }
   }
 
   async function carregarPedidos() {
@@ -71,23 +76,26 @@
     const paginacao = document.getElementById('pedidosPaginacao');
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#888">Carregando…</td></tr>';
 
-    let query = supabaseClient
-      .from('pedidos')
-      .select('id,nome_cliente,email_cliente,status,payment_method,total,criado_em,codigo_rastreio', { count: 'exact' })
-      .order('criado_em', { ascending: false })
-      .range((_page - 1) * PAGE_SIZE, _page * PAGE_SIZE - 1);
+    try {
+      let query = supabaseClient
+        .from('pedidos')
+        .select('id,nome_cliente,email_cliente,status,payment_method,total,criado_em,codigo_rastreio', { count: 'exact' })
+        .order('criado_em', { ascending: false })
+        .range((_page - 1) * PAGE_SIZE, _page * PAGE_SIZE - 1);
 
-    if (_filtroStatus) query = query.eq('status', _filtroStatus);
-    if (_filtroBusca) query = query.or(`nome_cliente.ilike.%${_filtroBusca}%,email_cliente.ilike.%${_filtroBusca}%`);
+      if (_filtroStatus) query = query.eq('status', _filtroStatus);
+      if (_filtroBusca)  query = query.or(`nome_cliente.ilike.%${_filtroBusca}%,email_cliente.ilike.%${_filtroBusca}%`);
 
-    const { data, count, error } = await query;
-    _totalRows = count || 0;
+      const { data, count, error } = await query;
+      _totalRows = count || 0;
 
-    if (error || !data?.length) {
-      if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#888">Nenhum pedido encontrado.</td></tr>';
-      if (paginacao) paginacao.innerHTML = '';
-      return;
-    }
+      if (error) throw error;
+
+      if (!data?.length) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#888">Nenhum pedido encontrado.</td></tr>';
+        if (paginacao) paginacao.innerHTML = '';
+        return;
+      }
 
     if (tbody) {
       tbody.innerHTML = data.map(p => `
@@ -113,6 +121,13 @@
       }
       html += `<button onclick="window._pedidosPagina(${_page + 1})" ${_page >= totalPages ? 'disabled' : ''} style="padding:6px 12px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:13px">›</button></div>`;
       paginacao.innerHTML = html;
+    }
+    } catch (err) {
+      console.error('[Pedidos carregarPedidos]', err.message);
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:#c62828">
+        ⚠️ Erro ao carregar pedidos: ${err.message}<br>
+        <button onclick="carregarPedidos && carregarPedidos()" style="margin-top:8px;padding:6px 14px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:12px">Tentar novamente</button>
+      </td></tr>`;
     }
   }
 
@@ -185,39 +200,90 @@
   };
 
   window._pedidosSalvarStatus = async function (id) {
-    const select = document.getElementById('modalStatusSelect');
+    const select   = document.getElementById('modalStatusSelect');
     const feedback = document.getElementById('pedidoModalFeedback');
+    const btnSalvar = document.querySelector(`button[onclick*="_pedidosSalvarStatus('${id}')"]`);
     if (!select) return;
+
+    // Proteção contra clique duplo
+    if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.textContent = '…'; }
     if (feedback) feedback.innerHTML = '<span style="color:#888">Salvando…</span>';
-    const { error } = await supabaseClient.from('pedidos').update({ status: select.value }).eq('id', id);
-    if (error) { if (feedback) feedback.innerHTML = `<span style="color:#ef4444">Erro: ${error.message}</span>`; return; }
-    if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${select.value==='pago'?' Estoque e financeiro atualizados automaticamente.':''}</span>`;
-    carregarPedidos(); carregarKPIs();
+
+    try {
+      const { error } = await supabaseClient.from('pedidos').update({ status: select.value }).eq('id', id);
+      if (error) throw error;
+      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
+      carregarPedidos(); carregarKPIs();
+    } catch (err) {
+      if (feedback) feedback.innerHTML = `<span style="color:#ef4444">⚠️ Erro: ${err.message}</span>`;
+    } finally {
+      if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar'; }
+    }
   };
 
   window._pedidosSalvarRastreio = async function (id) {
-    const input = document.getElementById('modalRastreioInput');
+    const input    = document.getElementById('modalRastreioInput');
     const feedback = document.getElementById('pedidoModalFeedback');
+    const btnSalvar = document.querySelector(`button[onclick*="_pedidosSalvarRastreio('${id}')"]`);
     if (!input) return;
+
     const codigo = input.value.trim();
+    if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.textContent = '…'; }
     if (feedback) feedback.innerHTML = '<span style="color:#888">Salvando…</span>';
-    const updates = { codigo_rastreio: codigo || null };
-    if (codigo) updates.status = 'enviado';
-    const { error } = await supabaseClient.from('pedidos').update(updates).eq('id', id);
-    if (error) { if (feedback) feedback.innerHTML = `<span style="color:#ef4444">Erro: ${error.message}</span>`; return; }
-    if (feedback) feedback.innerHTML = codigo
-      ? '<span style="color:#22c55e">✓ Código salvo. Status atualizado para Enviado.</span>'
-      : '<span style="color:#888">Código removido.</span>';
-    carregarPedidos(); carregarKPIs();
+
+    try {
+      const updates = { codigo_rastreio: codigo || null };
+      if (codigo) updates.status = 'enviado';
+      const { error } = await supabaseClient.from('pedidos').update(updates).eq('id', id);
+      if (error) throw error;
+      if (feedback) feedback.innerHTML = codigo
+        ? '<span style="color:#22c55e">✓ Código salvo. Status atualizado para Enviado.</span>'
+        : '<span style="color:#888">Código removido.</span>';
+      carregarPedidos(); carregarKPIs();
+    } catch (err) {
+      if (feedback) feedback.innerHTML = `<span style="color:#ef4444">⚠️ Erro: ${err.message}</span>`;
+    } finally {
+      if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar'; }
+    }
   };
 
   window.pedidosInit = function () {
     const sf = document.getElementById('pedidosFiltroStatus');
     const bi = document.getElementById('pedidosBusca');
     if (sf) sf.addEventListener('change', () => { _filtroStatus = sf.value; _page = 1; carregarPedidos(); });
-    let t; if (bi) bi.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { _filtroBusca = bi.value.trim(); _page = 1; carregarPedidos(); }, 400); });
+    let t;
+    if (bi) bi.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => { _filtroBusca = bi.value.trim(); _page = 1; carregarPedidos(); }, 400);
+    });
     const overlay = document.getElementById('pedidoModalOverlay');
     if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
-    carregarKPIs(); carregarPedidos();
+
+    // ── Realtime: atualiza a lista automaticamente quando um pedido muda ──
+    try {
+      supabaseClient
+        .channel('admin-pedidos-live')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
+          carregarKPIs();
+          carregarPedidos();
+          _setRealtimeStatus(true);
+        })
+        .subscribe(status => {
+          _setRealtimeStatus(status === 'SUBSCRIBED');
+        });
+    } catch (err) {
+      console.warn('[Pedidos Realtime]', err.message);
+    }
+
+    carregarKPIs();
+    carregarPedidos();
   };
+
+  // Indicador visual de conexão ao vivo
+  function _setRealtimeStatus(ok) {
+    const el = document.getElementById('pedidosRealtimeStatus');
+    if (!el) return;
+    el.style.background = ok ? '#22c55e' : '#f59e0b';
+    el.title = ok ? 'Ao vivo — atualizações em tempo real ativas' : 'Conectando…';
+  }
 })();

@@ -166,7 +166,6 @@ async function carregarDados() {
     ]);
 
     if (e1) throw e1;
-    // e2 é ignorado se cfg vier null (tabela vazia é ok)
 
     DB.produtos      = produtos || [];
     DB.configuracoes = cfg     || {};
@@ -174,9 +173,63 @@ async function carregarDados() {
     renderTable();
     const n = DB.produtos.length;
     setStatus('success', `✓ Conectado ao Supabase. <strong>${n}</strong> produto${n !== 1 ? 's' : ''} carregado${n !== 1 ? 's' : ''}.`);
+
+    // ── Realtime: atualiza produtos e pedidos ao vivo ─────
+    _initRealtime();
   } catch (e) {
     setStatus('error', `✗ Erro ao conectar: ${e.message}. Verifique as credenciais em <code>js/supabase-config.js</code>`);
     toast('Erro ao conectar ao banco de dados', 'error');
+  }
+}
+
+// ── REALTIME ─────────────────────────────────
+let _realtimeInitializado = false;
+function _initRealtime() {
+  if (_realtimeInitializado) return;
+  _realtimeInitializado = true;
+
+  const dot = document.getElementById('realtimeDot');
+  const setDot = ok => {
+    if (!dot) return;
+    dot.style.background = ok ? '#22c55e' : '#f59e0b';
+    dot.title = ok ? 'Ao vivo — dados em tempo real' : 'Reconectando…';
+  };
+
+  try {
+    supabaseClient
+      .channel('admin-main-live')
+      // Produto alterado (estoque, preço, ativo)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, payload => {
+        const currentView = document.querySelector('.admin-nav-btn--active')?.getAttribute('data-view');
+        if (currentView === 'produtos' || currentView === 'stock') {
+          // Atualiza apenas a linha afetada para não fazer reload completo
+          const changed = payload.new || payload.old;
+          if (changed?.id) {
+            const idx = DB.produtos.findIndex(p => p.id === changed.id);
+            if (idx !== -1 && payload.new) {
+              DB.produtos[idx] = { ...DB.produtos[idx], ...payload.new };
+            } else if (payload.eventType === 'INSERT' && payload.new) {
+              DB.produtos.unshift(payload.new);
+            } else if (payload.eventType === 'DELETE' && payload.old) {
+              DB.produtos = DB.produtos.filter(p => p.id !== payload.old.id);
+            }
+            renderTable();
+          }
+        }
+        setDot(true);
+      })
+      // Novo pedido chegou
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, () => {
+        const currentView = document.querySelector('.admin-nav-btn--active')?.getAttribute('data-view');
+        toast('🛍️ Novo pedido recebido!', 'success');
+        if (currentView === 'pedidos' && typeof window.pedidosInit === 'function') {
+          window.pedidosInit();
+        }
+        setDot(true);
+      })
+      .subscribe(status => setDot(status === 'SUBSCRIBED'));
+  } catch (err) {
+    console.warn('[Admin Realtime]', err.message);
   }
 }
 
