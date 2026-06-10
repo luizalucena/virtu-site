@@ -217,6 +217,28 @@ Deno.serve(async (req) => {
             status:           statusPedido,
           }),
         }).catch(e => console.error('[Email dispatch]', e));
+
+        // ── Notificação WhatsApp para admin (Z-API) ──────
+        // Fire-and-forget: não bloqueia nem quebra o fluxo do pedido
+        fetch(`${SUPABASE_URL}/functions/v1/notificar-pedido-admin`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            pedido_id:        pedido.id,
+            status:           statusPedido,
+            metodo_pagamento: tipo,
+            total,
+            subtotal,
+            frete,
+            desconto,
+            itens,
+            cliente,
+            endereco,
+          }),
+        }).catch(e => console.error('[WhatsApp dispatch]', e));
       }
       // ─── BLOCO LEGADO REMOVIDO ─── (substituído por send-order-email)
       if (false) {

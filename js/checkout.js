@@ -1,6 +1,6 @@
 /* ============================================================
    VIRTÙ — Checkout JavaScript
-   Frete: Todo o Nordeste. Frete grátis (FRETEGRATIS) apenas para Grande JP.
+   Frete: Todo o Nordeste. Frete grátis automático para Grande JP.
    Pagamento: Mercado Pago via Supabase Edge Function
    ============================================================ */
 
@@ -205,13 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar cupom
         cupomAplicado = { codigo: data.codigo, tipo: data.tipo, valor: data.valor };
 
-        // Se cupom de frete e CEP já digitado fora de JP, rejeitar
+        // Cupom de frete: verificar se frete já é grátis pela região
         if (data.tipo === 'frete') {
-          const cepAtual = parseInt((document.getElementById('cep')?.value || '').replace(/\D/g, ''), 10);
-          const cepPreenchido = !isNaN(cepAtual) && cepAtual > 0;
-          const isJPCep = cepAtual >= CEP_JP_MIN && cepAtual <= CEP_JP_MAX;
-          if (cepPreenchido && !isJPCep) {
-            setMsg('Este cupom de frete grátis é válido apenas para João Pessoa (CEPs 58000–58099).', 'erro');
+          if (freteBase === 0) {
+            // Frete já é grátis automaticamente (ex: Grande João Pessoa)
+            // Não precisa aplicar cupom — informa a cliente e encerra
+            cupomAplicado = null;
+            setMsg('✓ O frete para sua região já é gratuito! Não precisa de cupom.', 'ok');
             btn.disabled = false;
             if (btn.textContent === '…') btn.textContent = 'Aplicar';
             return;
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let labelDesc;
         if (data.tipo === 'frete') {
-          labelDesc = 'Frete grátis para João Pessoa!';
+          labelDesc = 'Frete grátis!';
         } else if (data.tipo === 'percentual') {
           labelDesc = `${data.valor}% de desconto`;
         } else {

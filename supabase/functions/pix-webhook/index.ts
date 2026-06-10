@@ -83,6 +83,22 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[Webhook] PIX confirmado: pedido ${pedido.id} → pago`);
+
+    // ── Notificação WhatsApp: PIX confirmado ─────────────
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
+    if (SUPABASE_URL && ANON_KEY) {
+      fetch(`${SUPABASE_URL}/functions/v1/notificar-pedido-admin`, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${ANON_KEY}`,
+        },
+        // Passa só o ID — a Edge Function busca os dados completos no banco
+        body: JSON.stringify({ pedido_id: pedido.id }),
+      }).catch(e => console.error('[WhatsApp PIX dispatch]', e));
+    }
+
     return json({ ok: true, pedido_id: pedido.id });
 
   } catch (err) {
