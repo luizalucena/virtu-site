@@ -360,6 +360,27 @@
     </div>
   </footer>
 
+  <!-- POP-UP DE SAÍDA -->
+  <div class="exit-popup-overlay" id="exitPopupOverlay" aria-modal="true" role="dialog" aria-label="Oferta especial" hidden>
+    <div class="exit-popup">
+      <button class="exit-popup__close" id="exitPopupClose" aria-label="Fechar">✕</button>
+      <div class="exit-popup__top">
+        <div class="exit-popup__icon">🛍️</div>
+        <h2 class="exit-popup__titulo" id="exitPopupTitulo">Espera! Não vá de mãos vazias.</h2>
+        <p class="exit-popup__subtitulo" id="exitPopupSubtitulo">Use o código abaixo e ganhe desconto na sua primeira compra.</p>
+      </div>
+      <div class="exit-popup__bottom">
+        <p class="exit-popup__desconto" id="exitPopupDesconto">Seu cupom exclusivo</p>
+        <div class="exit-popup__codigo-wrap">
+          <input class="exit-popup__codigo" id="exitPopupCodigo" readonly value="FIQUEVIRTU" />
+          <button class="exit-popup__copiar" id="exitPopupCopiar">Copiar</button>
+        </div>
+        <p class="exit-popup__copiado" id="exitPopupCopiado"></p>
+        <button class="exit-popup__continuar" id="exitPopupContinuar">Continuar comprando sem desconto</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/auth-badge.js"></script>
@@ -369,5 +390,6 @@
   <script src="js/wishlist.js"></script>
   <script src="js/carrinho.js"></script>
   <script src="js/navbar-cats.js"></script>
+  <script src="js/exit-popup.js"></script>
 </body>
 </html>

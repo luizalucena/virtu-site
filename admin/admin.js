@@ -748,6 +748,14 @@ function populateConfig() {
   set('cfgPolPrivacidade',     cfg.pol_privacidade);
   set('cfgPolSustentabilidade',cfg.pol_sustentabilidade);
   set('cfgPolTrabalheConosco', cfg.pol_trabalhe_conosco);
+
+  // Pop-up de Saída
+  const popAtivo = document.getElementById('cfgPopupSaidaAtivo');
+  if (popAtivo) popAtivo.checked = cfg.popup_saida_ativo !== false;
+  set('cfgPopupSaidaTitulo',    cfg.popup_saida_titulo);
+  set('cfgPopupSaidaSubtitulo', cfg.popup_saida_subtitulo);
+  set('cfgPopupSaidaCodigo',    cfg.popup_saida_codigo);
+  set('cfgPopupSaidaDesconto',  cfg.popup_saida_desconto ?? 10);
 }
 
 // ── Filtros de cores ────────────────────────
@@ -897,6 +905,12 @@ async function saveConfig() {
     pol_privacidade:      document.getElementById('cfgPolPrivacidade')?.value.trim()      || null,
     pol_sustentabilidade: document.getElementById('cfgPolSustentabilidade')?.value.trim() || null,
     pol_trabalhe_conosco: document.getElementById('cfgPolTrabalheConosco')?.value.trim()  || null,
+    // Pop-up de Saída
+    popup_saida_ativo:      document.getElementById('cfgPopupSaidaAtivo')?.checked ?? true,
+    popup_saida_titulo:     document.getElementById('cfgPopupSaidaTitulo')?.value.trim()    || 'Espera! Não vá de mãos vazias.',
+    popup_saida_subtitulo:  document.getElementById('cfgPopupSaidaSubtitulo')?.value.trim() || 'Use o código abaixo e ganhe desconto na sua primeira compra.',
+    popup_saida_codigo:     (document.getElementById('cfgPopupSaidaCodigo')?.value.trim()   || 'FIQUEVIRTU').toUpperCase(),
+    popup_saida_desconto:   parseInt(document.getElementById('cfgPopupSaidaDesconto')?.value) || 10,
   };
 
   try {

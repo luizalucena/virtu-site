@@ -1,86 +1,143 @@
-/* exit-popup.js — Virtù exit intent popup com cupom de frete grátis
- * Adicione em qualquer página: <script src="js/exit-popup.js"></script>
- * Não mostra de novo por 7 dias após o usuário fechar.
- */
+/* ============================================================
+   VIRTÙ — Pop-up de Saída (Exit Intent)
+   Aparece quando o mouse sai pela parte superior da janela
+   (usuário se dirige para fechar a aba ou mudar de página).
+   Mostra apenas UMA vez por sessão.
+   ============================================================ */
 (function () {
-  var COUPON = 'FRETEGRATIS';
-  var KEY = 'vt_exit_seen';
-  var DAYS = 7;
+  const SESSION_KEY = 'virtu_exit_popup_shown';
 
-  // Verifica cooldown
-  var last = localStorage.getItem(KEY);
-  if (last && (Date.now() - +last) / 86400000 < DAYS) return;
+  // Não mostra se já apareceu nesta sessão
+  if (sessionStorage.getItem(SESSION_KEY)) return;
 
-  // Evita duplicata (index.html tem inline)
-  if (document.getElementById('vt-exit-overlay')) return;
+  // Não mostra se o carrinho está vazio
+  function carrinhoVazio() {
+    try {
+      const cart = JSON.parse(localStorage.getItem('virtu_cart') || '[]');
+      return cart.length === 0;
+    } catch { return true; }
+  }
+  if (carrinhoVazio()) return;
 
-  // CSS
-  var s = document.createElement('style');
-  s.textContent = [
-    '#vt-exit-overlay{display:none;position:fixed;inset:0;background:rgba(10,12,18,.86);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(3px)}',
-    '#vt-exit-popup{background:#1a2030;border:1px solid rgba(201,169,110,.3);border-radius:4px;padding:48px 40px 36px;max-width:440px;width:90%;text-align:center;position:relative;animation:vtIn .35s ease}',
-    '@keyframes vtIn{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}',
-    '#vt-close{position:absolute;top:12px;right:16px;background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;padding:4px 6px}',
-    '#vt-close:hover{color:#fff}',
-    '#vt-eyebrow{font-family:Cormorant Garamond,Georgia,serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#c9a96e;margin:0 0 12px}',
-    '#vt-headline{font-family:Cormorant Garamond,Georgia,serif;font-size:32px;font-weight:300;color:#fff;line-height:1.1;margin:0 0 16px;letter-spacing:.02em}',
-    '#vt-divider{width:40px;height:1px;background:#c9a96e;margin:0 auto 16px}',
-    '#vt-sub{font-size:13px;color:rgba(255,255,255,.7);margin:0 0 20px;font-family:Cormorant Garamond,Georgia,serif;letter-spacing:.05em}',
-    '#vt-coupon-box{display:flex;align-items:center;border:1.5px dashed rgba(201,169,110,.6);border-radius:4px;overflow:hidden;margin-bottom:8px}',
-    '#vt-coupon-code{flex:1;padding:14px 16px;font-family:Courier New,monospace;font-size:18px;letter-spacing:.15em;color:#c9a96e;font-weight:700}',
-    '#vt-copy-btn{padding:14px 20px;background:rgba(201,169,110,.15);border:none;border-left:1.5px dashed rgba(201,169,110,.6);color:#c9a96e;cursor:pointer;font-size:13px;letter-spacing:.08em;font-family:Cormorant Garamond,Georgia,serif;transition:background .2s}',
-    '#vt-copy-btn:hover{background:rgba(201,169,110,.3)}',
-    '#vt-copied-msg{color:#c9a96e;font-size:12px;margin:0 0 16px;opacity:0;transition:opacity .3s;height:18px;font-family:Cormorant Garamond,Georgia,serif}',
-    '#vt-cta{display:block;background:#c9a96e;color:#1a2030;padding:16px 32px;font-family:Cormorant Garamond,Georgia,serif;font-size:13px;letter-spacing:.15em;text-transform:uppercase;text-decoration:none;transition:background .2s;margin-bottom:16px}',
-    '#vt-cta:hover{background:#b8956a}',
-    '#vt-dismiss{font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;margin:0;font-family:Cormorant Garamond,Georgia,serif;letter-spacing:.08em;transition:color .2s}',
-    '#vt-dismiss:hover{color:rgba(255,255,255,.7)}'
-  ].join('');
-  document.head.appendChild(s);
+  const overlay   = document.getElementById('exitPopupOverlay');
+  const closeBtn  = document.getElementById('exitPopupClose');
+  const continuar = document.getElementById('exitPopupContinuar');
+  const copiarBtn = document.getElementById('exitPopupCopiar');
+  const copiado   = document.getElementById('exitPopupCopiado');
+  const codigoEl  = document.getElementById('exitPopupCodigo');
 
-  // HTML
-  var ov = document.createElement('div');
-  ov.id = 'vt-exit-overlay';
-  ov.innerHTML = '<div id="vt-exit-popup">'
-    + '<button id="vt-close" aria-label="Fechar">&times;</button>'
-    + '<p id="vt-eyebrow">Espere! Antes de ir&hellip;</p>'
-    + '<h2 id="vt-headline">FRETE GR&Aacute;TIS<br>no seu pedido</h2>'
-    + '<div id="vt-divider"></div>'
-    + '<p id="vt-sub">Use o cupom abaixo ao finalizar sua compra:</p>'
-    + '<div id="vt-coupon-box"><span id="vt-coupon-code">' + COUPON + '</span>'
-    + '<button id="vt-copy-btn">Copiar</button></div>'
-    + '<p id="vt-copied-msg">&#10004; Copiado!</p>'
-    + '<a href="catalogo.html" id="vt-cta">Quero aproveitar &rarr;</a>'
-    + '<p id="vt-dismiss">N&atilde;o, obrigado</p>'
-    + '</div>';
-  document.body.appendChild(ov);
+  if (!overlay) return;
 
-  function close() {
-    ov.style.display = 'none';
-    localStorage.setItem(KEY, Date.now().toString());
+  // ── Carrega configuração do Supabase ──────────────────────
+  async function carregarConfig() {
+    if (typeof supabaseClient === 'undefined') return;
+    try {
+      const { data } = await supabaseClient
+        .from('configuracoes')
+        .select('popup_saida_ativo, popup_saida_codigo, popup_saida_desconto, popup_saida_titulo, popup_saida_subtitulo')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (!data || data.popup_saida_ativo === false) return false;
+
+      // Preenche o popup com os dados do admin
+      const titulo    = document.getElementById('exitPopupTitulo');
+      const subtitulo = document.getElementById('exitPopupSubtitulo');
+      const desconto  = document.getElementById('exitPopupDesconto');
+
+      if (titulo    && data.popup_saida_titulo)     titulo.textContent    = data.popup_saida_titulo;
+      if (subtitulo && data.popup_saida_subtitulo)  subtitulo.textContent = data.popup_saida_subtitulo;
+      if (codigoEl  && data.popup_saida_codigo)     codigoEl.value        = data.popup_saida_codigo;
+      if (desconto  && data.popup_saida_desconto)   desconto.textContent  = `${data.popup_saida_desconto}% de desconto — código exclusivo`;
+
+      return true;
+    } catch { return true; } // falha silenciosa: mostra com valores padrão
   }
 
-  function copy() {
-    navigator.clipboard.writeText(COUPON).then(function () {
-      var m = document.getElementById('vt-copied-msg');
-      m.style.opacity = '1';
-      setTimeout(function () { m.style.opacity = '0'; }, 2000);
+  // ── Abre o popup ──────────────────────────────────────────
+  function abrirPopup() {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    overlay.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    // Trigger da animação no próximo frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => overlay.classList.add('open'));
     });
   }
 
-  document.getElementById('vt-close').addEventListener('click', close);
-  document.getElementById('vt-copy-btn').addEventListener('click', copy);
-  document.getElementById('vt-dismiss').addEventListener('click', close);
-  ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+  // ── Fecha o popup ─────────────────────────────────────────
+  function fecharPopup() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(() => overlay.setAttribute('hidden', ''), 320);
+  }
 
-  // Exit intent: mouse sai pelo topo
-  var shown = false;
-  document.addEventListener('mouseleave', function (e) {
-    if (!shown && e.clientY < 10) { shown = true; ov.style.display = 'flex'; }
+  closeBtn?.addEventListener('click', fecharPopup);
+  continuar?.addEventListener('click', fecharPopup);
+  overlay.addEventListener('click', e => { if (e.target === overlay) fecharPopup(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharPopup(); });
+
+  // ── Copiar código ─────────────────────────────────────────
+  copiarBtn?.addEventListener('click', () => {
+    const codigo = codigoEl?.value || '';
+    navigator.clipboard?.writeText(codigo).catch(() => {
+      // Fallback para navegadores sem clipboard API
+      codigoEl?.select();
+      document.execCommand('copy');
+    });
+    if (copiado) {
+      copiado.textContent = '✓ Código copiado! Cole no checkout.';
+      setTimeout(() => { if (copiado) copiado.textContent = ''; }, 3000);
+    }
+    copiarBtn.textContent = '✓ Copiado!';
+    setTimeout(() => { if (copiarBtn) copiarBtn.textContent = 'Copiar'; }, 2000);
   });
 
-  // Mobile: mostra após 30s
-  setTimeout(function () {
-    if (!shown && window.innerWidth < 768) { shown = true; ov.style.display = 'flex'; }
-  }, 30000);
+  // ── Exit intent: mouse saindo pelo topo ───────────────────
+  let triggered = false;
+  let timer = null;
+
+  // Desktop: mouseleave no topo da janela
+  document.addEventListener('mouseleave', async (e) => {
+    if (triggered) return;
+    if (e.clientY > 20) return; // só se sair pelo topo (barra do browser)
+
+    triggered = true;
+    const ok = await carregarConfig();
+    if (ok !== false) abrirPopup();
+  });
+
+  // Mobile: usuário rola para cima rapidamente (tentativa de sair)
+  let lastScrollY = window.scrollY;
+  let scrollUpSpeed = 0;
+  window.addEventListener('scroll', () => {
+    const delta = lastScrollY - window.scrollY;
+    if (delta > 0) {
+      scrollUpSpeed += delta;
+      clearTimeout(timer);
+      timer = setTimeout(() => { scrollUpSpeed = 0; }, 300);
+
+      if (scrollUpSpeed > 200 && window.scrollY < 100 && !triggered) {
+        triggered = true;
+        carregarConfig().then(ok => { if (ok !== false) abrirPopup(); });
+      }
+    } else {
+      scrollUpSpeed = 0;
+    }
+    lastScrollY = window.scrollY;
+  }, { passive: true });
+
+  // Fallback: tempo na página (45s sem interação com o carrinho)
+  const idleTimer = setTimeout(async () => {
+    if (triggered || carrinhoVazio()) return;
+    triggered = true;
+    const ok = await carregarConfig();
+    if (ok !== false) abrirPopup();
+  }, 45000);
+
+  // Cancela o timer idle se o usuário interagir com o carrinho
+  document.getElementById('cartItems')?.addEventListener('click', () => {
+    clearTimeout(idleTimer);
+  }, { once: true });
+
 })();
