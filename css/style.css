@@ -1446,3 +1446,83 @@ h4 { font-size: var(--text-lg); }
   color: var(--color-text-light, #999);
   text-transform: uppercase;
 }
+
+/* ============================================================
+   PERFORMANCE & MOBILE-FIRST — Virtù
+   Melhorias globais de toque, rendering e layout
+   ============================================================ */
+
+/* 1. Eliminar tap delay em dispositivos touch */
+a, button, [role="button"], input, select, textarea, label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 2. Rendering otimizado para texto */
+body {
+  text-rendering: optimizeSpeed;
+}
+
+/* 3. Imagens e mídia sempre responsivas — defensive fallback */
+img, video, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 4. Prevenir overflow horizontal silencioso */
+html, body {
+  max-width: 100%;
+}
+
+/* 5. Smooth scroll: respeita preferência do usuário */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 6. Focus visible para acessibilidade (teclado) */
+:focus-visible {
+  outline: 2px solid var(--color-gold, #C4934A);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* 7. Drawer mobile: previne scroll do body quando aberto */
+body.menu-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* 8. Navbar: garantir que não congela em mobile */
+.navbar {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* 9. Lazy loading placeholder para product-card__image */
+.product-card__image[data-src]:not([src]) {
+  background: #f0ebe4;
+}
+
+/* 10. Extra breakpoint 360px — telas muito pequenas */
+@media (max-width: 360px) {
+  :root {
+    --text-hero: 28px;
+    --text-2xl:  22px;
+  }
+  .container {
+    padding-inline: 0.75rem;
+  }
+  .btn, .btn--lg {
+    padding: 11px 18px;
+    font-size: 0.75rem;
+  }
+}

@@ -628,6 +628,46 @@
   .checkout-main { padding: 2rem 0 4rem; }
 }
 
+@media (max-width: 480px) {
+  /* Navbar mais compacta */
+  .checkout-navbar { padding: 0 1rem; }
+  .checkout-navbar__inner { height: 52px; }
+  .checkout-navbar__security { display: none; }
+
+  /* Container sem margens laterais */
+  .checkout-container { padding: 0 0.75rem; }
+
+  /* Abas PIX/Cartão em coluna no mobile */
+  .payment-tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .payment-tab {
+    width: 100%;
+    justify-content: center;
+    padding: 0.85rem;
+  }
+
+  /* Formulário do cartão */
+  .card-preview { display: none; }
+  .card-form-fields { gap: 0.85rem; }
+
+  /* Botão de finalizar */
+  .checkout-btn-submit {
+    font-size: 0.82rem;
+    padding: 1rem;
+    width: 100%;
+  }
+
+  /* Resumo do pedido */
+  .order-summary { padding: 1.25rem; }
+  .order-item__img { width: 52px; height: 52px; }
+
+  /* Segurança e texto pequeno */
+  .checkout-trust-badges { gap: 0.75rem; font-size: 0.72rem; }
+  .checkout-trust-badges span { font-size: 0.7rem; }
+}
+
 /* ── CUPOM DE DESCONTO ─────────────────────────── */
 .checkout-cupom {
   margin-bottom: 1.25rem;

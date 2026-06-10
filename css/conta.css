@@ -822,3 +822,30 @@
   stroke: #c0392b;
   color: #c0392b;
 }
+
+/* ── Rastreio de pedido ───────────────────────── */
+.conta-pedido__actions {
+  padding: 12px 0 0;
+  border-top: 1px solid #f0ebe4;
+  margin-top: 12px;
+}
+
+.conta-pedido__rastreio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #1A2744;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 7px 14px;
+  border: 1.5px solid #1A2744;
+  border-radius: 2px;
+  transition: background 0.18s, color 0.18s;
+}
+
+.conta-pedido__rastreio:hover {
+  background: #1A2744;
+  color: #fff;
+}

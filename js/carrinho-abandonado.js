@@ -11,10 +11,15 @@
 (function () {
   'use strict';
 
-  const CART_KEY      = 'virtu_cart';
-  const ABANDONO_KEY  = 'virtu_abandono_saved';  // evita duplicatas na sessão
-  const POPUP_KEY     = 'virtu_popup_shown';      // mostra popup só 1x por sessão
+  const CART_KEY       = 'virtu_cart';
+  const ABANDONO_KEY   = 'virtu_abandono_saved';  // evita duplicatas na sessão
+  const POPUP_KEY      = 'virtu_popup_shown';     // mostra popup só 1x por sessão
   const WHATSAPP_VIRTU = '5583999947734';         // número da loja para o link de recuperação
+
+  // Timer de abandono: dispara após MIN_INATIVIDADE ms sem interação
+  const MIN_INATIVIDADE = 25 * 60 * 1000;  // 25 minutos
+  let   _timerAbandono  = null;
+  let   _timerIniciado  = false;
 
   /* ─── Utilitários ─────────────────────────────────────────── */
 
@@ -65,27 +70,82 @@
 
     markSaved();
 
-    const cart    = getCart();
-    const total   = calcTotal(cart);
-    const url_rec = buildRecoveryUrl();
+    const cart         = getCart();
+    const total        = calcTotal(cart);
+    const url_rec      = buildRecoveryUrl();
+    const tempo_inicio = Number(sessionStorage.getItem('virtu_pagina_inicio') || Date.now());
+    const tempo_min    = Math.round((Date.now() - tempo_inicio) / 60000); // minutos na página
 
     try {
-      await supabaseClient.from('carrinhos_abandonados').insert({
-        telefone:        tel,
-        nome:            nome || null,
-        email:           email || null,
-        itens:           cart,
-        valor_total:     total,
-        origem:          origem || 'carrinho',
-        url_recuperacao: url_rec,
-      });
+      const { data: registro } = await supabaseClient
+        .from('carrinhos_abandonados')
+        .insert({
+          telefone:        tel,
+          nome:            nome || null,
+          email:           email || null,
+          itens:           cart,
+          valor_total:     total,
+          origem:          origem || 'carrinho',
+          url_recuperacao: url_rec,
+          tempo_abandono:  tempo_min,
+        })
+        .select('id')
+        .maybeSingle();
 
       // Dispara webhook automático (se configurado no admin)
-      dispararWebhook({ nome, telefone: tel, email, itens: cart, total, url: url_rec });
+      dispararWebhook({
+        nome,
+        telefone: tel,
+        email,
+        itens: cart,
+        total,
+        url: url_rec,
+        abandono_id: registro?.id,
+      });
 
     } catch (err) {
       console.warn('[Virtù] Erro ao salvar abandono:', err.message);
     }
+  }
+
+  /* ─── Timer de inatividade (disparo automático) ────────────── */
+
+  function iniciarTimerAbandono() {
+    if (_timerIniciado || !getCart().length) return;
+    _timerIniciado = true;
+
+    // Salva timestamp de entrada na página
+    if (!sessionStorage.getItem('virtu_pagina_inicio')) {
+      sessionStorage.setItem('virtu_pagina_inicio', String(Date.now()));
+    }
+
+    function resetTimer() {
+      clearTimeout(_timerAbandono);
+      _timerAbandono = setTimeout(dispararAbandonoAutomatico, MIN_INATIVIDADE);
+    }
+
+    // Resets ao interagir com a página
+    ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(ev => {
+      document.addEventListener(ev, resetTimer, { passive: true });
+    });
+
+    // Inicia o timer imediatamente
+    resetTimer();
+  }
+
+  async function dispararAbandonoAutomatico() {
+    if (alreadySaved()) return;
+
+    // Tenta usar dados já salvos em localStorage (preenchidos no checkout)
+    const tel   = localStorage.getItem('virtu_telefone') || '';
+    const nome  = localStorage.getItem('virtu_nome')     || '';
+    const email = localStorage.getItem('virtu_email')    || '';
+
+    if (tel && tel.replace(/\D/g,'').length >= 10) {
+      await saveAbandono({ nome, email, telefone: tel, origem: 'timer_inatividade' });
+    }
+    // Se não tiver telefone, o webhook não dispara — não há como enviar o WA
+    // O registro fica pendente até o exit popup coletar o telefone
   }
 
   /* ─── Webhook automático ──────────────────────────────────── */
@@ -101,25 +161,41 @@
       const webhookUrl = cfg?.webhook_whatsapp;
       if (!webhookUrl) return;
 
-      const mensagem = (cfg?.abandono_mensagem || 'Olá {nome}! Vocà deixou itens no carrinho da Virtù: {link}')
+      const mensagem = (cfg?.abandono_mensagem || 'Olá {nome}! Você deixou itens no carrinho da Virtù. Clique para retomar: {link}')
         .replace('{nome}',  dados.nome  || 'cliente')
         .replace('{link}',  dados.url)
-        .replace('{total}', 'R$ ' + dados.total.toFixed(2));
+        .replace('{total}', 'R$ ' + (dados.total || 0).toFixed(2));
 
-      await fetch(webhookUrl, {
+      const payload = {
+        telefone:    dados.telefone,
+        nome:        dados.nome,
+        email:       dados.email,
+        mensagem,
+        itens:       dados.itens,
+        total:       dados.total,
+        url:         dados.url,
+        timestamp:   new Date().toISOString(),
+      };
+
+      const res = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          telefone:  dados.telefone,
-          nome:      dados.nome,
-          email:     dados.email,
-          mensagem:  mensagem,
-          itens:     dados.itens,
-          total:     dados.total,
-          url:       dados.url,
-          timestamp: new Date().toISOString(),
-        }),
+        body: JSON.stringify(payload),
       });
+
+      // Marca no banco que o WhatsApp foi enviado
+      if (res.ok && dados.abandono_id) {
+        supabaseClient
+          .from('carrinhos_abandonados')
+          .update({
+            whatsapp_enviado: true,
+            enviado_em:       new Date().toISOString(),
+          })
+          .eq('id', dados.abandono_id)
+          .then(() => {})
+          .catch(() => {});
+      }
+
     } catch { /* webhook falhou silenciosamente */ }
   }
 
@@ -260,6 +336,9 @@
     const cart = getCart();
     if (!cart.length) return;
 
+    // Inicia timer de 25 min de inatividade
+    iniciarTimerAbandono();
+
     let popupTriggered = false;
 
     // Desktop: mouse sai pela parte de cima
@@ -272,17 +351,34 @@
 
     // Mobile: visibilidade oculta (troca de aba / home)
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden' && !popupTriggered) {
-        // Não mostra popup no mobile, mas registra se tiver telefone salvo
-        const tel = localStorage.getItem('virtu_telefone') || '';
-        if (tel) saveAbandono({ telefone: tel, origem: 'carrinho_mobile' });
+      if (document.visibilityState === 'hidden') {
+        // Para o timer quando sai da aba — o beforeunload cuida do registro
+        clearTimeout(_timerAbandono);
+        if (!popupTriggered) {
+          const tel = localStorage.getItem('virtu_telefone') || '';
+          if (tel) saveAbandono({ telefone: tel, origem: 'carrinho_mobile' });
+        }
+      } else if (document.visibilityState === 'visible') {
+        // Retornou à aba — reinicia o timer
+        if (_timerIniciado && getCart().length) {
+          clearTimeout(_timerAbandono);
+          _timerAbandono = setTimeout(dispararAbandonoAutomatico, MIN_INATIVIDADE);
+        }
       }
+    });
+
+    // Limpa timer quando converte (vai para checkout)
+    document.querySelectorAll('a[href*="checkout"]').forEach(link => {
+      link.addEventListener('click', () => clearTimeout(_timerAbandono));
     });
   }
 
   function watchCheckout() {
     const cart = getCart();
     if (!cart.length) return;
+
+    // Inicia timer de 25 min também no checkout
+    iniciarTimerAbandono();
 
     function trySave() {
       const { nome, email, telefone } = getCheckoutData();

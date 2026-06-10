@@ -186,10 +186,35 @@ Deno.serve(async (req) => {
       if (decrements.length > 0) await Promise.allSettled(decrements);
     }
 
-    //  ── Notificação por e-mail (Resend) ────────────────
+    //  ── Notificação por e-mail (via send-order-email) ──
     try {
-      const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
-      if (RESEND_KEY && pedido?.id) {
+      const SUPABASE_URL  = Deno.env.get('SUPABASE_URL');
+      const ANON_KEY      = Deno.env.get('SUPABASE_ANON_KEY');
+      if (SUPABASE_URL && ANON_KEY && pedido?.id) {
+        // Delega toda lógica de e-mail (cliente + loja) para a Edge Function dedicada
+        fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            pedido_id:        pedido.id,
+            cliente,
+            endereco,
+            itens,
+            total,
+            subtotal,
+            frete,
+            desconto,
+            metodo_pagamento: tipo,
+            parcelas,
+            status:           statusPedido,
+          }),
+        }).catch(e => console.error('[Email dispatch]', e));
+      }
+      // ─── BLOCO LEGADO REMOVIDO ─── (substituído por send-order-email)
+      if (false) {
         const fmtBRL = (v: number) =>
           Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -308,7 +333,7 @@ Deno.serve(async (req) => {
             html,
           }),
         });
-      }
+      } // fecha if(false) do bloco legado
     } catch (emailErr) {
       // E-mail falhou mas o pedido já foi salvo — apenas loga, não interrompe
       console.error('[Email Error]', emailErr);
