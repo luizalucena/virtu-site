@@ -745,10 +745,8 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(result.erro || `Erro ${res.status}`);
       }
 
-      // Registra uso do cupom (se houver)
-      if (cupomAplicado?.codigo && typeof supabaseClient !== 'undefined') {
-        try { await supabaseClient.rpc('usar_cupom', { p_codigo: cupomAplicado.codigo }); } catch {}
-      }
+      // Nota: uso do cupom é registrado server-side pela edge function
+      // (cartão: em processar-pagamento quando approved; PIX: em pix-webhook quando confirmado)
 
       // Para PIX: mantém carrinho em backup — só limpa após confirmação real
       // Para Cartão aprovado: limpa imediatamente
