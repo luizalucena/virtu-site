@@ -154,55 +154,35 @@
     // O registro fica pendente até o exit popup coletar o telefone
   }
 
-  /* ─── Webhook automático ──────────────────────────────────── */
+  /* ─── Notificação WhatsApp via Edge Function dedicada ────── */
+  // Chama diretamente a EF notificar-abandono-carrinho que usa Z-API.
+  // A EF formata a mensagem com cada peça listada e atualiza o registro no banco.
 
   async function dispararWebhook(dados) {
     try {
-      const { data: cfg } = await supabaseClient
-        .from('configuracoes')
-        .select('webhook_whatsapp, abandono_mensagem')
-        .eq('id', 1)
-        .maybeSingle();
+      const { error } = await supabaseClient.functions.invoke(
+        'notificar-abandono-carrinho',
+        {
+          body: {
+            telefone:        dados.telefone,
+            nome:            dados.nome   || null,
+            email:           dados.email  || null,
+            itens:           dados.itens  || [],
+            total:           dados.total  || 0,
+            url_recuperacao: dados.url,
+            abandono_id:     dados.abandono_id || null,
+          },
+        },
+      );
 
-      const webhookUrl = cfg?.webhook_whatsapp;
-      if (!webhookUrl) return;
-
-      const mensagem = (cfg?.abandono_mensagem || 'Olá {nome}! Você deixou itens no carrinho da Virtù. Clique para retomar: {link}')
-        .replace('{nome}',  dados.nome  || 'cliente')
-        .replace('{link}',  dados.url)
-        .replace('{total}', 'R$ ' + (dados.total || 0).toFixed(2));
-
-      const payload = {
-        telefone:    dados.telefone,
-        nome:        dados.nome,
-        email:       dados.email,
-        mensagem,
-        itens:       dados.itens,
-        total:       dados.total,
-        url:         dados.url,
-        timestamp:   new Date().toISOString(),
-      };
-
-      const res = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      // Marca no banco que o WhatsApp foi enviado
-      if (res.ok && dados.abandono_id) {
-        supabaseClient
-          .from('carrinhos_abandonados')
-          .update({
-            whatsapp_enviado: true,
-            enviado_em:       new Date().toISOString(),
-          })
-          .eq('id', dados.abandono_id)
-          .then(() => {})
-          .catch(() => {});
+      if (error) {
+        console.warn('[Virtù] notificar-abandono-carrinho:', error.message || error);
       }
 
-    } catch { /* webhook falhou silenciosamente */ }
+    } catch (err) {
+      // Falha silenciosa — não prejudica a experiência da cliente
+      console.warn('[Virtù] dispararWebhook falhou:', err?.message);
+    }
   }
 
   /* ─── Popup exit intent (página do carrinho) ─────────────── */
@@ -218,7 +198,7 @@
         <button id="vt-abandono-close" aria-label="Fechar">✕</button>
         <div id="vt-abandono-icon">🛍️</div>
         <h2 id="vt-abandono-title">Espera! Seus itens vão embora</h2>
-        <p id="vt-abandono-sub">Deixe seu WhatsApp e te lembramos quando vocà quiser retomar.</p>
+        <p id="vt-abandono-sub">Deixe seu WhatsApp e te lembramos quando você quiser retomar.</p>
         <form id="vt-abandono-form" novalidate>
           <input
             type="tel"

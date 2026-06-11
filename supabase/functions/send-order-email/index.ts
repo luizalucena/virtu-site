@@ -109,6 +109,22 @@ Deno.serve(async (req) => {
     const fmtBRL = (v: number) =>
       Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+    // Mascara CPF para exibição segura no e-mail: ***.NNN.NNN-**
+    function maskCpf(cpf: string): string {
+      const d = String(cpf || '').replace(/\D/g, '');
+      if (d.length !== 11) return cpf || '—';
+      return `***.${d.slice(3, 6)}.${d.slice(6, 9)}-**`;
+    }
+
+    // Formata endereço completo da cliente para o e-mail de confirmação
+    function formatEndereco(end: Record<string, unknown> | null | undefined): string {
+      if (!end) return '—';
+      const linha1 = [end.rua, end.numero, end.complemento].filter(Boolean).join(', ');
+      const linha2 = [end.bairro, end.cidade, end.estado ? String(end.estado).toUpperCase() : ''].filter(Boolean).join(' — ');
+      const cep    = end.cep ? `CEP ${String(end.cep).replace(/^(\d{5})(\d{3})$/, '$1-$2')}` : '';
+      return [linha1, linha2, cep].filter(Boolean).join(' · ');
+    }
+
     const pedidoNum = pedido_id ? String(pedido_id).slice(-6) : '------';
 
     const metodoPagto =
@@ -225,7 +241,29 @@ Deno.serve(async (req) => {
         </table>
       </div>
 
-      <!-- Divisor -->
+      <!-- Divisor pós-totais -->
+      <div style="height:1px;background:#f0ebe4;margin:0 40px"></div>
+
+      <!-- Dados de entrega: Nome completo, CPF e Endereço -->
+      <div style="padding:24px 40px 28px">
+        <p style="margin:0 0 12px;font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:2.5px">Dados de entrega</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+          <tr>
+            <td style="padding:6px 0;font-size:12px;color:#aaa;width:35%;vertical-align:top">Nome</td>
+            <td style="padding:6px 0;font-size:13px;color:#1A2744;font-weight:600">${cliente?.nome || '—'}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;font-size:12px;color:#aaa;vertical-align:top">CPF</td>
+            <td style="padding:6px 0;font-size:13px;color:#555">${maskCpf(cliente?.cpf)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;font-size:12px;color:#aaa;vertical-align:top">Endereço</td>
+            <td style="padding:6px 0;font-size:13px;color:#555;line-height:1.5">${formatEndereco(endereco)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Divisor pré-CTA -->
       <div style="height:1px;background:#f0ebe4;margin:0 40px"></div>
 
       <!-- CTA Rastreio -->
