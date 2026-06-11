@@ -34,6 +34,74 @@ let cupomAplicado = null; // { codigo, tipo, valor } ou null
 let descontoFidelidade = 0;    // R$100 quando aplicável na 10ª compra
 let currentUserId      = null; // UUID do usuário autenticado
 
+// ── TAXAS MERCADO PAGO ───────────────────────────────────────
+// Edite aqui quando as taxas do gateway mudarem.
+// O cálculo é "por dentro": Valor_Final = Valor_Desejado / (1 − taxa)
+// Garantindo que a Virtù sempre receba EXATAMENTE o preço do produto.
+const MP_TAXAS = {
+  pix:    0.0099, // 0,99% — liberação imediata
+  debito: 0.0199, // 1,99% — liberação imediata
+  credito: {
+     1: 0.0499,  //  4,99% à vista
+     2: 0.0698,  //  6,98% = 4,99% base + 1,99% parcelamento
+     3: 0.0798,  //  7,98%
+     4: 0.0898,  //  8,98%
+     5: 0.0998,  //  9,98%
+     6: 0.1097,  // 10,97%
+     7: 0.1197,  // 11,97%
+     8: 0.1297,  // 12,97%
+     9: 0.1397,  // 13,97%
+    10: 0.1497,  // 14,97%
+    11: 0.1597,  // 15,97%
+    12: 0.1697,  // 16,97%
+  },
+};
+
+/**
+ * Calcula o repasse de taxa do gateway (cálculo "por dentro").
+ * A cliente paga valorFinal; a Virtù recebe valorBase; a MP retém a diferença.
+ *
+ * Fórmula: valorFinal = valorBase / (1 − taxa)
+ * Arredondamento para CIMA em centavos — garante que a taxa nunca fique descoberta.
+ *
+ * @param {number} valorBase  Valor que a Virtù quer receber (produto+frete−descontos)
+ * @param {'pix'|'debito'|'cartao'|'boleto'} metodo
+ * @param {number} [parcelas] Número de parcelas (cartão apenas, 1..12)
+ * @returns {{ valorFinal, taxaRetida, taxa, taxaLabel, valorPorParcela }}
+ */
+function calcularRepasse(valorBase, metodo, parcelas = 1) {
+  let taxa;
+  if (metodo === 'pix') {
+    taxa = MP_TAXAS.pix;
+  } else if (metodo === 'debito') {
+    taxa = MP_TAXAS.debito;
+  } else if (metodo === 'cartao') {
+    const n = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
+    taxa = MP_TAXAS.credito[n] ?? MP_TAXAS.credito[1];
+  } else {
+    // boleto ou desconhecido — sem taxa por enquanto
+    taxa = 0;
+  }
+
+  // Arredondamento para cima (centavos)
+  const valorFinalCents = Math.ceil((valorBase / (1 - taxa)) * 100);
+  const valorFinal      = valorFinalCents / 100;
+  const taxaRetida      = +(valorFinal - valorBase).toFixed(2);
+  const taxaLabel       = (taxa * 100).toFixed(2).replace('.', ',') + '%';
+  const n               = parseInt(parcelas) || 1;
+
+  return {
+    valorFinal,
+    taxaRetida,
+    taxa,
+    taxaLabel,
+    valorPorParcela: metodo === 'cartao' ? +(valorFinal / n).toFixed(2) : null,
+  };
+}
+
+// Método de pagamento ativo (sincronizado com a aba selecionada)
+let metodoAtivo = 'cartao'; // padrão: aba Cartão está ativa no HTML
+
 // ── AUTH GATE: redireciona para login se não autenticada ─────
 // Executa fora do DOMContentLoaded para bloquear o mais cedo possível.
 (async function checkAuthGate() {
@@ -132,8 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (subtotalEl) subtotalEl.textContent = formatCurrency(subtotal);
     if (freteEl)    { freteEl.textContent = '—'; freteEl.classList.remove('checkout-order-summary__free'); }
-    if (totalEl)    { totalEl.textContent = formatCurrency(total); totalEl.dataset.baseTotal = total; }
-    if (installEl)  updateInstallments(total);
+    // Armazena base para uso pela atualizarTaxaETotal(); o total exibido
+    // será atualizado com a taxa após a função ser definida (chamada pelo frete).
+    if (totalEl)    { totalEl.dataset.baseTotal = String(total); }
   }
 
   // ── CALCULA DESCONTO DO CUPOM (apenas tipos percentual/fixo) ──
@@ -183,11 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTotalWithFrete(freteValor) {
     freteValorSelecionado = freteValor;
     const frete   = freteEfetivo();
-    const desconto= calcularDesconto(baseTotal);
-    const total   = Math.max(0, baseTotal - desconto - descontoFidelidade) + frete;
-    const totalEl   = document.getElementById('checkoutTotal');
+    const desconto = calcularDesconto(baseTotal);
+    const totalBase = Math.max(0, baseTotal - desconto - descontoFidelidade) + frete;
     const freteEl   = document.getElementById('checkoutFreteLabel');
-    const installEl = document.getElementById('checkoutInstallments');
+    const totalEl   = document.getElementById('checkoutTotal');
 
     atualizarLinhaDesconto();
 
@@ -195,8 +263,80 @@ document.addEventListener('DOMContentLoaded', () => {
       freteEl.textContent = frete === 0 ? 'Grátis' : formatCurrency(frete);
       freteEl.classList.toggle('checkout-order-summary__free', frete === 0);
     }
-    if (totalEl) { totalEl.textContent = formatCurrency(total); totalEl.dataset.baseTotal = total; }
-    if (installEl) updateInstallments(total);
+
+    // Salva base (sem taxa) no dataset para referência rápida
+    if (totalEl) totalEl.dataset.baseTotal = String(totalBase);
+
+    // Recalcula exibição de taxa + total com o método ativo
+    atualizarTaxaETotal();
+  }
+
+  // ── ATUALIZA LINHA DE TAXA E TOTAL FINAL ──────────────────
+  // Chamada sempre que: frete muda, aba de pagamento muda, nº de parcelas muda.
+  function atualizarTaxaETotal() {
+    const descontoCupom = calcularDesconto(baseTotal);
+    const freteReal     = freteEfetivo();
+    const totalBase     = Math.max(0, baseTotal - descontoCupom - descontoFidelidade) + freteReal;
+
+    const totalEl   = document.getElementById('checkoutTotal');
+    const taxaLine  = document.getElementById('checkoutTaxaLine');
+    const taxaLabel = document.getElementById('checkoutTaxaLabel');
+    const taxaEl    = document.getElementById('checkoutTaxaValor');
+    const installEl = document.getElementById('checkoutInstallments');
+
+    if (totalBase <= 0) {
+      if (totalEl)  totalEl.textContent = formatCurrency(0);
+      if (taxaLine) taxaLine.style.display = 'none';
+      return;
+    }
+
+    const parcelas = parseInt(document.getElementById('installments')?.value || '1');
+    const repasse  = calcularRepasse(totalBase, metodoAtivo, parcelas);
+
+    // ── Linha de taxa ──────────────────────────────────────
+    const mostrarTaxa = (metodoAtivo !== 'boleto');
+    if (taxaLine) taxaLine.style.display = mostrarTaxa ? '' : 'none';
+
+    if (mostrarTaxa) {
+      const ePix    = metodoAtivo === 'pix';
+      const eDebito = metodoAtivo === 'debito';
+      const aVista   = metodoAtivo === 'cartao' && parcelas === 1;
+
+      let labelHtml;
+      if (ePix) {
+        labelHtml = `⚡ PIX <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
+      } else if (eDebito) {
+        labelHtml = `🏦 Débito <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
+      } else if (aVista) {
+        labelHtml = `💳 Crédito à vista <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
+      } else {
+        labelHtml = `💳 Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
+      }
+
+      if (taxaLabel) taxaLabel.innerHTML = labelHtml;
+
+      if (taxaEl) {
+        taxaEl.textContent = `+${formatCurrency(repasse.taxaRetida)}`;
+        // PIX/débito: verde (menor taxa); cartão: bronze/neutro
+        taxaEl.style.color = (ePix || eDebito) ? '#27ae60' : '#C0824A';
+      }
+    }
+
+    // ── Total final (com taxa) ─────────────────────────────
+    if (totalEl) {
+      totalEl.textContent        = formatCurrency(repasse.valorFinal);
+      totalEl.dataset.baseTotal  = String(totalBase);
+      totalEl.dataset.valorFinal = String(repasse.valorFinal);
+    }
+
+    // ── Atualiza seletor de parcelas (apenas no cartão) ────
+    if (installEl && metodoAtivo === 'cartao') {
+      updateInstallments(totalBase);
+    } else if (installEl && metodoAtivo !== 'cartao') {
+      // Oculta a linha de parcelamento para outros métodos
+      const installParentEl = document.getElementById('checkoutInstallments');
+      if (installParentEl) installParentEl.textContent = '';
+    }
   }
 
   // ── CUPOM: VALIDAÇÃO E APLICAÇÃO ─────────────────────────
@@ -291,18 +431,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── PARCELAS DINÂMICAS ───────────────────────────────────
-  function updateInstallments(total) {
+  // ── PARCELAS DINÂMICAS (com taxa por dentro) ─────────────
+  // Recebe totalBase (valor SEM taxa). Para cada número de parcelas, calcula
+  // o repasse correto — cada opção tem sua própria taxa de parcelamento.
+  function updateInstallments(totalBase) {
     const sel = document.getElementById('installments');
     if (!sel) return;
-    const maxSemJuros = 12;
+    const parcelaAtual = parseInt(sel.value || '1');
     sel.innerHTML = '';
-    for (let i = 1; i <= maxSemJuros; i++) {
-      const parcela = Math.round((total / i) * 100) / 100;
+    for (let i = 1; i <= 12; i++) {
+      const rep = calcularRepasse(totalBase, 'cartao', i);
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = `${i}x de ${formatCurrency(parcela)} (sem juros)`;
-      if (i === 1) opt.selected = true;
+      if (i === 1) {
+        opt.textContent = `1x de ${formatCurrency(rep.valorFinal)} (taxa ${rep.taxaLabel})`;
+      } else {
+        const valParcela = +(rep.valorFinal / i).toFixed(2);
+        opt.textContent = `${i}x de ${formatCurrency(valParcela)} (taxa ${rep.taxaLabel})`;
+      }
+      if (i === parcelaAtual) opt.selected = true;
       sel.appendChild(opt);
     }
   }
@@ -676,6 +823,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (_fm) _fm.style.display = 'none';
   });
 
+  // ── LISTENER: MUDANÇA DE PARCELAS ────────────────────────
+  // Quando a cliente troca o número de parcelas, recalcula a taxa
+  // (cada opção tem taxa diferente: 1x = 4,99%, 12x = 16,97% etc.)
+  document.getElementById('installments')?.addEventListener('change', () => {
+    if (metodoAtivo === 'cartao') atualizarTaxaETotal();
+  });
+
   // ── HIGHLIGHT CAMPOS VAZIOS ──────────────────────────────
   function highlightEmptyFields(ids) {
     ids.forEach(id => {
@@ -702,17 +856,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tab.setAttribute('aria-selected', 'true');
       document.getElementById(tab.getAttribute('aria-controls'))?.classList.remove('payment-panel--hidden');
 
-      // Desconto 5% no Pix
-      const totalEl = document.getElementById('checkoutTotal');
-      if (totalEl) {
-        const base = parseFloat(totalEl.dataset.baseTotal || 0);
-        if (base > 0) {
-          const val = tab.dataset.tab === 'pix' ? base * 0.95 : base;
-          totalEl.textContent = formatCurrency(val);
-          totalEl.title = tab.dataset.tab === 'pix' ? '5% desconto Pix aplicado' : '';
-          if (tab.dataset.tab === 'pix') updateInstallments(val);
-        }
-      }
+      // Atualiza método ativo e recalcula taxa + total
+      metodoAtivo = tab.dataset.tab || 'cartao';
+      atualizarTaxaETotal();
     });
   });
 
@@ -811,7 +957,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const descontoCupom = calcularDesconto(baseTotal);
     const freteReal     = freteEfetivo();
     const totalBruto    = Math.max(0, baseTotal - descontoCupom - descontoFidelidade) + freteReal;
-    const finalTotal    = isPix ? +(totalBruto * 0.95).toFixed(2) : +totalBruto.toFixed(2);
+
+    // ── Repasse de taxa (cálculo "por dentro") ────────────
+    // A cliente paga finalTotal; a Virtù recebe totalBruto; a MP retém a diferença.
+    const parcelasNum = isPix ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
+    const repasse     = calcularRepasse(totalBruto, isPix ? 'pix' : 'cartao', parcelasNum);
+    const finalTotal  = repasse.valorFinal;
 
     const cliente = {
       nome:     `${document.getElementById('firstName')?.value.trim()} ${document.getElementById('lastName')?.value.trim()}`.trim(),
@@ -848,7 +999,10 @@ document.addEventListener('DOMContentLoaded', () => {
       subtotal:            baseTotal,
       frete:               freteReal,
       frete_selecionado:   freteNome,
-      desconto:            descontoCupom + (isPix ? +((baseTotal - descontoCupom - descontoFidelidade) * 0.05).toFixed(2) : 0),
+      desconto:            descontoCupom,        // apenas desconto de cupom (fidelidade validada server-side)
+      taxa_mp_percentual:  repasse.taxa,          // ex: 0.0099 (PIX) ou 0.0499 (crédito 1x) — para validação no servidor
+      taxa_mp_valor:       repasse.taxaRetida,    // valor retido pela MP em R$
+      valor_sem_taxa:      totalBruto,            // valor líquido que entra para a Virtù
       cupom_codigo:        cupomAplicado?.codigo || null,
       itens:               cart,
       cliente,

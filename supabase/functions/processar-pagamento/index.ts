@@ -59,19 +59,22 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const {
-      tipo,        // 'pix' | 'cartao'
-      subtotal,    // valor informado pelo cliente (usado apenas para log)
-      frete,       // frete informado pelo cliente
-      desconto,    // desconto de cupom informado pelo cliente
-      itens,       // array do carrinho (id, qty, variacao_id, preco)
-      cliente,     // { nome, email, cpf, telefone }
-      endereco,    // { cep, rua, numero, complemento, bairro, cidade, estado }
+      tipo,               // 'pix' | 'cartao'
+      subtotal,           // valor informado pelo cliente (usado apenas para log)
+      frete,              // frete informado pelo cliente
+      desconto,           // desconto de cupom informado pelo cliente (sem fidelidade)
+      itens,              // array do carrinho (id, qty, variacao_id, preco)
+      cliente,            // { nome, email, cpf, telefone }
+      endereco,           // { cep, rua, numero, complemento, bairro, cidade, estado }
       // apenas para cartão:
-      token,       // string — token gerado pelo MP SDK no browser (PCI-compliant)
-      parcelas,    // number — 1..12
+      token,              // string — token gerado pelo MP SDK no browser (PCI-compliant)
+      parcelas,           // number — 1..12
       // fidelidade:
-      user_id,     // UUID do usuário autenticado (enviado pelo frontend)
+      user_id,            // UUID do usuário autenticado (enviado pelo frontend)
       fidelidade_desconto, // boolean — cliente alega ter direito ao desconto de R$100
+      // taxa de repasse (para validação cross-check — o servidor recalcula):
+      taxa_mp_percentual, // number — taxa enviada pelo frontend (ex: 0.0099)
+      valor_sem_taxa,     // number — valor base antes da taxa (enviado pelo frontend)
     } = body;
 
     // ── Validações e sanitização de entrada ────────────────
@@ -163,12 +166,7 @@ Deno.serve(async (req) => {
     }
 
     const freteNum    = Number(frete    ?? 0);
-    const descontoNum = Number(desconto ?? 0);
-
-    // Desconto de 5% PIX sobre o subtotal líquido
-    const descontoCupomTotal = tipo === 'pix'
-      ? Math.round((descontoNum + (serverSubtotal - descontoNum) * 0.05) * 100) / 100
-      : descontoNum;
+    const descontoNum = Number(desconto ?? 0); // apenas cupom; fidelidade calculada abaixo
 
     // ── Desconto de Fidelidade (10ª compra = R$100) ────────
     // Validação server-side: cliente só recebe desconto se realmente
@@ -183,7 +181,6 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       const comprasAtuais = perfil?.compras_pagas ?? 0;
-      // A próxima compra (comprasAtuais + 1) é múltipla de 10?
       if ((comprasAtuais + 1) % 10 === 0) {
         descontoFidelidade = 100;
         console.log(`[processar-pagamento] Fidelidade validada: ${comprasAtuais + 1}ª compra → R$100 de desconto`);
@@ -192,12 +189,38 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Total final ────────────────────────────────────────
-    const totalBruto  = Math.max(0, serverSubtotal - descontoCupomTotal - descontoFidelidade) + freteNum;
-    const serverTotal = Math.round(totalBruto * 100) / 100;
+    // ── Total desconto consolidado (cupom + fidelidade) ────
+    const descontoCupomTotal = descontoNum; // cupom apenas — fidelidade somada abaixo
+
+    // ── Taxas Mercado Pago — espelho exato de checkout.js ──
+    // Edite aqui sincronizado com MP_TAXAS no frontend.
+    // Cálculo "por dentro": valorFinal = valorBase / (1 - taxa)
+    const MP_TAXAS_CREDITO: Record<number, number> = {
+       1: 0.0499,  2: 0.0698,  3: 0.0798,  4: 0.0898,  5: 0.0998,  6: 0.1097,
+       7: 0.1197,  8: 0.1297,  9: 0.1397, 10: 0.1497, 11: 0.1597, 12: 0.1697,
+    };
+    const parcelasNum  = Math.max(1, Math.min(Number(parcelas) || 1, 12));
+    const taxaMP       = tipo === 'pix' ? 0.0099 : (MP_TAXAS_CREDITO[parcelasNum] ?? 0.0499);
+
+    // Valor base que a Virtù vai receber (descontos aplicados, sem taxa)
+    const totalBase    = Math.max(0, serverSubtotal - descontoCupomTotal - descontoFidelidade) + freteNum;
+
+    // Valor final com repasse: arredondamento para CIMA em centavos
+    const serverTotalCents = Math.ceil((totalBase / (1 - taxaMP)) * 100);
+    const serverTotal      = serverTotalCents / 100;
 
     if (serverTotal <= 0) {
       return json({ erro: 'Valor do pedido inválido.' }, 400);
+    }
+
+    // Cross-check: valida o total enviado pelo cliente (±2 centavos de tolerância)
+    const totalCliente = Number(body.total ?? 0);
+    if (totalCliente > 0 && Math.abs(totalCliente - serverTotal) > 0.02) {
+      console.warn(
+        `[processar-pagamento] Divergência de total: cliente=${totalCliente}, servidor=${serverTotal} ` +
+        `(base=${totalBase}, taxa=${(taxaMP * 100).toFixed(2)}%, parcelas=${parcelasNum})`,
+      );
+      // Prosseguimos com o serverTotal — nunca confiar no cliente para o valor final
     }
 
     // ── Monta pagamento para o Mercado Pago ────────────────
