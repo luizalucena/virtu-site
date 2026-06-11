@@ -15,10 +15,40 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// ── Segurança: CORS restrito ao domínio da loja ─────────────────
+const ALLOWED_ORIGIN = 'https://wearvirtu.com';
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin':  ALLOWED_ORIGIN,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age':       '86400',
 };
+
+// Headers de segurança adicionados em todas as respostas
+const securityHeaders = {
+  'X-Content-Type-Options':    'nosniff',
+  'X-Frame-Options':           'DENY',
+  'Referrer-Policy':           'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  'Content-Security-Policy':   "default-src 'none'",
+};
+
+// ── Helpers de segurança ─────────────────────────────────────────
+/** Remove PII da resposta do MP antes de logar (CPF, e-mail, nome). */
+function redactMpError(data: Record<string, unknown>): Record<string, unknown> {
+  const { payer, card, ...rest } = data as Record<string, unknown>;
+  return {
+    ...rest,
+    ...(payer  ? { payer:  { email: '***', identification: { type: 'CPF', number: '***' } } } : {}),
+    ...(card   ? { card:   { id: (card as Record<string, unknown>).id, last_four_digits: (card as Record<string, unknown>).last_four_digits } } : {}),
+  };
+}
+
+/** Sanitiza string removendo caracteres perigosos e limita comprimento. */
+function sanitize(val: unknown, maxLen = 255): string {
+  return String(val ?? '').trim().replace(/[<>"'`]/g, '').slice(0, maxLen);
+}
 
 Deno.serve(async (req) => {
   // Preflight CORS
@@ -44,9 +74,27 @@ Deno.serve(async (req) => {
       fidelidade_desconto, // boolean — cliente alega ter direito ao desconto de R$100
     } = body;
 
-    // ── Validações básicas ──────────────────────────────────
-    if (!tipo || !cliente?.email) {
-      return json({ erro: 'Dados incompletos.' }, 400);
+    // ── Validações e sanitização de entrada ────────────────
+    if (!tipo || !['pix', 'cartao'].includes(tipo)) {
+      return json({ erro: 'Tipo de pagamento inválido.' }, 400);
+    }
+    if (!cliente?.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cliente.email)) {
+      return json({ erro: 'E-mail inválido.' }, 400);
+    }
+    // Sanitiza campos de texto contra XSS / injeção
+    if (cliente.nome)     cliente.nome     = sanitize(cliente.nome, 120);
+    if (cliente.telefone) cliente.telefone = sanitize(cliente.telefone, 20).replace(/\D/g, '');
+    if (cliente.cpf)      cliente.cpf      = String(cliente.cpf).replace(/\D/g, '').slice(0, 11);
+    if (endereco) {
+      if (endereco.rua)         endereco.rua         = sanitize(endereco.rua, 200);
+      if (endereco.complemento) endereco.complemento = sanitize(endereco.complemento, 100);
+      if (endereco.bairro)      endereco.bairro      = sanitize(endereco.bairro, 100);
+      if (endereco.cidade)      endereco.cidade      = sanitize(endereco.cidade, 100);
+      if (endereco.cep)         endereco.cep         = String(endereco.cep).replace(/\D/g, '').slice(0, 8);
+    }
+    // Limite de itens para evitar DoS via payload gigante
+    if (itens && (itens as unknown[]).length > 50) {
+      return json({ erro: 'Número de itens excede o limite permitido.' }, 400);
     }
 
     const MP_TOKEN = Deno.env.get('MP_ACCESS_TOKEN');
@@ -199,7 +247,8 @@ Deno.serve(async (req) => {
     const mpData = await mpRes.json();
 
     if (!mpRes.ok) {
-      console.error('[MP Error]', JSON.stringify(mpData));
+      // Loga apenas campos não-sensíveis (sem CPF, e-mail, nome do titular)
+      console.error('[MP Error]', JSON.stringify(redactMpError(mpData)));
 
       // Traduz erros comuns do MP para português
       const errMap: Record<string, string> = {
@@ -299,7 +348,7 @@ Deno.serve(async (req) => {
       supabase.rpc('registrar_compra_fidelidade', { p_user_id: confirmedUserId })
         .then(({ data, error }) => {
           if (error) console.error('[Fidelidade] Erro ao registrar compra:', error.message);
-          else console.log('[Fidelidade] Compra registrada:', JSON.stringify(data));
+          else console.log('[Fidelidade] Compra registrada com sucesso.');
         });
     }
 
@@ -383,6 +432,10 @@ Deno.serve(async (req) => {
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: {
+      ...corsHeaders,
+      ...securityHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }

@@ -14,9 +14,19 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Chamado apenas server-to-server (processar-pagamento / pix-webhook); CORS restrito.
 const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Origin':  'https://wearvirtu.com',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const securityHeaders = {
+  'X-Content-Type-Options':    'nosniff',
+  'X-Frame-Options':           'DENY',
+  'Referrer-Policy':           'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  'Content-Security-Policy':   "default-src 'none'",
 };
 
 const SITE_URL    = 'https://wearvirtu.com';
@@ -384,6 +394,10 @@ Deno.serve(async (req) => {
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: {
+      ...corsHeaders,
+      ...securityHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }

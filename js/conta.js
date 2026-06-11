@@ -13,6 +13,16 @@ function escHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * LGPD — Mascara CPF para exibição: 123.***.***-00
+ * Apenas os 3 primeiros e os 2 últimos dígitos ficam visíveis.
+ */
+function maskCpf(cpf) {
+  const d = String(cpf || '').replace(/\D/g, '');
+  if (d.length !== 11) return '';
+  return `${d.slice(0, 3)}.***.***-${d.slice(9)}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── REFS ────────────────────────────────────────────────────
@@ -509,7 +519,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .maybeSingle();
 
       const cpfEl = document.getElementById('dadosCpf');
-      if (cpfEl && perfil?.cpf && !cpfEl.value) cpfEl.value = perfil.cpf;
+      if (cpfEl && perfil?.cpf && !cpfEl.value) {
+        // LGPD: armazena CPF completo em data-attr; exibe mascarado no placeholder
+        cpfEl.dataset.cpfOriginal = perfil.cpf;
+        cpfEl.placeholder = maskCpf(perfil.cpf) + '  (deixe em branco para manter)';
+        // Não preenche o value — usuário só altera se desejar
+      }
 
       // WhatsApp usa o campo dadosTel existente
       if (dadosTel && perfil?.whatsapp && !dadosTel.value) dadosTel.value = perfil.whatsapp;
@@ -600,7 +615,10 @@ document.addEventListener('DOMContentLoaded', () => {
       showMsg(dadosMsg, error.message, 'erro');
     } else {
       // Salva CPF e WhatsApp em clientes_perfil
-      const cpf      = document.getElementById('dadosCpf')?.value.trim() || null;
+      // Se o campo CPF estiver vazio, usa o valor original armazenado (LGPD: campo mostra mascarado)
+      const cpfEl2   = document.getElementById('dadosCpf');
+      const cpfTyped = cpfEl2?.value.trim();
+      const cpf      = cpfTyped || cpfEl2?.dataset.cpfOriginal || null;
       const whatsapp = telefone || null;
       if (currentUser && (cpf || whatsapp || nome)) {
         try {

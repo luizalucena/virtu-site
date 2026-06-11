@@ -64,6 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  /**
+   * Mascara CPF para exibição conforme LGPD: 123.***.***-00
+   * Os 3 dígitos iniciais e os 2 finais ficam visíveis; os do meio são ocultados.
+   */
+  function maskCpf(cpf) {
+    const d = String(cpf || '').replace(/\D/g, '');
+    if (d.length !== 11) return cpf || '—';
+    return `${d.slice(0, 3)}.***.***-${d.slice(9)}`;
+  }
+
   function getCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
   }
@@ -496,7 +506,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const sumEl = document.getElementById('step1SummaryText');
-    if (sumEl) sumEl.textContent = `${firstName} ${lastName} · ${email} · ${cpf}`;
+    // LGPD: exibe CPF mascarado no resumo de confirmação
+    if (sumEl) sumEl.textContent = `${firstName} ${lastName} · ${email} · ${maskCpf(cpf)}`;
     goToStep(2);
   });
 

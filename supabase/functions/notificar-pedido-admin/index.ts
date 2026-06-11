@@ -17,9 +17,19 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Chamado apenas server-to-server; CORS restrito por defesa em profundidade.
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin':  'https://wearvirtu.com',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const securityHeaders = {
+  'X-Content-Type-Options':    'nosniff',
+  'X-Frame-Options':           'DENY',
+  'Referrer-Policy':           'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  'Content-Security-Policy':   "default-src 'none'",
 };
 
 Deno.serve(async (req) => {
@@ -107,7 +117,7 @@ Deno.serve(async (req) => {
       return json({ ok: false, msg: 'Falha ao enviar WhatsApp', detalhes: zapiData });
     }
 
-    console.log('[WhatsApp] Notificação enviada →', ADMIN_PHONE, '| pedido:', dados.pedido_id);
+    console.log('[WhatsApp] Notificação enviada | pedido:', dados.pedido_id);
     return json({ ok: true });
 
   } catch (err) {
@@ -214,6 +224,10 @@ function formatarMensagem(d: Record<string, unknown>): string {
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: {
+      ...corsHeaders,
+      ...securityHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }
