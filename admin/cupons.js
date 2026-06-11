@@ -8,6 +8,9 @@
 let todosOsCupons = [];
 let filtroAtualCupons   = 'todos';
 
+// Operações em voo — previne race conditions em toggleAtivo/excluir
+const _cupomOps = new Set();
+
 // ── Inicialização ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // Verificar autenticação
@@ -145,6 +148,11 @@ function expirado(c) {
 
 // ── Ativar / Desativar ─────────────────────────────────────
 window.toggleAtivo = async function(id, novoEstado) {
+  // Previne toggle duplo antes da resposta do servidor
+  const opKey = `toggle-${id}`;
+  if (_cupomOps.has(opKey)) return;
+  _cupomOps.add(opKey);
+
   try {
     const { error } = await supabaseClient
       .from('cupons')
@@ -161,6 +169,8 @@ window.toggleAtivo = async function(id, novoEstado) {
     showToast(novoEstado ? 'Cupom ativado ✓' : 'Cupom desativado ✓');
   } catch (e) {
     showToast(`Erro: ${e.message}`, 'error');
+  } finally {
+    _cupomOps.delete(opKey);
   }
 };
 
@@ -185,7 +195,14 @@ window.editarCupom = function(id) {
 
 // ── Excluir ────────────────────────────────────────────────
 window.excluirCupom = async function(id, codigo) {
+  // Previne duplo clique
+  const opKey = `delete-${id}`;
+  if (_cupomOps.has(opKey)) return;
+
   if (!confirm(`Excluir o cupom "${codigo}" permanentemente? Esta ação não pode ser desfeita.`)) return;
+
+  _cupomOps.add(opKey);
+
   try {
     const { error } = await supabaseClient.from('cupons').delete().eq('id', id);
     if (error) throw error;
@@ -195,6 +212,8 @@ window.excluirCupom = async function(id, codigo) {
     showToast('Cupom excluído.');
   } catch (e) {
     showToast(`Erro: ${e.message}`, 'error');
+  } finally {
+    _cupomOps.delete(opKey);
   }
 };
 

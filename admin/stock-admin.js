@@ -19,6 +19,12 @@ const VirtuStockAdmin = (() => {
   let _produtoAtual   = null;
   let _containerAtual = null;
 
+  // Canal Realtime ativo — evita memory leak ao trocar de produto
+  let _realtimeChannel = null;
+
+  // Conjunto de operações em voo — previne race conditions
+  const _inFlight = new Set();
+
   /* ── UTILITÁRIOS ─────────────────────────────────────────── */
   const TAMANHOS_ORDEM = ['PP', 'P', 'M', 'G', 'U'];
 
@@ -141,82 +147,126 @@ const VirtuStockAdmin = (() => {
           + Nova Variação
         </button>
       </div>
-      <table class="admin-table stock-table">
-        <thead>
-          <tr>
-            <th>Cor</th>
-            <th>Tamanho</th>
-            <th>Stock</th>
-            <th>Ajuste Rápido</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>${linhas}</tbody>
-      </table>`;
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="admin-table stock-table" style="min-width:480px">
+          <thead>
+            <tr>
+              <th>Cor</th>
+              <th>Tamanho</th>
+              <th>Stock</th>
+              <th>Ajuste Rápido</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>`;
   }
 
   /* ── 3. AJUSTE INLINE DE STOCK ──────────────────────────── */
   async function ajustarInline(variacaoId, delta) {
+    // Race condition guard — bloqueia duplo clique nos botões +/-
+    const opKey = `ajuste-${variacaoId}`;
+    if (_inFlight.has(opKey)) return;
+    _inFlight.add(opKey);
+
+    const row    = document.querySelector(`[data-variacao-id="${variacaoId}"]`);
+    const btns   = row?.querySelectorAll('.btn-stock');
     const inputEl = document.getElementById(`stock-input-${variacaoId}`);
     const cellEl  = document.getElementById(`estoque-cell-${variacaoId}`);
 
-    const { data, error } = await supabaseClient.rpc('ajustar_estoque', {
-      p_variacao_id: variacaoId,
-      p_delta:       delta
-    });
+    btns?.forEach(b => b.disabled = true);
 
-    if (error || !data?.sucesso) {
-      showToast(data?.erro || error?.message || 'Erro ao ajustar stock.', 'erro');
-      return;
+    try {
+      const { data, error } = await supabaseClient.rpc('ajustar_estoque', {
+        p_variacao_id: variacaoId,
+        p_delta:       delta
+      });
+
+      if (error || !data?.sucesso) {
+        showToast(data?.erro || error?.message || 'Erro ao ajustar stock.', 'erro');
+        return;
+      }
+
+      const novo = data.novo_estoque;
+      if (inputEl) inputEl.value = novo;
+      if (cellEl)  cellEl.innerHTML = formatEstoque(novo);
+      showToast(`Stock atualizado: ${novo} unidade${novo !== 1 ? 's' : ''}.`);
+    } finally {
+      _inFlight.delete(opKey);
+      btns?.forEach(b => b.disabled = false);
     }
-
-    const novo = data.novo_estoque;
-    if (inputEl) inputEl.value = novo;
-    if (cellEl)  cellEl.innerHTML = formatEstoque(novo);
-
-    showToast(`Stock atualizado: ${novo} unidade${novo !== 1 ? 's' : ''}.`);
   }
 
   async function definirInline(variacaoId) {
     const inputEl = document.getElementById(`stock-input-${variacaoId}`);
     const cellEl  = document.getElementById(`estoque-cell-${variacaoId}`);
-    const novoVal = parseInt(inputEl?.value ?? 0, 10);
 
+    // Guard contra alterações simultâneas do mesmo campo
+    const opKey = `definir-${variacaoId}`;
+    if (_inFlight.has(opKey)) return;
+
+    const novoVal = parseInt(inputEl?.value ?? 0, 10);
     if (isNaN(novoVal) || novoVal < 0) {
       showToast('Valor inválido.', 'erro');
       return;
     }
 
-    const { data, error } = await supabaseClient.rpc('definir_estoque', {
-      p_variacao_id:  variacaoId,
-      p_novo_estoque: novoVal
-    });
+    _inFlight.add(opKey);
+    if (inputEl) { inputEl.disabled = true; }
 
-    if (error || !data?.sucesso) {
-      showToast(data?.erro || error?.message || 'Erro ao definir stock.', 'erro');
-      return;
+    try {
+      const { data, error } = await supabaseClient.rpc('definir_estoque', {
+        p_variacao_id:  variacaoId,
+        p_novo_estoque: novoVal
+      });
+
+      if (error || !data?.sucesso) {
+        showToast(data?.erro || error?.message || 'Erro ao definir stock.', 'erro');
+        return;
+      }
+
+      if (cellEl) cellEl.innerHTML = formatEstoque(novoVal);
+      showToast(`Stock definido: ${novoVal} unidade${novoVal !== 1 ? 's' : ''}.`);
+    } finally {
+      _inFlight.delete(opKey);
+      if (inputEl) { inputEl.disabled = false; }
     }
-
-    if (cellEl) cellEl.innerHTML = formatEstoque(novoVal);
-    showToast(`Stock definido: ${novoVal} unidade${novoVal !== 1 ? 's' : ''}.`);
   }
 
   /* ── 4. ATIVAR / DESATIVAR VARIAÇÃO ─────────────────────── */
   async function toggleAtivo(variacaoId, ativoAtual) {
+    // Previne duplo clique
+    const opKey = `toggle-${variacaoId}`;
+    if (_inFlight.has(opKey)) return;
+    _inFlight.add(opKey);
+
     const novoAtivo = !ativoAtual;
 
-    const { data, error } = await supabaseClient.rpc('toggle_ativo_variacao', {
-      p_variacao_id: variacaoId,
-      p_ativo:       novoAtivo
-    });
+    // Bloqueia visualmente o botão da linha
+    const row    = document.querySelector(`[data-variacao-id="${variacaoId}"]`);
+    const btnTog = row?.querySelector('.btn-icon--danger');
+    if (btnTog) btnTog.disabled = true;
 
-    if (error || !data?.sucesso) {
-      showToast(data?.erro || error?.message || 'Erro ao alterar estado da variação.', 'erro');
-      return;
+    try {
+      const { data, error } = await supabaseClient.rpc('toggle_ativo_variacao', {
+        p_variacao_id: variacaoId,
+        p_ativo:       novoAtivo
+      });
+
+      if (error || !data?.sucesso) {
+        showToast(data?.erro || error?.message || 'Erro ao alterar estado da variação.', 'erro');
+        return;
+      }
+
+      showToast(novoAtivo ? 'Variação ativada.' : 'Variação desativada.');
+      reRenderTabela();
+    } finally {
+      _inFlight.delete(opKey);
+      // reRenderTabela já cria novos botões; só re-habilita se a linha ainda existir
+      const btnAfter = document.querySelector(`[data-variacao-id="${variacaoId}"] .btn-icon--danger`);
+      if (btnAfter) btnAfter.disabled = false;
     }
-
-    showToast(novoAtivo ? 'Variação ativada.' : 'Variação desativada.');
-    reRenderTabela();
   }
 
   /* ── 5. MODAL: NOVA VARIAÇÃO ─────────────────────────────── */
@@ -256,34 +306,43 @@ const VirtuStockAdmin = (() => {
   }
 
   async function salvarNovaVariacao(produtoId, modal) {
-    const form    = modal.querySelector('#formNovaVariacao');
-    const dados   = Object.fromEntries(new FormData(form));
-    const estoque = parseInt(dados.estoque, 10);
+    const form      = modal.querySelector('#formNovaVariacao');
+    const dados     = Object.fromEntries(new FormData(form));
+    const estoque   = parseInt(dados.estoque, 10);
+    const btnSalvar = modal.querySelector('.btn-modal-salvar');
 
     if (!dados.tamanho || !dados.cor_nome || !dados.cor_hex) {
       showToast('Preencha todos os campos obrigatórios.', 'erro'); return;
     }
 
-    // Usa RPC SECURITY DEFINER para contornar RLS sem expor service_role key
-    const { data, error } = await supabaseClient.rpc('criar_variacao', {
-      p_produto_id: produtoId,
-      p_tamanho:    dados.tamanho.trim(),
-      p_cor_nome:   dados.cor_nome.trim(),
-      p_cor_hex:    dados.cor_hex.trim(),
-      p_estoque:    isNaN(estoque) ? 0 : estoque
-    });
+    // isSubmitting guard
+    if (btnSalvar?.dataset.salvando === '1') return;
+    if (btnSalvar) { btnSalvar.dataset.salvando = '1'; btnSalvar.disabled = true; btnSalvar.textContent = 'Salvando…'; }
 
-    if (error || !data?.sucesso) {
-      const msg = data?.code === '23505' || data?.erro?.includes('unique')
-        ? 'Já existe uma variação com este tamanho e cor.'
-        : (data?.erro || error?.message || 'Erro ao criar variação.');
-      showToast(msg, 'erro');
-      return;
+    try {
+      // Usa RPC SECURITY DEFINER para contornar RLS sem expor service_role key
+      const { data, error } = await supabaseClient.rpc('criar_variacao', {
+        p_produto_id: produtoId,
+        p_tamanho:    dados.tamanho.trim(),
+        p_cor_nome:   dados.cor_nome.trim(),
+        p_cor_hex:    dados.cor_hex.trim(),
+        p_estoque:    isNaN(estoque) ? 0 : estoque
+      });
+
+      if (error || !data?.sucesso) {
+        const msg = data?.code === '23505' || data?.erro?.includes('unique')
+          ? 'Já existe uma variação com este tamanho e cor.'
+          : (data?.erro || error?.message || 'Erro ao criar variação.');
+        showToast(msg, 'erro');
+        return;
+      }
+
+      modal.hidden = true;
+      showToast('Variação criada com sucesso!');
+      reRenderTabela();
+    } finally {
+      if (btnSalvar) { delete btnSalvar.dataset.salvando; btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar'; }
     }
-
-    modal.hidden = true;
-    showToast('Variação criada com sucesso!');
-    reRenderTabela();
   }
 
   /* ── 6. MODAL: EDITAR VARIAÇÃO ───────────────────────────── */
@@ -328,27 +387,36 @@ const VirtuStockAdmin = (() => {
   }
 
   async function salvarEdicaoVariacao(variacaoId, modal) {
-    const form    = modal.querySelector('#formEditarVariacao');
-    const dados   = Object.fromEntries(new FormData(form));
-    const estoque = parseInt(dados.estoque, 10);
+    const form      = modal.querySelector('#formEditarVariacao');
+    const dados     = Object.fromEntries(new FormData(form));
+    const estoque   = parseInt(dados.estoque, 10);
+    const btnSalvar = modal.querySelector('.btn-modal-salvar');
 
-    // Usa RPC SECURITY DEFINER para contornar RLS
-    const { data, error } = await supabaseClient.rpc('atualizar_variacao', {
-      p_variacao_id: variacaoId,
-      p_tamanho:     dados.tamanho.trim(),
-      p_cor_nome:    dados.cor_nome.trim(),
-      p_cor_hex:     dados.cor_hex.trim(),
-      p_estoque:     isNaN(estoque) ? 0 : estoque
-    });
+    // isSubmitting guard
+    if (btnSalvar?.dataset.salvando === '1') return;
+    if (btnSalvar) { btnSalvar.dataset.salvando = '1'; btnSalvar.disabled = true; btnSalvar.textContent = 'Salvando…'; }
 
-    if (error || !data?.sucesso) {
-      showToast(data?.erro || error?.message || 'Erro ao atualizar variação.', 'erro');
-      return;
+    try {
+      // Usa RPC SECURITY DEFINER para contornar RLS
+      const { data, error } = await supabaseClient.rpc('atualizar_variacao', {
+        p_variacao_id: variacaoId,
+        p_tamanho:     dados.tamanho.trim(),
+        p_cor_nome:    dados.cor_nome.trim(),
+        p_cor_hex:     dados.cor_hex.trim(),
+        p_estoque:     isNaN(estoque) ? 0 : estoque
+      });
+
+      if (error || !data?.sucesso) {
+        showToast(data?.erro || error?.message || 'Erro ao atualizar variação.', 'erro');
+        return;
+      }
+
+      modal.hidden = true;
+      showToast('Variação atualizada!');
+      reRenderTabela();
+    } finally {
+      if (btnSalvar) { delete btnSalvar.dataset.salvando; btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar'; }
     }
-
-    modal.hidden = true;
-    showToast('Variação atualizada!');
-    reRenderTabela();
   }
 
   /* ── 7. MODAL BASE (criado dinamicamente) ────────────────── */
@@ -378,8 +446,14 @@ const VirtuStockAdmin = (() => {
 
   /* ── 8. REALTIME NO ADMIN ───────────────────────────────── */
   function iniciarRealtimeAdmin(produtoId) {
-    return supabaseClient
-      .channel(`admin-stock-${produtoId}`)
+    // Cleanup do canal anterior — previne memory leak ao trocar de produto
+    if (_realtimeChannel) {
+      try { supabaseClient.removeChannel(_realtimeChannel); } catch (_) {}
+      _realtimeChannel = null;
+    }
+
+    _realtimeChannel = supabaseClient
+      .channel(`admin-stock-${produtoId}-${Date.now()}`)
       .on('postgres_changes', {
         event:  'UPDATE',
         schema: 'public',
@@ -399,7 +473,13 @@ const VirtuStockAdmin = (() => {
           setTimeout(() => row.classList.remove('row--changed'), 2000);
         }
       })
-      .subscribe();
+      .subscribe(status => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[StockAdmin] Realtime channel error — Supabase irá reconectar automaticamente.');
+        }
+      });
+
+    return _realtimeChannel;
   }
 
   /* ── API PÚBLICA ─────────────────────────────────────────── */

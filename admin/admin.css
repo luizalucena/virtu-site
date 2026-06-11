@@ -1093,3 +1093,38 @@ body {
   /* Oculta coluna de e-mail em mobile (menos prioritária) */
   .pedidos-col-email { display: none; }
 }
+
+/* ── CUPONS: SCROLL HORIZONTAL MOBILE ──────── */
+.cupons-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cupons-table-wrap table {
+  min-width: 540px;
+  width: 100%;
+}
+
+/* ── STOCK: CONTROLES INLINE COMPACTOS ───────── */
+.stock-input {
+  width: 58px;
+  min-width: 0;
+  text-align: center;
+  padding: 0.25rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  /* Sidebar completamente oculta — botão hamburger futuro */
+  .admin-main { margin-left: 0 !important; }
+  /* Evita overflow horizontal em qualquer tabela que fuja do wrapper */
+  .admin-table-wrap,
+  .pedidos-table-wrap,
+  .fin-table-wrap,
+  .cupons-table-wrap { overflow-x: auto; }
+  /* KPIs financeiro: 1 por linha em telas muito pequenas */
+  .fin-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

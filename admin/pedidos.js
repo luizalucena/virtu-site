@@ -284,6 +284,9 @@
           })
           .subscribe(status => {
             _setRealtimeStatus(status === 'SUBSCRIBED');
+            if (status === 'CHANNEL_ERROR') {
+              console.warn('[Pedidos Realtime] Canal com erro — Supabase irá reconectar automaticamente.');
+            }
           });
       } catch (err) {
         _realtimePedidosAtivo = false;

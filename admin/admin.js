@@ -9,6 +9,9 @@ let DB = { produtos: [], configuracoes: {} };
 let filtroAtual = 'todos';
 let editandoId  = null;
 
+// Conjunto de IDs de produtos com operação em curso — previne race conditions
+const _productOps = new Set();
+
 // ── CONVERTE URL DO GOOGLE DRIVE ────────────
 // Usa lh3.googleusercontent.com/d/{ID} — único formato que funciona
 // como CSS background-image sem redirect/CORS
@@ -227,7 +230,12 @@ function _initRealtime() {
         }
         setDot(true);
       })
-      .subscribe(status => setDot(status === 'SUBSCRIBED'));
+      .subscribe(status => {
+        setDot(status === 'SUBSCRIBED');
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[Admin Realtime] Canal com erro — Supabase irá reconectar automaticamente.');
+        }
+      });
   } catch (err) {
     console.warn('[Admin Realtime]', err.message);
   }
@@ -613,6 +621,11 @@ async function toggleAtivo(id) {
   const p = DB.produtos.find(x => x.id === id);
   if (!p) return;
 
+  // Previne clique duplo no botão da linha
+  const opKey = `toggle-${id}`;
+  if (_productOps.has(opKey)) return;
+  _productOps.add(opKey);
+
   const novoAtivo = !p.ativo;
 
   try {
@@ -628,6 +641,8 @@ async function toggleAtivo(id) {
     toast(`"${p.nome}" ${novoAtivo ? 'ativado ✓' : 'desativado'}`, 'success');
   } catch (e) {
     toast(`Erro: ${e.message}`, 'error');
+  } finally {
+    _productOps.delete(opKey);
   }
 }
 
@@ -635,7 +650,14 @@ async function toggleAtivo(id) {
 async function deleteProduct(id) {
   const p = DB.produtos.find(x => x.id === id);
   if (!p) return;
+
+  // Previne duplo clique no botão de exclusão da linha
+  const opKey = `delete-${id}`;
+  if (_productOps.has(opKey)) return;
+
   if (!confirm(`Excluir "${p.nome}" permanentemente? Esta ação não pode ser desfeita.`)) return;
+
+  _productOps.add(opKey);
 
   try {
     const { error } = await supabaseClient
@@ -651,6 +673,8 @@ async function deleteProduct(id) {
     setStatus('info', `ℹ️ "${p.nome}" removido do banco de dados.`);
   } catch (e) {
     toast(`Erro: ${e.message}`, 'error');
+  } finally {
+    _productOps.delete(opKey);
   }
 }
 

@@ -280,11 +280,23 @@ async function popularCategorias() {
 
 // ── EXCLUSÃO ─────────────────────────────────────────────────
 async function excluirLancamento(id) {
+  // Previne clique duplo
+  const btn = document.querySelector(`.fin-delete-btn[data-id="${id}"]`);
+  if (btn?.dataset.deleting === '1') return;
+
   if (!confirm('Excluir este lançamento manual?')) return;
-  const { error } = await supabaseClient.from('fluxo_caixa').delete().eq('id', id);
-  if (error) { alert('Erro ao excluir: ' + error.message); return; }
-  await carregarKPIs();
-  await carregarTabela();
+
+  if (btn) { btn.dataset.deleting = '1'; btn.disabled = true; }
+
+  try {
+    const { error } = await supabaseClient.from('fluxo_caixa').delete().eq('id', id);
+    if (error) throw error;
+    await carregarKPIs();
+    await carregarTabela();
+  } catch (err) {
+    _mostrarAlertaFinanceiro(`Erro ao excluir: ${err.message}`);
+    if (btn) { delete btn.dataset.deleting; btn.disabled = false; }
+  }
 }
 
 // ── EXPORTAR CSV ─────────────────────────────────────────────
@@ -311,7 +323,7 @@ async function exportarCSV() {
   if (categ)  query = query.eq('categoria', categ);
 
   const { data: allData, error } = await query;
-  if (error || !allData?.length) { alert('Nenhum dado para exportar.'); return; }
+  if (error || !allData?.length) { _mostrarAlertaFinanceiro('Nenhum dado para exportar com os filtros actuais.'); return; }
 
   const header = 'Data,Tipo,Descrição,Categoria,Origem,Valor';
   const linhas = allData.map(r =>
@@ -348,6 +360,8 @@ function bindModalLancamento() {
   document.getElementById('formLancamento')?.addEventListener('submit', async e => {
     e.preventDefault();
     const btn = document.getElementById('submitLancamento');
+    // isSubmitting guard — previne duplo envio
+    if (btn?.dataset.submetendo === '1') return;
 
     const tipo      = document.getElementById('lTipo').value;
     const valor     = parseFloat(document.getElementById('lValor').value);
@@ -355,26 +369,30 @@ function bindModalLancamento() {
     const categoria = document.getElementById('lCategoria').value;
     const data      = document.getElementById('lData').value;
 
-    if (!tipo || !valor || !descricao || !categoria || !data) {
-      alert('Preencha todos os campos obrigatórios.'); return;
+    if (!tipo || !valor || valor <= 0 || !descricao || !categoria || !data) {
+      _mostrarAlertaFinanceiro('Preencha todos os campos obrigatórios (valor deve ser maior que zero).'); return;
     }
 
-    btn.textContent = 'Salvando…'; btn.disabled = true;
+    if (btn) { btn.dataset.submetendo = '1'; btn.textContent = 'Salvando…'; btn.disabled = true; }
 
-    const { error } = await supabaseClient.from('fluxo_caixa').insert({
-      tipo, valor, descricao, categoria,
-      data_lancamento: data,
-      origem: 'manual',
-      fonte_id: null   // lançamentos manuais não usam deduplicação
-    });
+    try {
+      const { error } = await supabaseClient.from('fluxo_caixa').insert({
+        tipo, valor, descricao, categoria,
+        data_lancamento: data,
+        origem: 'manual',
+        fonte_id: null   // lançamentos manuais não usam deduplicação
+      });
 
-    btn.textContent = 'Salvar Lançamento'; btn.disabled = false;
+      if (error) throw error;
 
-    if (error) { alert('Erro: ' + error.message); return; }
-
-    fecharModalLancamento();
-    await carregarKPIs();
-    await carregarTabela();
+      fecharModalLancamento();
+      await carregarKPIs();
+      await carregarTabela();
+    } catch (err) {
+      _mostrarAlertaFinanceiro(`Erro ao salvar: ${err.message}`);
+    } finally {
+      if (btn) { delete btn.dataset.submetendo; btn.textContent = 'Salvar Lançamento'; btn.disabled = false; }
+    }
   });
 }
 
@@ -456,17 +474,17 @@ async function carregarCSV() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       text = await res.text();
     } catch (err) {
-      alert('Não foi possível buscar a planilha. Certifique-se de que ela está pública e use o link de exportação CSV direto.\n\n' + err.message);
+      _mostrarAlertaFinanceiro('Não foi possível buscar a planilha. Certifique-se de que está pública e use o link de exportação CSV direto. (' + err.message + ')');
       return;
     }
   } else {
-    alert('Selecione um arquivo CSV ou informe uma URL.');
+    _mostrarAlertaFinanceiro('Selecione um arquivo CSV ou informe uma URL.');
     return;
   }
 
   const parsed = parseCSV(text);
   if (!parsed.headers.length || !parsed.rows.length) {
-    alert('O arquivo não parece ser um CSV válido ou está vazio.');
+    _mostrarAlertaFinanceiro('O arquivo não parece ser um CSV válido ou está vazio.');
     return;
   }
 
@@ -568,11 +586,12 @@ async function importarCSV() {
   const colCat   = document.getElementById('mapCategoria').value;
 
   if ([colData, colTipo, colValor, colDesc].some(isNaN)) {
-    alert('Mapeie os campos obrigatórios antes de importar.'); return;
+    _mostrarAlertaFinanceiro('Mapeie os campos obrigatórios antes de importar.'); return;
   }
 
   const btn = document.getElementById('btnImportarCSV');
-  btn.textContent = 'Importando…'; btn.disabled = true;
+  if (btn?.dataset.importando === '1') return;  // isSubmitting guard
+  if (btn) { btn.dataset.importando = '1'; btn.textContent = 'Importando…'; btn.disabled = true; }
 
   const registros = [];
   const erros     = [];
@@ -609,8 +628,8 @@ async function importarCSV() {
   });
 
   if (!registros.length) {
-    btn.textContent = 'Importar registros →'; btn.disabled = false;
-    alert('Nenhum registro válido encontrado.\n\n' + erros.slice(0, 5).join('\n'));
+    if (btn) { delete btn.dataset.importando; btn.textContent = 'Importar registros →'; btn.disabled = false; }
+    _mostrarAlertaFinanceiro('Nenhum registro válido encontrado. ' + erros.slice(0, 3).join(' | '));
     return;
   }
 
@@ -648,7 +667,7 @@ async function importarCSV() {
     }
   }
 
-  btn.textContent = 'Importar registros →'; btn.disabled = false;
+  if (btn) { delete btn.dataset.importando; btn.textContent = 'Importar registros →'; btn.disabled = false; }
 
   // Resultado
   document.getElementById('csvResultMsg').textContent =
