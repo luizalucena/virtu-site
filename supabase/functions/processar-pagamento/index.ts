@@ -369,9 +369,33 @@ Deno.serve(async (req) => {
     // Só incrementa se cartão aprovado (PIX será incrementado no pix-webhook)
     if (confirmedUserId && statusPedido === 'pago') {
       supabase.rpc('registrar_compra_fidelidade', { p_user_id: confirmedUserId })
-        .then(({ data, error }) => {
-          if (error) console.error('[Fidelidade] Erro ao registrar compra:', error.message);
-          else console.log('[Fidelidade] Compra registrada com sucesso.');
+        .then(async ({ data: fidData, error: fidErr }) => {
+          if (fidErr) {
+            console.error('[Fidelidade] Erro ao registrar compra:', fidErr.message);
+            return;
+          }
+          console.log('[Fidelidade] Compra registrada:', fidData?.compras_pagas);
+
+          // Se prêmio gerado → notifica a cliente (fire-and-forget)
+          if (fidData?.desconto_100 === true && fidData?.codigo) {
+            const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+            const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
+            if (SUPABASE_URL && ANON_KEY) {
+              fetch(`${SUPABASE_URL}/functions/v1/notificar-premio-fidelidade`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
+                body: JSON.stringify({
+                  user_id:  confirmedUserId,
+                  codigo:   fidData.codigo,
+                  validade: fidData.validade,
+                  // Passa dados já disponíveis para evitar roundtrip extra
+                  nome:     cliente?.nome     || null,
+                  email:    cliente?.email    || null,
+                  whatsapp: cliente?.telefone || null,
+                }),
+              }).catch(e => console.error('[Premio dispatch]', e));
+            }
+          }
         });
     }
 

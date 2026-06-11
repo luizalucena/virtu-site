@@ -152,10 +152,30 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (pedidoRow?.user_id) {
-        const { error: fidErr } = await supabase
+        const { data: fidData, error: fidErr } = await supabase
           .rpc('registrar_compra_fidelidade', { p_user_id: pedidoRow.user_id });
-        if (fidErr) console.error('[Webhook] Fidelidade erro:', fidErr.message);
-        else console.log(`[Webhook] Fidelidade registrada para user ${pedidoRow.user_id}`);
+        if (fidErr) {
+          console.error('[Webhook] Fidelidade erro:', fidErr.message);
+        } else {
+          console.log(`[Webhook] Fidelidade registrada para user ${pedidoRow.user_id}:`, fidData?.compras_pagas);
+
+          // Se prêmio gerado → agenda notificação à cliente logo após as demais
+          if (fidData?.desconto_100 === true && fidData?.codigo) {
+            const _supUrl = Deno.env.get('SUPABASE_URL');
+            const _anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+            if (_supUrl && _anonKey) {
+              fetch(`${_supUrl}/functions/v1/notificar-premio-fidelidade`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_anonKey}` },
+                body: JSON.stringify({
+                  user_id:  pedidoRow.user_id,
+                  codigo:   fidData.codigo,
+                  validade: fidData.validade,
+                }),
+              }).catch(e => console.error('[Premio PIX dispatch]', e));
+            }
+          }
+        }
       }
     } catch (fidEx) {
       console.error('[Webhook] Fidelidade exception:', fidEx);

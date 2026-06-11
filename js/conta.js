@@ -41,16 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // sidebarEmail removido do layout — elemento não existe no HTML
 
   // Nav buttons
-  const navPedidos   = document.getElementById('navPedidos');
-  const navFavoritos = document.getElementById('navFavoritos');
-  const navDados     = document.getElementById('navDados');
-  const navLogout    = document.getElementById('navLogout');
+  const navPedidos    = document.getElementById('navPedidos');
+  const navFavoritos  = document.getElementById('navFavoritos');
+  const navFidelidade = document.getElementById('navFidelidade');
+  const navDados      = document.getElementById('navDados');
+  const navLogout     = document.getElementById('navLogout');
 
   // Content views
-  const viewPedidos   = document.getElementById('viewPedidos');
-  const viewFavoritos = document.getElementById('viewFavoritos');
-  const viewDados     = document.getElementById('viewDados');
-  const pedidosList   = document.getElementById('pedidosList');
+  const viewPedidos    = document.getElementById('viewPedidos');
+  const viewFavoritos  = document.getElementById('viewFavoritos');
+  const viewFidelidade = document.getElementById('viewFidelidade');
+  const viewDados      = document.getElementById('viewDados');
+  const pedidosList    = document.getElementById('pedidosList');
 
   // Dados form
   const dadosNome     = document.getElementById('dadosNome');
@@ -285,11 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function showView(view) {
     viewPedidos?.setAttribute('hidden', '');
     viewFavoritos?.setAttribute('hidden', '');
+    viewFidelidade?.setAttribute('hidden', '');
     viewDados?.setAttribute('hidden', '');
 
-    navPedidos?.classList.remove('conta-nav__item--active');
-    navFavoritos?.classList.remove('conta-nav__item--active');
-    navDados?.classList.remove('conta-nav__item--active');
+    [navPedidos, navFavoritos, navFidelidade, navDados].forEach(b =>
+      b?.classList.remove('conta-nav__item--active')
+    );
 
     if (view === 'pedidos') {
       viewPedidos?.removeAttribute('hidden');
@@ -297,6 +300,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (view === 'favoritos') {
       viewFavoritos?.removeAttribute('hidden');
       navFavoritos?.classList.add('conta-nav__item--active');
+    } else if (view === 'fidelidade') {
+      viewFidelidade?.removeAttribute('hidden');
+      navFidelidade?.classList.add('conta-nav__item--active');
     } else if (view === 'dados') {
       viewDados?.removeAttribute('hidden');
       navDados?.classList.add('conta-nav__item--active');
@@ -310,10 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadFavoritos();
   });
 
+  navFidelidade?.addEventListener('click', async () => {
+    showView('fidelidade');
+    await loadFidelidade();
+  });
+
   navDados?.addEventListener('click', async () => {
     showView('dados');
-    // Email não é preenchido automaticamente — cliente digita se quiser alterar
-    // Carrega dados do perfil (CPF, WhatsApp) e fidelidade
     await carregarPerfilEFidelidade();
   });
 
@@ -511,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── CARREGA PERFIL (clientes_perfil) + FIDELIDADE ───────────
+  // ── CARREGA PERFIL (clientes_perfil) ─────────────────────────
   async function carregarPerfilEFidelidade() {
     try {
       const { data: { user } } = await supabaseClient.auth.getUser();
@@ -526,44 +535,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const cpfEl = document.getElementById('dadosCpf');
       if (cpfEl && perfil?.cpf && !cpfEl.value) {
-        // LGPD: armazena CPF completo em data-attr; exibe mascarado no placeholder
         cpfEl.dataset.cpfOriginal = perfil.cpf;
         cpfEl.placeholder = maskCpf(perfil.cpf) + '  (deixe em branco para manter)';
-        // Não preenche o value — usuário só altera se desejar
       }
-
-      // WhatsApp usa o campo dadosTel existente
       if (dadosTel && perfil?.whatsapp && !dadosTel.value) dadosTel.value = perfil.whatsapp;
 
-      // Widget de fidelidade
-      const compras  = perfil?.compras_pagas ?? 0;
-      const progresso= compras % 10; // 0–9 dentro do ciclo atual
-      const restam   = progresso === 0 && compras > 0 ? 10 : (10 - progresso); // corrige após completar
-      const pct      = (progresso / 10) * 100;
-
-      const widget   = document.getElementById('fidelidadeWidget');
-      const msgEl    = document.getElementById('fidelidadeMsg');
-      const barEl    = document.getElementById('fidelidadeBar');
-      const subMsg   = document.getElementById('fidelidadeSubMsg');
-
-      if (widget) {
-        widget.style.display = '';
-        if (msgEl) {
-          if (progresso === 9) {
-            // Próxima compra é a 10ª → já avisa
-            msgEl.textContent = '🎁 Sua próxima compra tem R$100 de desconto automático!';
-            msgEl.style.color = '#065F46';
-          } else {
-            msgEl.textContent = `${progresso} de 10 compras completas`;
-            msgEl.style.color = '#2B3F54';
-          }
+      // Teaser de fidelidade no viewDados (mini barra)
+      const compras   = perfil?.compras_pagas ?? 0;
+      const meta      = 10; // fallback — a view completa usa o RPC com meta real
+      const progresso = compras % meta;
+      const pct       = (progresso / meta) * 100;
+      const teaser    = document.getElementById('fidelidadeTeaserDados');
+      const teaserMsg = document.getElementById('fidelidadeTeaserMsg');
+      const teaserBar = document.getElementById('fidelidadeTeaserBar');
+      if (teaser) {
+        teaser.style.display = 'flex';
+        if (teaserMsg) {
+          teaserMsg.textContent = progresso === meta - 1
+            ? '🎁 Próxima compra = R$100 de desconto!'
+            : `${progresso} de ${meta} compras concluídas`;
         }
-        if (barEl) barEl.style.width = `${pct}%`;
-        if (subMsg) {
-          subMsg.textContent = compras === 0
-            ? 'Faça sua primeira compra para começar!'
-            : `Total de ${compras} compra${compras > 1 ? 's' : ''} confirmada${compras > 1 ? 's' : ''}. Faltam ${restam} para R$100 de desconto.`;
-        }
+        if (teaserBar) teaserBar.style.width = `${pct}%`;
       }
     } catch (e) {
       console.warn('[Conta] Erro ao carregar perfil:', e);
@@ -580,6 +572,217 @@ document.addEventListener('DOMContentLoaded', () => {
              .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
         this.value = v;
       });
+    }
+  }
+
+  // ── TELA DE FIDELIDADE COMPLETA ──────────────────────────────
+  async function loadFidelidade() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+
+    try {
+      // ── Progresso via RPC fidelidade_status ──────────────
+      const { data: fid, error: fidErr } = await supabaseClient
+        .rpc('fidelidade_status', { p_user_id: user.id });
+
+      if (!fidErr && fid) {
+        const compras    = fid.compras_pagas  ?? 0;
+        const meta       = fid.meta_compras   ?? 10;
+        const progresso  = fid.progresso      ?? (compras % meta);
+        const restam     = fid.restam_para_100 ?? (meta - progresso);
+        const pct        = meta > 0 ? (progresso / meta) * 100 : 0;
+        const premioAtivo= fid.premio_ativo   ?? null;
+
+        // Atualiza card de progresso
+        const bar    = document.getElementById('fidelBar');
+        const numEl  = document.getElementById('fidelComprasNum');
+        const metaEl = document.getElementById('fidelMeta');
+        const label  = document.getElementById('fidelStatusLabel');
+        const sub    = document.getElementById('fidelSubtitle');
+
+        if (bar)    bar.style.width    = `${Math.min(pct, 100)}%`;
+        if (numEl)  numEl.textContent  = progresso;
+        if (metaEl) metaEl.textContent = meta;
+
+        if (label) {
+          if (premioAtivo) {
+            label.textContent  = '🏆 Prêmio desbloqueado!';
+            label.style.color  = '#C4934A';
+          } else if (restam === 1) {
+            label.textContent  = '⭐ Falta só 1 compra para o prêmio!';
+            label.style.color  = '#2B3F54';
+          } else {
+            label.textContent  = restam === 0
+              ? 'Ciclo completo!'
+              : `Faltam ${restam} compra${restam !== 1 ? 's' : ''} para R$${(fid.valor_desconto ?? 100).toFixed(0)} de desconto`;
+            label.style.color  = '#2B3F54';
+          }
+        }
+
+        if (sub) {
+          sub.textContent = compras === 0
+            ? 'Faça sua primeira compra para começar a acumular!'
+            : `Total histórico: ${compras} compra${compras !== 1 ? 's' : ''} confirmada${compras !== 1 ? 's' : ''}.`;
+        }
+
+        // Renderiza steps (bolinhas numeradas)
+        const stepsEl = document.getElementById('fidelSteps');
+        if (stepsEl) {
+          const step = Math.max(1, Math.floor(meta / 5)); // máximo 10 marcadores
+          const marks = [];
+          for (let i = step; i <= meta; i += step) marks.push(i);
+          if (!marks.includes(meta)) marks.push(meta);
+          stepsEl.innerHTML = marks.map(m => {
+            const done = progresso >= m;
+            const isGoal = m === meta;
+            return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="width:${isGoal?26:20}px;height:${isGoal?26:20}px;border-radius:50%;
+                background:${done ? (isGoal ? '#C4934A' : '#2B3F54') : '#F0EDE8'};
+                border:2px solid ${done ? (isGoal ? '#C4934A' : '#2B3F54') : '#E2DDD7'};
+                display:flex;align-items:center;justify-content:center;
+                font-size:${isGoal?'0.65':'0.6'}rem;font-weight:600;
+                color:${done?'#fff':'#AFA99F'};transition:all .4s">
+                ${isGoal ? '🎁' : m}
+              </div>
+              ${isGoal ? `<span style="font-size:0.6rem;color:#C4934A;font-weight:600">PRÊMIO</span>` : ''}
+            </div>`;
+          }).join('');
+        }
+
+        // Badge na nav (aparece se há prêmio ativo)
+        const badge = document.getElementById('fidelidadeBadge');
+        if (badge) badge.style.display = premioAtivo ? 'inline-block' : 'none';
+
+        // Card de prêmio ativo
+        const premioCard = document.getElementById('fidelPremioCard');
+        if (premioCard) {
+          if (premioAtivo) {
+            premioCard.style.display = 'block';
+            const codigoEl  = document.getElementById('fidelCodigoText');
+            const expiraEl  = document.getElementById('fidelPremioExpira');
+            const valorEl   = document.getElementById('fidelPremioValor');
+            if (codigoEl)  codigoEl.textContent  = premioAtivo.codigo;
+            if (expiraEl)  expiraEl.textContent  = fmtDataCurta(premioAtivo.expira_em);
+            if (valorEl)   valorEl.textContent   = Number(fid.valor_desconto ?? 100).toFixed(0);
+
+            // Função global para copiar cupom (chamada pelo botão inline)
+            window.copiarCupomFidelidade = async function () {
+              try {
+                await navigator.clipboard.writeText(premioAtivo.codigo);
+                const msg = document.getElementById('fidelCopiaMsg');
+                if (msg) { msg.style.opacity = '1'; setTimeout(() => msg.style.opacity = '0', 2500); }
+                const btn = document.getElementById('fidelCopiaCupom');
+                if (btn) { btn.style.background = 'rgba(168,213,162,.25)'; setTimeout(() => btn.style.background = 'rgba(196,147,74,.15)', 1800); }
+              } catch {
+                prompt('Copie o código:', premioAtivo.codigo);
+              }
+            };
+          } else {
+            premioCard.style.display = 'none';
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[Fidelidade] Erro ao carregar status:', e);
+    }
+
+    // ── Histórico de pedidos para a view de fidelidade ────
+    await loadHistoricoFidelidade(user);
+  }
+
+  /** Formata data curta: dd/mm/aaaa */
+  function fmtDataCurta(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        timeZone: 'America/Recife',
+      });
+    } catch { return String(iso).slice(0, 10); }
+  }
+
+  /** Carrega tabela de pedidos completos na view de fidelidade */
+  async function loadHistoricoFidelidade(user) {
+    const el = document.getElementById('fidelHistoricoList');
+    const totalEl = document.getElementById('fidelTotalCompras');
+    if (!el) return;
+
+    el.innerHTML = '<p style="padding:1.5rem;font-size:0.85rem;color:#AFA99F;text-align:center">Carregando histórico…</p>';
+
+    try {
+      const email = user.email;
+      const { data: pedidos, error } = await supabaseClient
+        .from('pedidos')
+        .select('id, created_at, status, total, payment_method, itens')
+        .or(`email_cliente.eq.${email},cliente_email.eq.${email},user_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const pagos = (pedidos || []).filter(p => p.status === 'pago');
+      if (totalEl) totalEl.textContent = `${pagos.length} compra${pagos.length !== 1 ? 's' : ''} confirmada${pagos.length !== 1 ? 's' : ''}`;
+
+      if (!pedidos?.length) {
+        el.innerHTML = `
+          <div style="padding:2.5rem;text-align:center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E2DDD7" stroke-width="1.2" style="margin-bottom:12px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p style="font-size:0.88rem;color:#AFA99F;margin:0">Nenhum pedido encontrado ainda.</p>
+            <a href="catalogo.html" style="display:inline-block;margin-top:12px;font-size:0.78rem;color:#2B3F54;font-weight:500">Explorar coleção →</a>
+          </div>`;
+        return;
+      }
+
+      const statusLabel = s => ({
+        pago:      '<span style="background:#ECFDF5;color:#065F46;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:600">✓ Pago</span>',
+        pendente:  '<span style="background:#FEF9C3;color:#854D0E;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:600">⏳ Pendente</span>',
+        recusado:  '<span style="background:#FEF2F2;color:#991B1B;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:600">✕ Recusado</span>',
+      }[s] || `<span style="font-size:0.7rem;color:#9E9690">${escHtml(s)}</span>`);
+
+      const metodoPagto = m => ({
+        pix:    '⚡ PIX',
+        cartao: '💳 Cartão',
+        boleto: '📄 Boleto',
+      }[m] || (m || '—'));
+
+      let cicloCount = 0;
+      const linhas = pedidos.map((p, idx) => {
+        const isPago = p.status === 'pago';
+        if (isPago) cicloCount++;
+        const numPedido = String(p.id).slice(-6).toUpperCase();
+        const data = new Date(p.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const itensCount = Array.isArray(p.itens) ? p.itens.length : '–';
+        const totalFmt = fmtPrice(p.total);
+        const ciclo = isPago ? `<span style="font-size:0.7rem;color:#9E9690;font-weight:500">#${cicloCount}</span>` : '–';
+        return `<tr style="${idx % 2 === 0 ? '' : 'background:#fafaf8'}">
+          <td style="padding:0.85rem 1rem;font-size:0.78rem;color:#9E9690">${data}</td>
+          <td style="padding:0.85rem 1rem;font-size:0.8rem;font-family:'Courier New',monospace;color:#2B3F54;font-weight:600">#${numPedido}</td>
+          <td style="padding:0.85rem 1rem;font-size:0.78rem;color:#4A4440">${itensCount} ${Number(itensCount) === 1 ? 'item' : 'itens'}</td>
+          <td style="padding:0.85rem 1rem;font-size:0.82rem;color:#2B3F54;font-weight:500">${totalFmt}</td>
+          <td style="padding:0.85rem 1rem;font-size:0.78rem;color:#6E6660">${metodoPagto(p.payment_method)}</td>
+          <td style="padding:0.85rem 1rem">${statusLabel(p.status)}</td>
+          <td style="padding:0.85rem 1rem;text-align:center">${ciclo}</td>
+        </tr>`;
+      }).join('');
+
+      el.innerHTML = `
+        <table style="width:100%;border-collapse:collapse;min-width:580px">
+          <thead>
+            <tr style="background:#2B3F54;color:rgba(255,255,255,.85)">
+              <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Data</th>
+              <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Pedido</th>
+              <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Itens</th>
+              <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Total</th>
+              <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Pagamento</th>
+              <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Status</th>
+              <th style="padding:0.75rem 1rem;text-align:center;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase" title="Nº da compra no ciclo de fidelidade">Ciclo</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>`;
+    } catch (e) {
+      console.error('[Fidelidade Histórico]', e);
+      el.innerHTML = '<p style="padding:1.5rem;font-size:0.82rem;color:#c62828;text-align:center">Erro ao carregar histórico. Tente novamente.</p>';
     }
   }
 
