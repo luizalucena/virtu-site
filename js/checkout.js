@@ -39,7 +39,7 @@ let currentUserId      = null; // UUID do usuário autenticado
 // O cálculo é "por dentro": Valor_Final = Valor_Desejado / (1 − taxa)
 // Garantindo que a Virtù sempre receba EXATAMENTE o preço do produto.
 const MP_TAXAS = {
-  pix:    0.0099, // 0,99% — liberação imediata
+  pix:    0,      // sem repasse — a Virtù absorve a taxa do PIX
   debito: 0.0199, // 1,99% — liberação imediata
   credito: {
      1: 0.0499,  //  4,99% à vista
@@ -83,12 +83,17 @@ function calcularRepasse(valorBase, metodo, parcelas = 1) {
     taxa = 0;
   }
 
-  // Arredondamento para cima (centavos)
+  // Taxa zero: cliente paga exatamente o valor base (sem repasse)
+  if (taxa === 0) {
+    return { valorFinal: valorBase, taxaRetida: 0, taxa: 0, taxaLabel: '0,00%', valorPorParcela: null };
+  }
+
+  // Arredondamento para cima (centavos) — taxa nunca fica descoberta
+  const n               = parseInt(parcelas) || 1;
   const valorFinalCents = Math.ceil((valorBase / (1 - taxa)) * 100);
   const valorFinal      = valorFinalCents / 100;
   const taxaRetida      = +(valorFinal - valorBase).toFixed(2);
   const taxaLabel       = (taxa * 100).toFixed(2).replace('.', ',') + '%';
-  const n               = parseInt(parcelas) || 1;
 
   return {
     valorFinal,
@@ -293,32 +298,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const parcelas = parseInt(document.getElementById('installments')?.value || '1');
     const repasse  = calcularRepasse(totalBase, metodoAtivo, parcelas);
 
-    // ── Linha de taxa ──────────────────────────────────────
-    const mostrarTaxa = (metodoAtivo !== 'boleto');
+    // ── Linha de taxa — só exibe se houver cobrança real ─────
+    const mostrarTaxa = repasse.taxaRetida > 0;
     if (taxaLine) taxaLine.style.display = mostrarTaxa ? '' : 'none';
 
     if (mostrarTaxa) {
-      const ePix    = metodoAtivo === 'pix';
       const eDebito = metodoAtivo === 'debito';
-      const aVista   = metodoAtivo === 'cartao' && parcelas === 1;
+      const aVista  = metodoAtivo === 'cartao' && parcelas === 1;
 
-      let labelHtml;
-      if (ePix) {
-        labelHtml = `⚡ PIX <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
-      } else if (eDebito) {
-        labelHtml = `🏦 Débito <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
-      } else if (aVista) {
-        labelHtml = `💳 Crédito à vista <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
-      } else {
-        labelHtml = `💳 Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
-      }
+      const labelHtml = eDebito
+        ? `🏦 Débito <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`
+        : aVista
+          ? `💳 Crédito à vista <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`
+          : `💳 Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
 
       if (taxaLabel) taxaLabel.innerHTML = labelHtml;
 
       if (taxaEl) {
         taxaEl.textContent = `+${formatCurrency(repasse.taxaRetida)}`;
-        // PIX/débito: verde (menor taxa); cartão: bronze/neutro
-        taxaEl.style.color = (ePix || eDebito) ? '#27ae60' : '#C0824A';
+        taxaEl.style.color = eDebito ? '#27ae60' : '#C0824A';
       }
     }
 

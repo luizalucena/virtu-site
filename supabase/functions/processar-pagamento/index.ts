@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
        7: 0.1197,  8: 0.1297,  9: 0.1397, 10: 0.1497, 11: 0.1597, 12: 0.1697,
     };
     const parcelasNum  = Math.max(1, Math.min(Number(parcelas) || 1, 12));
-    const taxaMP       = tipo === 'pix' ? 0.0099 : (MP_TAXAS_CREDITO[parcelasNum] ?? 0.0499);
+    const taxaMP       = tipo === 'pix' ? 0 : (MP_TAXAS_CREDITO[parcelasNum] ?? 0.0499);
 
     // Valor base que a Virtù vai receber (descontos aplicados, sem taxa)
     const totalBase    = Math.max(0, serverSubtotal - descontoCupomTotal - descontoFidelidade) + freteNum;
