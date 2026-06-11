@@ -244,18 +244,27 @@
       const labels  = ['Confirmado', 'A caminho', 'Entregue'];
       const icons   = ['✓', '→', '⌂'];
 
+      // ── Lógica correta de step:
+      // steps[i] = true significa que esse índice já foi ATINGIDO.
+      // A etapa ATIVA é a última atingida que ainda não está totalmente concluída.
+      // Regra: se steps[i] = true  E  steps[i+1] = false (ou i é o último true) → ACTIVE
+      //        se steps[i] = true  E  steps[i+1] = true                         → DONE
+      //        se steps[i] = false                                                → pendente
       const stepsHtml = labels.map((lbl, i) => {
-        const done   = info.steps[i] && !(info.fase === 'caminho' && i === 1) && !(info.fase === 'preparando' && i === 0);
-        const active = (info.fase === 'preparando' && i === 0) ||
-                       (info.fase === 'caminho'    && i === 1) ||
-                       (info.fase === 'entregue'   && i === 2);
-        const cls    = active ? 'active' : (info.steps[i] ? 'done' : '');
+        const atingido = info.steps[i];
+        const proximo  = info.steps[i + 1];
+        const active   = atingido && !proximo;  // último passo atingido = atual
+        const done     = atingido && !!proximo; // passos anteriores já completos
+        const cls      = active ? 'active' : (done ? 'done' : '');
         return `
           <div class="step ${cls}">
             <div class="step-dot">${icons[i]}</div>
             <span class="step-label">${lbl}</span>
           </div>`;
       }).join('');
+
+      // Suporte a ambos os campos de nome (schema novo e legado)
+      const nomeCliente = pedido.cliente_nome || pedido.nome_cliente || '—';
 
       const card = document.getElementById('rastreioCard');
       card.innerHTML = `
@@ -267,7 +276,7 @@
         <div class="status-badge ${info.badgeClass}">${info.label}</div>
 
         <div class="detalhes">
-          <p><strong>Cliente:</strong> ${escHtml(pedido.nome_cliente || '—')}</p>
+          <p><strong>Cliente:</strong> ${escHtml(nomeCliente)}</p>
           <p><strong>Data do pedido:</strong> ${fmtDate(pedido.criado_em)}</p>
           ${pedido.atualizado_em ? `<p><strong>Última atualização:</strong> ${fmtDate(pedido.atualizado_em)}</p>` : ''}
           ${pedido.codigo_rastreio ? `<p><strong>Código de rastreio:</strong> <strong>${escHtml(pedido.codigo_rastreio)}</strong></p>` : ''}
@@ -294,7 +303,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('pedidos')
-          .select('id, nome_cliente, status, criado_em, atualizado_em, codigo_rastreio')
+          .select('id, nome_cliente, cliente_nome, status, criado_em, atualizado_em, codigo_rastreio')
           .eq('id', pedidoId)
           .maybeSingle();
 
@@ -304,8 +313,9 @@
         renderPedido(data);
 
         // Atualiza o status em tempo real
+        // Canal único por pedido para evitar conflito entre múltiplas abas
         supabaseClient
-          .channel('pedido-status')
+          .channel(`rastreio-pedido-${pedidoId}`)
           .on('postgres_changes', {
             event:  'UPDATE',
             schema: 'public',

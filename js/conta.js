@@ -92,9 +92,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  supabaseClient.auth.onAuthStateChange((_event, session) => {
+  // Parâmetro de redirecionamento pós-login (ex: vindo do checkout)
+  const redirectAfterLogin = new URLSearchParams(window.location.search).get('redirect');
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
     hideLoading();
     if (session) {
+      // Se acabou de fazer login e há uma URL de redirecionamento → vai direto
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && redirectAfterLogin) {
+        // Valida para aceitar apenas URLs relativas do próprio site (evita open redirect)
+        const dest = redirectAfterLogin.replace(/^\/+/, '');
+        if (dest && !dest.startsWith('http') && /^[\w\-./]+\.html/.test(dest)) {
+          window.location.href = dest;
+          return;
+        }
+      }
       enterAccount(session.user);
       authDot?.classList.add('navbar__account-dot--visible');
     } else {
@@ -282,9 +294,11 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadFavoritos();
   });
 
-  navDados?.addEventListener('click', () => {
+  navDados?.addEventListener('click', async () => {
     showView('dados');
     // Email não é preenchido automaticamente — cliente digita se quiser alterar
+    // Carrega dados do perfil (CPF, WhatsApp) e fidelidade
+    await carregarPerfilEFidelidade();
   });
 
   // Marca o campo como editado pelo usuário para evitar sobrescrita
@@ -481,6 +495,73 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── CARREGA PERFIL (clientes_perfil) + FIDELIDADE ───────────
+  async function carregarPerfilEFidelidade() {
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+
+      // Perfil complementar (CPF, WhatsApp)
+      const { data: perfil } = await supabaseClient
+        .from('clientes_perfil')
+        .select('cpf, whatsapp, compras_pagas')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const cpfEl = document.getElementById('dadosCpf');
+      if (cpfEl && perfil?.cpf && !cpfEl.value) cpfEl.value = perfil.cpf;
+
+      // WhatsApp usa o campo dadosTel existente
+      if (dadosTel && perfil?.whatsapp && !dadosTel.value) dadosTel.value = perfil.whatsapp;
+
+      // Widget de fidelidade
+      const compras  = perfil?.compras_pagas ?? 0;
+      const progresso= compras % 10; // 0–9 dentro do ciclo atual
+      const restam   = progresso === 0 && compras > 0 ? 10 : (10 - progresso); // corrige após completar
+      const pct      = (progresso / 10) * 100;
+
+      const widget   = document.getElementById('fidelidadeWidget');
+      const msgEl    = document.getElementById('fidelidadeMsg');
+      const barEl    = document.getElementById('fidelidadeBar');
+      const subMsg   = document.getElementById('fidelidadeSubMsg');
+
+      if (widget) {
+        widget.style.display = '';
+        if (msgEl) {
+          if (progresso === 9) {
+            // Próxima compra é a 10ª → já avisa
+            msgEl.textContent = '🎁 Sua próxima compra tem R$100 de desconto automático!';
+            msgEl.style.color = '#065F46';
+          } else {
+            msgEl.textContent = `${progresso} de 10 compras completas`;
+            msgEl.style.color = '#2B3F54';
+          }
+        }
+        if (barEl) barEl.style.width = `${pct}%`;
+        if (subMsg) {
+          subMsg.textContent = compras === 0
+            ? 'Faça sua primeira compra para começar!'
+            : `Total de ${compras} compra${compras > 1 ? 's' : ''} confirmada${compras > 1 ? 's' : ''}. Faltam ${restam} para R$100 de desconto.`;
+        }
+      }
+    } catch (e) {
+      console.warn('[Conta] Erro ao carregar perfil:', e);
+    }
+
+    // Máscara CPF
+    const cpfEl = document.getElementById('dadosCpf');
+    if (cpfEl && !cpfEl.dataset.maskSet) {
+      cpfEl.dataset.maskSet = '1';
+      cpfEl.addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2')
+             .replace(/(\d{3})(\d)/, '$1.$2')
+             .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        this.value = v;
+      });
+    }
+  }
+
   // ── DADOS PESSOAIS ───────────────────────────────────────────
   formDados?.addEventListener('submit', async e => {
     e.preventDefault();
@@ -518,6 +599,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (error) {
       showMsg(dadosMsg, error.message, 'erro');
     } else {
+      // Salva CPF e WhatsApp em clientes_perfil
+      const cpf      = document.getElementById('dadosCpf')?.value.trim() || null;
+      const whatsapp = telefone || null;
+      if (currentUser && (cpf || whatsapp || nome)) {
+        try {
+          await supabaseClient
+            .from('clientes_perfil')
+            .upsert({
+              id:       currentUser.id,
+              nome:     nome   || null,
+              cpf:      cpf,
+              whatsapp: whatsapp,
+            }, { onConflict: 'id' });
+        } catch { /* não bloqueia */ }
+      }
+
       const msgEmail = emailMudou
         ? ' Verifique o novo e-mail para confirmar a alteração.'
         : '';

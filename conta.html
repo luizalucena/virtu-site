@@ -287,8 +287,18 @@
               <input type="text" id="dadosNome" class="conta-form__input" placeholder="Seu nome" autocomplete="name" />
             </div>
             <div class="conta-form__group">
-              <label class="conta-form__label" for="dadosTel">Telefone</label>
+              <label class="conta-form__label" for="dadosTel">WhatsApp</label>
               <input type="tel" id="dadosTel" class="conta-form__input" placeholder="(83) 99999-9999" autocomplete="tel" />
+            </div>
+          </div>
+
+          <div class="conta-dados__row">
+            <div class="conta-form__group">
+              <label class="conta-form__label" for="dadosCpf">CPF</label>
+              <input type="text" id="dadosCpf" class="conta-form__input" placeholder="000.000.000-00" autocomplete="off" maxlength="14" inputmode="numeric" />
+            </div>
+            <div class="conta-form__group" style="display:flex;flex-direction:column;justify-content:flex-end">
+              <p style="font-size:0.72rem;color:#aaa;margin:0;line-height:1.5">CPF e WhatsApp são salvos com segurança para agilizar seus próximos checkouts.</p>
             </div>
           </div>
 
@@ -314,6 +324,16 @@
           <button type="submit" class="conta-dados__save">Salvar Alterações</button>
 
         </form>
+
+        <!-- Programa de Fidelidade -->
+        <div id="fidelidadeWidget" style="display:none;margin-top:2rem;background:#F5F2EE;border-radius:6px;padding:1.25rem 1.5rem">
+          <p style="font-size:0.68rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6E6660;margin-bottom:6px">Programa Fidelidade</p>
+          <p id="fidelidadeMsg" style="font-size:0.88rem;color:#2B3F54;font-weight:500;margin-bottom:10px"></p>
+          <div style="background:#E2DDD7;border-radius:100px;height:6px;overflow:hidden">
+            <div id="fidelidadeBar" style="background:#C4934A;height:100%;width:0%;transition:width 0.5s ease"></div>
+          </div>
+          <p id="fidelidadeSubMsg" style="font-size:0.73rem;color:#9E9690;margin-top:6px"></p>
+        </div>
       </div>
 
     </div>

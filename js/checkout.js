@@ -30,6 +30,32 @@ let freteCalculado        = false;          // flag: frete foi calculado com suc
 // ── ESTADO DO CUPOM ─────────────────────────────────────────
 let cupomAplicado = null; // { codigo, tipo, valor } ou null
 
+// ── PROGRAMA DE FIDELIDADE ───────────────────────────────────
+let descontoFidelidade = 0;    // R$100 quando aplicável na 10ª compra
+let currentUserId      = null; // UUID do usuário autenticado
+
+// ── AUTH GATE: redireciona para login se não autenticada ─────
+// Executa fora do DOMContentLoaded para bloquear o mais cedo possível.
+(async function checkAuthGate() {
+  try {
+    // Aguarda supabaseClient estar disponível (pode carregar levemente depois)
+    let tentativas = 0;
+    while (typeof supabaseClient === 'undefined' && tentativas++ < 30) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (typeof supabaseClient === 'undefined') {
+      window.location.href = 'conta.html?redirect=checkout.html';
+      return;
+    }
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+      window.location.href = 'conta.html?redirect=checkout.html';
+    }
+  } catch {
+    window.location.href = 'conta.html?redirect=checkout.html';
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
 
   const CART_KEY = 'virtu_cart';
@@ -121,11 +147,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const descontoEl    = document.getElementById('checkoutDesconto');
     if (!descontoLine) return;
 
-    if (cupomAplicado && cupomAplicado.tipo !== 'frete') {
-      const desc = calcularDesconto(baseTotal);
-      descontoLine.style.display  = '';
-      if (descontoLabel) descontoLabel.textContent = `Desconto (${cupomAplicado.codigo})`;
-      if (descontoEl)    descontoEl.textContent     = `−${formatCurrency(desc)}`;
+    const cupomDesc = calcularDesconto(baseTotal);
+    const totalDesc = cupomDesc + descontoFidelidade;
+
+    if (totalDesc > 0) {
+      descontoLine.style.display = '';
+      let label = '';
+      const temCupom      = cupomAplicado && cupomAplicado.tipo !== 'frete';
+      const temFidelidade = descontoFidelidade > 0;
+      if (temCupom && temFidelidade) {
+        label = `Descontos (${cupomAplicado.codigo} + Fidelidade 🎁)`;
+      } else if (temCupom) {
+        label = `Desconto (${cupomAplicado.codigo})`;
+      } else if (temFidelidade) {
+        label = 'Desconto Fidelidade 🎁';
+      }
+      if (descontoLabel) descontoLabel.textContent = label;
+      if (descontoEl)    descontoEl.textContent     = `−${formatCurrency(totalDesc)}`;
     } else {
       descontoLine.style.display = 'none';
     }
@@ -136,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     freteValorSelecionado = freteValor;
     const frete   = freteEfetivo();
     const desconto= calcularDesconto(baseTotal);
-    const total   = Math.max(0, baseTotal - desconto) + frete;
+    const total   = Math.max(0, baseTotal - desconto - descontoFidelidade) + frete;
     const totalEl   = document.getElementById('checkoutTotal');
     const freteEl   = document.getElementById('checkoutFreteLabel');
     const installEl = document.getElementById('checkoutInstallments');
@@ -269,6 +307,64 @@ document.addEventListener('DOMContentLoaded', () => {
     renderOrderSummary(getCart());
     await initCupom(); // campo de cupom no resumo do pedido
 
+    // Busca status de fidelidade da cliente autenticada
+    try {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+          currentUserId = user.id;
+
+          const { data: fid } = await supabaseClient
+            .rpc('fidelidade_status', { p_user_id: user.id });
+
+          if (fid) {
+            const compras = fid.compras_pagas ?? 0;
+            const restam  = fid.restam_para_100 ?? (10 - compras % 10);
+
+            // Injeta banner de fidelidade acima do resumo do pedido
+            const summaryEl = document.getElementById('checkoutOrderSummary') ||
+                              document.querySelector('.checkout-order-summary') ||
+                              document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
+
+            if (summaryEl && restam > 0) {
+              const pct     = Math.min(100, ((compras % 10) / 10) * 100);
+              const msg     = restam === 1
+                ? '🎁 Esta é sua <strong>10ª compra</strong>! R$100 de desconto aplicado automaticamente!'
+                : `🏅 Programa Fidelidade — <strong>${compras % 10}/10 compras</strong>. Faltam <strong>${restam}</strong> para R$100 de desconto!`;
+
+              const banner = document.createElement('div');
+              banner.id = 'fidelidadeBanner';
+              banner.style.cssText = `
+                background:${restam === 1 ? '#D1FAE5' : '#EFF6FF'};
+                border:1px solid ${restam === 1 ? '#6EE7B7' : '#BFDBFE'};
+                border-radius:4px;padding:10px 14px;font-size:0.82rem;
+                color:${restam === 1 ? '#065F46' : '#1E40AF'};
+                margin-bottom:12px;line-height:1.5;
+              `;
+              banner.innerHTML = `<div>${msg}</div>
+                <div style="background:#E5E7EB;border-radius:100px;height:4px;margin-top:8px;overflow:hidden">
+                  <div style="background:${restam === 1 ? '#059669' : '#3B82F6'};height:100%;width:${pct}%;transition:width 0.4s"></div>
+                </div>`;
+              summaryEl.insertAdjacentElement('beforebegin', banner);
+            }
+
+            // Esta é a 10ª compra → aplica R$100
+            if (restam === 1 && compras > 0) {
+              // Próxima compra é múltipla de 10 → desconto ativo
+              // (restam = 1 significa que 1 compra a mais = chega em múltiplo de 10)
+              // Verifica exatamente: (compras % 10 === 9) = próxima é múltipla de 10
+              if (compras % 10 === 9) {
+                descontoFidelidade = 100;
+                updateTotalWithFrete(freteValorSelecionado);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[Fidelidade]', e);
+    }
+
     // Auto-aplica cupom validado no carrinho
     try {
       const savedCoupon = JSON.parse(sessionStorage.getItem('virtu_coupon') || localStorage.getItem('virtu_coupon') || 'null');
@@ -294,6 +390,40 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch {}
   })();
+
+  // ── MENSAGEM INLINE (substitui alert) ────────────────────
+  function showCheckoutMsg(msg, tipo = 'erro') {
+    let el = document.getElementById('checkoutMsgInline');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'checkoutMsgInline';
+      el.style.cssText = [
+        'border-radius:4px', 'padding:12px 16px', 'font-size:0.83rem',
+        'line-height:1.5', 'margin:12px 0', 'display:none',
+      ].join(';');
+      // Insere antes do botão de finalizar
+      const submitBtn = document.getElementById('submitOrder');
+      if (submitBtn?.parentNode) {
+        submitBtn.parentNode.insertBefore(el, submitBtn);
+      } else {
+        document.body.appendChild(el);
+      }
+    }
+    const styles = {
+      erro:  { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
+      aviso: { bg: '#FEF3C7', color: '#92400E', border: '#FDE68A' },
+      ok:    { bg: '#D1FAE5', color: '#065F46', border: '#6EE7B7' },
+    };
+    const s = styles[tipo] || styles.erro;
+    el.style.background   = s.bg;
+    el.style.color        = s.color;
+    el.style.border       = `1px solid ${s.border}`;
+    el.style.display      = 'block';
+    el.textContent        = msg;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Auto-esconde mensagens de sucesso
+    if (tipo === 'ok') setTimeout(() => { el.style.display = 'none'; }, 5000);
+  }
 
   // ── STEPS ───────────────────────────────────────────────
   let currentStep = 1;
@@ -633,13 +763,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Validação: carrinho não pode estar vazio
     const cartCheck = getCart();
     if (!cartCheck || cartCheck.length === 0) {
-      alert('Seu carrinho está vazio. Adicione produtos antes de finalizar.');
+      showCheckoutMsg('Seu carrinho está vazio. Adicione produtos antes de finalizar.', 'aviso');
+      window.location.href = 'carrinho.html';
       return;
     }
 
     // Boleto não implementado — bloqueia
     if (activeTab === 'boleto') {
-      alert('Pagamento por boleto ainda não está disponível. Por favor, escolha PIX ou cartão de crédito.');
+      showCheckoutMsg('Pagamento por boleto ainda não está disponível. Por favor, escolha PIX ou cartão de crédito.', 'aviso');
       return;
     }
 
@@ -657,8 +788,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Garante que o frete foi calculado
     const cepRaw = document.getElementById('cep')?.value.replace(/\D/g, '');
-    if (!cepRaw) { alert('Informe o CEP de entrega.'); goToStep(2); return; }
-    if (!freteCalculado) { alert('Calcule o frete antes de continuar.'); goToStep(2); return; }
+    if (!cepRaw) { showFreteMsg('Informe o CEP de entrega.', 'error'); goToStep(2); return; }
+    if (!freteCalculado) { showFreteMsg('Clique em "Buscar" para calcular o frete antes de continuar.', 'error'); goToStep(2); return; }
 
     btn.innerHTML = 'Processando…';
     btn.disabled  = true;
@@ -668,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPix         = activeTab === 'pix';
     const descontoCupom = calcularDesconto(baseTotal);
     const freteReal     = freteEfetivo();
-    const totalBruto    = Math.max(0, baseTotal - descontoCupom) + freteReal;
+    const totalBruto    = Math.max(0, baseTotal - descontoCupom - descontoFidelidade) + freteReal;
     const finalTotal    = isPix ? +(totalBruto * 0.95).toFixed(2) : +totalBruto.toFixed(2);
 
     const cliente = {
@@ -701,16 +832,18 @@ document.addEventListener('DOMContentLoaded', () => {
       || 'Entrega padrão';
 
     const payload = {
-      tipo:               isPix ? 'pix' : 'cartao',
-      total:              finalTotal,
-      subtotal:           baseTotal,
-      frete:              freteReal,
-      frete_selecionado:  freteNome,
-      desconto:           descontoCupom + (isPix ? +((baseTotal - descontoCupom) * 0.05).toFixed(2) : 0),
-      cupom_codigo:       cupomAplicado?.codigo || null,
-      itens:              cart,
+      tipo:                isPix ? 'pix' : 'cartao',
+      total:               finalTotal,
+      subtotal:            baseTotal,
+      frete:               freteReal,
+      frete_selecionado:   freteNome,
+      desconto:            descontoCupom + (isPix ? +((baseTotal - descontoCupom - descontoFidelidade) * 0.05).toFixed(2) : 0),
+      cupom_codigo:        cupomAplicado?.codigo || null,
+      itens:               cart,
       cliente,
       endereco,
+      user_id:             currentUserId || null,
+      fidelidade_desconto: descontoFidelidade > 0,
     };
 
     // ── Cartão: tokeniza no browser via MP SDK (PCI-DSS compliant) ──────
@@ -819,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (result.status === 'rejected') {
         btn.innerHTML = '🔒 Finalizar Pedido';
         btn.disabled  = false;
-        alert(`Pagamento recusado: ${result.mensagem || 'Verifique os dados do cartão.'}`);
+        showCheckoutMsg(`Pagamento recusado: ${result.mensagem || 'Verifique os dados do cartão e tente novamente.'}`, 'erro');
       } else {
         // in_process — cartão em análise
         exibirSucesso(cliente.nome.split(' ')[0], result.pedido_id, true);
@@ -832,8 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled  = false;
       const msg = err.name === 'AbortError'
         ? 'Tempo esgotado (25s). Verifique sua conexão e tente novamente.'
-        : (err.message || 'Erro desconhecido.');
-      alert(`Erro ao processar pagamento: ${msg}\nTente novamente ou entre em contato.`);
+        : (err.message || 'Erro desconhecido. Tente novamente.');
+      showCheckoutMsg(`Não foi possível processar o pagamento: ${msg}`, 'erro');
     }
   });
 
@@ -901,4 +1034,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── INIT ──────────────────────────────────────────────────
   goToStep(1);
+
+  // ── PRÉ-PREENCHIMENTO: carrega perfil da cliente autenticada ─
+  (async function preencherPerfil() {
+    try {
+      if (typeof supabaseClient === 'undefined') return;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+
+      const { data: perfil } = await supabaseClient
+        .from('clientes_perfil')
+        .select('nome, cpf, whatsapp, cep, rua, numero, complemento, bairro, cidade, estado')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!perfil) return;
+
+      // Dados de identificação
+      if (perfil.nome) {
+        const partes = perfil.nome.trim().split(' ');
+        const first  = document.getElementById('firstName');
+        const last   = document.getElementById('lastName');
+        if (first && !first.value) first.value = partes[0] || '';
+        if (last  && !last.value)  last.value  = partes.slice(1).join(' ') || '';
+      }
+      const emailEl = document.getElementById('email');
+      if (emailEl && !emailEl.value) emailEl.value = user.email || '';
+
+      const cpfEl = document.getElementById('cpf');
+      if (cpfEl && !cpfEl.value && perfil.cpf) cpfEl.value = perfil.cpf;
+
+      const phoneEl = document.getElementById('phone');
+      if (phoneEl && !phoneEl.value && perfil.whatsapp) phoneEl.value = perfil.whatsapp;
+
+      // Endereço
+      if (perfil.cep) {
+        const cepEl = document.getElementById('cep');
+        if (cepEl && !cepEl.value) {
+          const cepFmt = perfil.cep.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+          cepEl.value = cepFmt;
+        }
+        if (perfil.rua)         { const el = document.getElementById('street');       if (el && !el.value) el.value = perfil.rua; }
+        if (perfil.numero)      { const el = document.getElementById('number');       if (el && !el.value) el.value = perfil.numero; }
+        if (perfil.complemento) { const el = document.getElementById('complement');   if (el && !el.value) el.value = perfil.complemento; }
+        if (perfil.bairro)      { const el = document.getElementById('neighborhood'); if (el && !el.value) el.value = perfil.bairro; }
+        if (perfil.cidade)      { const el = document.getElementById('city');         if (el && !el.value) el.value = perfil.cidade; }
+        if (perfil.estado) {
+          const el = document.getElementById('state');
+          if (el && !el.value) el.value = perfil.estado;
+        }
+        // Calcula frete automaticamente se CEP salvo
+        const cepRaw = perfil.cep.replace(/\D/g, '');
+        if (cepRaw.length === 8) {
+          await calcularFrete(cepRaw);
+        }
+      }
+    } catch (e) {
+      console.warn('[Checkout] Erro ao carregar perfil:', e);
+    }
+  })();
+
+  // ── SALVAR / ATUALIZAR PERFIL após pedido (1-click checkout) ─
+  window.vtSalvarEndereco = async function(endereco) {
+    try {
+      if (typeof supabaseClient === 'undefined') return;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+
+      // Dados extras coletados no step 1
+      const nome     = `${document.getElementById('firstName')?.value.trim() || ''} ${document.getElementById('lastName')?.value.trim() || ''}`.trim();
+      const cpf      = document.getElementById('cpf')?.value.trim()   || null;
+      const whatsapp = document.getElementById('phone')?.value.trim() || null;
+
+      await supabaseClient
+        .from('clientes_perfil')
+        .upsert({
+          id:          user.id,
+          nome:        nome   || null,
+          cpf:         cpf,
+          whatsapp:    whatsapp,
+          cep:         endereco?.cep?.replace(/\D/g,'') || null,
+          rua:         endereco?.rua         || null,
+          numero:      endereco?.numero      || null,
+          complemento: endereco?.complemento || null,
+          bairro:      endereco?.bairro      || null,
+          cidade:      endereco?.cidade      || null,
+          estado:      endereco?.estado      || null,
+        }, { onConflict: 'id' });
+    } catch (e) {
+      console.warn('[Checkout] Erro ao salvar perfil:', e);
+    }
+  };
 });

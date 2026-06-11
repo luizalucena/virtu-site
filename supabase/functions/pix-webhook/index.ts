@@ -132,6 +132,25 @@ Deno.serve(async (req) => {
     const pedidoId = updatedRows.id;
     console.log(`[Webhook] PIX confirmado: pedido ${pedidoId} → pago`);
 
+    // ── Fidelidade: incrementa compras_pagas da cliente ────
+    // Busca user_id do pedido para registrar a compra confirmada
+    try {
+      const { data: pedidoRow } = await supabase
+        .from('pedidos')
+        .select('user_id')
+        .eq('id', pedidoId)
+        .maybeSingle();
+
+      if (pedidoRow?.user_id) {
+        const { error: fidErr } = await supabase
+          .rpc('registrar_compra_fidelidade', { p_user_id: pedidoRow.user_id });
+        if (fidErr) console.error('[Webhook] Fidelidade erro:', fidErr.message);
+        else console.log(`[Webhook] Fidelidade registrada para user ${pedidoRow.user_id}`);
+      }
+    } catch (fidEx) {
+      console.error('[Webhook] Fidelidade exception:', fidEx);
+    }
+
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
 
