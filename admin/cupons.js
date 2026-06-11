@@ -105,8 +105,8 @@ function renderTabela() {
         </button>`;
 
     return `<tr>
-      <td><span class="cupom-codigo">${c.codigo}</span></td>
-      <td style="color:var(--text-light);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.descricao || '—'}</td>
+      <td><span class="cupom-codigo">${escHtml(c.codigo)}</span></td>
+      <td style="color:var(--text-light);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(c.descricao) || '—'}</td>
       <td>${descontoLabel}</td>
       <td>${minLabel}</td>
       <td style="color:var(--text-light)">${usoLabel}</td>
@@ -338,6 +338,9 @@ function bindEventos() {
 }
 
 // ── Utilitários ────────────────────────────────────────────
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function setStatus(msg)   { const el = document.getElementById('adminStatus'); if (el) el.textContent = msg; }
 

@@ -36,6 +36,10 @@
     return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
+  function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   function fmtDate(s) {
     if (!s) return '—';
     return new Date(s).toLocaleString('pt-BR', {
@@ -99,10 +103,10 @@
 
     if (tbody) {
       tbody.innerHTML = data.map(p => `
-        <tr style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#faf9f7'" onmouseout="this.style.background=''" onclick="window._pedidosAbrirModal('${p.id}')">
-          <td style="padding:10px 12px;font-size:13px;font-weight:600;color:#1A2744">#${String(p.id).slice(-6).toUpperCase()}</td>
-          <td style="padding:10px 12px;font-size:13px">${p.nome_cliente || '—'}</td>
-          <td style="padding:10px 12px;font-size:13px;color:#666">${p.email_cliente || '—'}</td>
+        <tr style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#faf9f7'" onmouseout="this.style.background=''" onclick="window._pedidosAbrirModal('${escHtml(p.id)}')">
+          <td style="padding:10px 12px;font-size:13px;font-weight:600;color:#1A2744">#${escHtml(String(p.id).slice(-6).toUpperCase())}</td>
+          <td style="padding:10px 12px;font-size:13px">${escHtml(p.nome_cliente) || '—'}</td>
+          <td style="padding:10px 12px;font-size:13px;color:#666">${escHtml(p.email_cliente) || '—'}</td>
           <td style="padding:10px 12px">${statusBadge(p.status)}</td>
           <td style="padding:10px 12px;font-size:12px;color:#888">${metodoPagto(p)}</td>
           <td style="padding:10px 12px;font-size:13px;font-weight:600;color:#C4934A">${fmt(p.total)}</td>
@@ -145,58 +149,63 @@
     body.innerHTML = '<p style="text-align:center;padding:32px;color:#888">Carregando…</p>';
     overlay.style.display = 'flex';
 
-    const { data: p, error } = await supabaseClient.from('pedidos').select('*').eq('id', id).single();
-    if (error || !p) { body.innerHTML = '<p style="color:#ef4444;padding:16px">Erro ao carregar pedido.</p>'; return; }
+    try {
+      const { data: p, error } = await supabaseClient.from('pedidos').select('*').eq('id', id).single();
+      if (error || !p) { body.innerHTML = '<p style="color:#ef4444;padding:16px">Erro ao carregar pedido.</p>'; return; }
 
-    const itens = Array.isArray(p.itens) ? p.itens : [];
-    const itensHtml = itens.length
-      ? itens.map(it => `<tr><td style="padding:6px 8px">${it.nome||'—'}</td><td style="padding:6px 8px;text-align:center">${it.tamanho||'—'}</td><td style="padding:6px 8px;text-align:center">${it.qty||1}</td><td style="padding:6px 8px;text-align:right">${fmt(it.preco)}</td></tr>`).join('')
-      : '<tr><td colspan="4" style="padding:8px;color:#888">Sem itens registrados</td></tr>';
+      const itens = Array.isArray(p.itens) ? p.itens : [];
+      const itensHtml = itens.length
+        ? itens.map(it => `<tr><td style="padding:6px 8px">${escHtml(it.nome||'—')}</td><td style="padding:6px 8px;text-align:center">${escHtml(it.tamanho||'—')}</td><td style="padding:6px 8px;text-align:center">${it.qty||1}</td><td style="padding:6px 8px;text-align:right">${fmt(it.preco)}</td></tr>`).join('')
+        : '<tr><td colspan="4" style="padding:8px;color:#888">Sem itens registrados</td></tr>';
 
-    const statusOptions = Object.keys(STATUS_LABELS).map(s => `<option value="${s}" ${p.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('');
+      const statusOptions = Object.keys(STATUS_LABELS).map(s => `<option value="${s}" ${p.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('');
+      const pidSafe = escHtml(p.id);
 
-    body.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-        <div>
-          <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Pedido</p>
-          <p style="margin:0;font-size:20px;font-weight:700;color:#1A2744">#${String(p.id).slice(-6).toUpperCase()}</p>
-          <p style="margin:4px 0 0;font-size:12px;color:#999">${fmtDate(p.criado_em)}</p>
+      body.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div>
+            <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Pedido</p>
+            <p style="margin:0;font-size:20px;font-weight:700;color:#1A2744">#${escHtml(String(p.id).slice(-6).toUpperCase())}</p>
+            <p style="margin:4px 0 0;font-size:12px;color:#999">${fmtDate(p.criado_em)}</p>
+          </div>
+          <div style="text-align:right">${statusBadge(p.status)}<p style="margin:8px 0 0;font-size:18px;font-weight:700;color:#C4934A">${fmt(p.total)}</p><p style="margin:2px 0 0;font-size:12px;color:#888">${metodoPagto(p)}</p></div>
         </div>
-        <div style="text-align:right">${statusBadge(p.status)}<p style="margin:8px 0 0;font-size:18px;font-weight:700;color:#C4934A">${fmt(p.total)}</p><p style="margin:2px 0 0;font-size:12px;color:#888">${metodoPagto(p)}</p></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;font-size:13px">
-        <div><p style="margin:0 0 2px;color:#888;font-size:11px;text-transform:uppercase">Cliente</p><p style="margin:0;font-weight:500">${p.nome_cliente||'—'}</p><p style="margin:2px 0 0;color:#666">${p.email_cliente||'—'}</p><p style="margin:2px 0 0;color:#666">${p.telefone||'—'}</p></div>
-        <div><p style="margin:0 0 2px;color:#888;font-size:11px;text-transform:uppercase">Endereço</p><p style="margin:0;color:#333">${p.rua||''}, ${p.numero||''}${p.complemento?', '+p.complemento:''}</p><p style="margin:2px 0 0;color:#666">${p.bairro||''} — ${p.cidade||''}/${p.estado||''}</p><p style="margin:2px 0 0;color:#666">CEP ${p.cep||'—'}</p></div>
-      </div>
-      <p style="margin:0 0 8px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Itens</p>
-      <table width="100%" style="font-size:13px;border-collapse:collapse;margin-bottom:16px">
-        <thead><tr style="background:#f9f6f2"><th style="padding:6px 8px;text-align:left;color:#888;font-weight:600">Produto</th><th style="padding:6px 8px;text-align:center;color:#888;font-weight:600">Tam.</th><th style="padding:6px 8px;text-align:center;color:#888;font-weight:600">Qtd.</th><th style="padding:6px 8px;text-align:right;color:#888;font-weight:600">Preço</th></tr></thead>
-        <tbody>${itensHtml}</tbody>
-      </table>
-      <div style="text-align:right;margin-bottom:16px;font-size:13px">
-        ${Number(p.desconto)>0?`<p style="margin:2px 0;color:#2e7d32">Desconto: − ${fmt(p.desconto)}</p>`:''}
-        ${Number(p.frete)>0?`<p style="margin:2px 0;color:#555">Frete: ${fmt(p.frete)}</p>`:'<p style="margin:2px 0;color:#2e7d32">Frete grátis</p>'}
-        <p style="margin:4px 0 0;font-weight:700;font-size:15px;color:#1A2744">Total: ${fmt(p.total)}</p>
-      </div>
-      <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div>
-          <label style="display:block;font-size:12px;color:#888;margin-bottom:6px;text-transform:uppercase">Atualizar Status</label>
-          <div style="display:flex;gap:8px">
-            <select id="modalStatusSelect" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px">${statusOptions}</select>
-            <button onclick="window._pedidosSalvarStatus('${p.id}')" style="padding:8px 14px;background:#1A2744;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Salvar</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;font-size:13px">
+          <div><p style="margin:0 0 2px;color:#888;font-size:11px;text-transform:uppercase">Cliente</p><p style="margin:0;font-weight:500">${escHtml(p.nome_cliente)||'—'}</p><p style="margin:2px 0 0;color:#666">${escHtml(p.email_cliente)||'—'}</p><p style="margin:2px 0 0;color:#666">${escHtml(p.telefone)||'—'}</p></div>
+          <div><p style="margin:0 0 2px;color:#888;font-size:11px;text-transform:uppercase">Endereço</p><p style="margin:0;color:#333">${escHtml(p.rua||'')}, ${escHtml(p.numero||'')}${p.complemento?', '+escHtml(p.complemento):''}</p><p style="margin:2px 0 0;color:#666">${escHtml(p.bairro||'')} — ${escHtml(p.cidade||'')}/${escHtml(p.estado||'')}</p><p style="margin:2px 0 0;color:#666">CEP ${escHtml(p.cep||'—')}</p></div>
+        </div>
+        <p style="margin:0 0 8px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Itens</p>
+        <table width="100%" style="font-size:13px;border-collapse:collapse;margin-bottom:16px">
+          <thead><tr style="background:#f9f6f2"><th style="padding:6px 8px;text-align:left;color:#888;font-weight:600">Produto</th><th style="padding:6px 8px;text-align:center;color:#888;font-weight:600">Tam.</th><th style="padding:6px 8px;text-align:center;color:#888;font-weight:600">Qtd.</th><th style="padding:6px 8px;text-align:right;color:#888;font-weight:600">Preço</th></tr></thead>
+          <tbody>${itensHtml}</tbody>
+        </table>
+        <div style="text-align:right;margin-bottom:16px;font-size:13px">
+          ${Number(p.desconto)>0?`<p style="margin:2px 0;color:#2e7d32">Desconto: − ${fmt(p.desconto)}</p>`:''}
+          ${Number(p.frete)>0?`<p style="margin:2px 0;color:#555">Frete: ${fmt(p.frete)}</p>`:'<p style="margin:2px 0;color:#2e7d32">Frete grátis</p>'}
+          <p style="margin:4px 0 0;font-weight:700;font-size:15px;color:#1A2744">Total: ${fmt(p.total)}</p>
+        </div>
+        <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <label style="display:block;font-size:12px;color:#888;margin-bottom:6px;text-transform:uppercase">Atualizar Status</label>
+            <div style="display:flex;gap:8px">
+              <select id="modalStatusSelect" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px">${statusOptions}</select>
+              <button onclick="window._pedidosSalvarStatus('${pidSafe}')" style="padding:8px 14px;background:#1A2744;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Salvar</button>
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#888;margin-bottom:6px;text-transform:uppercase">Código de Rastreio</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="modalRastreioInput" value="${escHtml(p.codigo_rastreio||'')}" placeholder="Ex: BR123456789" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px">
+              <button onclick="window._pedidosSalvarRastreio('${pidSafe}')" style="padding:8px 14px;background:#C4934A;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Salvar</button>
+            </div>
+            ${p.codigo_rastreio?'<p style="margin:4px 0 0;font-size:11px;color:#22c55e">✓ Código registrado</p>':''}
           </div>
         </div>
-        <div>
-          <label style="display:block;font-size:12px;color:#888;margin-bottom:6px;text-transform:uppercase">Código de Rastreio</label>
-          <div style="display:flex;gap:8px">
-            <input type="text" id="modalRastreioInput" value="${p.codigo_rastreio||''}" placeholder="Ex: BR123456789" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px">
-            <button onclick="window._pedidosSalvarRastreio('${p.id}')" style="padding:8px 14px;background:#C4934A;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Salvar</button>
-          </div>
-          ${p.codigo_rastreio?`<p style="margin:4px 0 0;font-size:11px;color:#22c55e">✓ Código registrado</p>`:''}
-        </div>
-      </div>
-      <div id="pedidoModalFeedback" style="margin-top:12px;font-size:13px;min-height:20px"></div>`;
+        <div id="pedidoModalFeedback" style="margin-top:12px;font-size:13px;min-height:20px"></div>`;
+    } catch (err) {
+      body.innerHTML = `<p style="color:#ef4444;padding:16px">⚠️ Erro ao carregar pedido: ${escHtml(err.message)}</p>`;
+    }
   };
 
   window._pedidosSalvarStatus = async function (id) {

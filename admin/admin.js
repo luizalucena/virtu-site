@@ -1299,24 +1299,54 @@ async function carregarAvaliacoesAdmin() {
   }
 }
 
+// Conjunto de IDs de avaliações com operação em curso — previne race conditions
+const _avaliacaoOps = new Set();
+
 window.aprovarAvaliacao = async (id) => {
-  const { error } = await supabaseClient.from('avaliacoes').update({ aprovado: true }).eq('id', id);
-  if (error) { toast(error.message, 'error'); return; }
-  toast('Avaliação aprovada!');
-  carregarAvaliacoesAdmin();
+  const opKey = `aprovar-${id}`;
+  if (_avaliacaoOps.has(opKey)) return;
+  _avaliacaoOps.add(opKey);
+  try {
+    const { error } = await supabaseClient.from('avaliacoes').update({ aprovado: true }).eq('id', id);
+    if (error) throw error;
+    toast('Avaliação aprovada!');
+    carregarAvaliacoesAdmin();
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    _avaliacaoOps.delete(opKey);
+  }
 };
 
 window.destacarAvaliacao = async (id, destaque) => {
-  const { error } = await supabaseClient.from('avaliacoes').update({ destaque }).eq('id', id);
-  if (error) { toast(error.message, 'error'); return; }
-  toast(destaque ? '⭐ Adicionado à home!' : 'Removido da home');
-  carregarAvaliacoesAdmin();
+  const opKey = `destacar-${id}`;
+  if (_avaliacaoOps.has(opKey)) return;
+  _avaliacaoOps.add(opKey);
+  try {
+    const { error } = await supabaseClient.from('avaliacoes').update({ destaque }).eq('id', id);
+    if (error) throw error;
+    toast(destaque ? '⭐ Adicionado à home!' : 'Removido da home');
+    carregarAvaliacoesAdmin();
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    _avaliacaoOps.delete(opKey);
+  }
 };
 
 window.excluirAvaliacao = async (id) => {
   if (!confirm('Excluir esta avaliação?')) return;
-  const { error } = await supabaseClient.from('avaliacoes').delete().eq('id', id);
-  if (error) { toast(error.message, 'error'); return; }
-  toast('Avaliação excluída');
-  document.getElementById(`av-row-${id}`)?.remove();
+  const opKey = `excluir-av-${id}`;
+  if (_avaliacaoOps.has(opKey)) return;
+  _avaliacaoOps.add(opKey);
+  try {
+    const { error } = await supabaseClient.from('avaliacoes').delete().eq('id', id);
+    if (error) throw error;
+    toast('Avaliação excluída');
+    document.getElementById(`av-row-${id}`)?.remove();
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    _avaliacaoOps.delete(opKey);
+  }
 };

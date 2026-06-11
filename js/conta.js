@@ -194,17 +194,23 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Entrando…';
 
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      const msg = error.message?.includes('Invalid login credentials')
-        ? 'E-mail ou senha incorretos.'
-        : error.message;
-      showMsg(msgEl, msg, 'erro');
+      if (error) {
+        const msg = error.message?.includes('Invalid login credentials')
+          ? 'E-mail ou senha incorretos.'
+          : error.message;
+        showMsg(msgEl, msg, 'erro');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+      // Se sucesso: onAuthStateChange oculta a seção de auth automaticamente
+    } catch (err) {
+      showMsg(msgEl, 'Erro de conexão. Tente novamente.', 'erro');
       btn.disabled = false;
       btn.textContent = 'Entrar';
     }
-    // onAuthStateChange handles the rest
   });
 
   // ── SIGNUP ──────────────────────────────────────────────────
@@ -600,67 +606,71 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled    = true;
     btn.textContent = 'Salvando…';
 
-    const novoEmail = dadosEmail?.value.trim();
-    // Só altera email se o campo foi preenchido com um valor diferente do atual
-    const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
-    const emailMudou = novoEmail && novoEmail !== currentUser?.email;
+    try {
+      const novoEmail = dadosEmail?.value.trim();
+      // Só altera email se o campo foi preenchido com um valor diferente do atual
+      const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
+      const emailMudou = novoEmail && novoEmail !== currentUser?.email;
 
-    const updates = { data: { nome, telefone } };
-    if (senha)      updates.password = senha;
-    if (emailMudou) updates.email    = novoEmail;
+      const updates = { data: { nome, telefone } };
+      if (senha)      updates.password = senha;
+      if (emailMudou) updates.email    = novoEmail;
 
-    const { error } = await supabaseClient.auth.updateUser(updates);
+      const { error } = await supabaseClient.auth.updateUser(updates);
 
-    if (error) {
-      showMsg(dadosMsg, error.message, 'erro');
-    } else {
-      // Salva CPF e WhatsApp em clientes_perfil
-      // Se o campo CPF estiver vazio, usa o valor original armazenado (LGPD: campo mostra mascarado)
-      const cpfEl2   = document.getElementById('dadosCpf');
-      const cpfTyped = cpfEl2?.value.trim();
-      const cpf      = cpfTyped || cpfEl2?.dataset.cpfOriginal || null;
-      const whatsapp = telefone || null;
-      if (currentUser && (cpf || whatsapp || nome)) {
-        try {
-          await supabaseClient
-            .from('clientes_perfil')
-            .upsert({
-              id:       currentUser.id,
-              nome:     nome   || null,
-              cpf:      cpf,
-              whatsapp: whatsapp,
-            }, { onConflict: 'id' });
-        } catch { /* não bloqueia */ }
+      if (error) {
+        showMsg(dadosMsg, error.message, 'erro');
+      } else {
+        // Salva CPF e WhatsApp em clientes_perfil
+        // Se o campo CPF estiver vazio, usa o valor original armazenado (LGPD: campo mostra mascarado)
+        const cpfEl2   = document.getElementById('dadosCpf');
+        const cpfTyped = cpfEl2?.value.trim();
+        const cpf      = cpfTyped || cpfEl2?.dataset.cpfOriginal || null;
+        const whatsapp = telefone || null;
+        if (currentUser && (cpf || whatsapp || nome)) {
+          try {
+            await supabaseClient
+              .from('clientes_perfil')
+              .upsert({
+                id:       currentUser.id,
+                nome:     nome   || null,
+                cpf:      cpf,
+                whatsapp: whatsapp,
+              }, { onConflict: 'id' });
+          } catch { /* não bloqueia */ }
+        }
+
+        const msgEmail = emailMudou
+          ? ' Verifique o novo e-mail para confirmar a alteração.'
+          : '';
+        showMsg(dadosMsg, 'Dados atualizados com sucesso!' + msgEmail, 'ok');
+        if (dadosSenha)     dadosSenha.value     = '';
+        if (dadosSenhaConf) dadosSenhaConf.value = '';
+
+        // Mantém o email que o usuário digitou no campo (não deixa voltar o antigo)
+        if (dadosEmail && emailMudou) {
+          dadosEmail.value = novoEmail;
+          dadosEmail.dataset.userEdited = '1'; // continua protegido contra sobrescrita
+        } else if (dadosEmail) {
+          delete dadosEmail.dataset.userEdited;
+        }
+
+        // Update sidebar name
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+          const nomeAtualizado = (user.user_metadata?.nome || '').trim() || 'Cliente';
+          if (sidebarName) sidebarName.textContent = nomeAtualizado;
+          const newInitials = nomeAtualizado.split(/\s+/).filter(Boolean).slice(0,2).map(w => w.charAt(0).toUpperCase()).join('');
+          const initialsEl2 = document.getElementById('sidebarInitials');
+          if (initialsEl2) initialsEl2.textContent = newInitials;
+        }
       }
-
-      const msgEmail = emailMudou
-        ? ' Verifique o novo e-mail para confirmar a alteração.'
-        : '';
-      showMsg(dadosMsg, 'Dados atualizados com sucesso!' + msgEmail, 'ok');
-      if (dadosSenha)     dadosSenha.value     = '';
-      if (dadosSenhaConf) dadosSenhaConf.value = '';
-
-      // Mantém o email que o usuário digitou no campo (não deixa voltar o antigo)
-      if (dadosEmail && emailMudou) {
-        dadosEmail.value = novoEmail;
-        dadosEmail.dataset.userEdited = '1'; // continua protegido contra sobrescrita
-      } else if (dadosEmail) {
-        delete dadosEmail.dataset.userEdited;
-      }
-
-      // Update sidebar name
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        const nomeAtualizado = (user.user_metadata?.nome || '').trim() || 'Cliente';
-        if (sidebarName) sidebarName.textContent = nomeAtualizado;
-        const newInitials = nomeAtualizado.split(/\s+/).filter(Boolean).slice(0,2).map(w => w.charAt(0).toUpperCase()).join('');
-        const initialsEl2 = document.getElementById('sidebarInitials');
-        if (initialsEl2) initialsEl2.textContent = newInitials;
-      }
+    } catch (err) {
+      showMsg(dadosMsg, 'Erro de conexão. Tente novamente.', 'erro');
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Salvar Alterações';
     }
-
-    btn.disabled    = false;
-    btn.textContent = 'Salvar Alterações';
   });
 
   // ── NAVBAR SCROLL ───────────────────────────────────────────

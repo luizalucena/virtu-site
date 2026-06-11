@@ -16,6 +16,10 @@ let _csvHeaders= [];
 const fmt = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
 
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function mesAtual() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -217,24 +221,32 @@ async function carregarTabela() {
     return;
   }
 
-  tbody.innerHTML = _allRows.map(r => `
+  // Tipos e origens permitidos — usados na classe CSS (evita injeção de classes)
+  const TIPOS_VALIDOS   = new Set(['entrada', 'saida']);
+  const ORIGENS_VALIDAS = new Set(['manual', 'planilha', 'pedido']);
+
+  tbody.innerHTML = _allRows.map(r => {
+    const tipoSafe   = TIPOS_VALIDOS.has(r.tipo)     ? r.tipo   : 'saida';
+    const origemSafe = ORIGENS_VALIDAS.has(r.origem)  ? r.origem : 'manual';
+    return `
     <tr>
       <td>${fmtDate(r.data_lancamento)}</td>
-      <td><span class="fin-badge fin-badge--${r.tipo}">${r.tipo === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
-      <td>${r.descricao}</td>
-      <td>${r.categoria}</td>
-      <td><span class="fin-badge fin-badge--${r.origem}">${r.origem}</span></td>
-      <td style="text-align:right" class="fin-valor--${r.tipo}">${r.tipo === 'entrada' ? '+' : '−'} ${fmt(r.valor)}</td>
+      <td><span class="fin-badge fin-badge--${tipoSafe}">${tipoSafe === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
+      <td>${escHtml(r.descricao)}</td>
+      <td>${escHtml(r.categoria)}</td>
+      <td><span class="fin-badge fin-badge--${origemSafe}">${escHtml(r.origem)}</span></td>
+      <td style="text-align:right" class="fin-valor--${tipoSafe}">${tipoSafe === 'entrada' ? '+' : '−'} ${fmt(r.valor)}</td>
       <td>
-        ${r.origem === 'manual' ? `
-          <button class="fin-delete-btn" data-id="${r.id}" title="Excluir lançamento">
+        ${origemSafe === 'manual' ? `
+          <button class="fin-delete-btn" data-id="${escHtml(r.id)}" title="Excluir lançamento">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
               <path d="M9 6V4h6v2"/>
             </svg>
           </button>` : ''}
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   // Eventos de exclusão
   tbody.querySelectorAll('.fin-delete-btn').forEach(btn => {
