@@ -13,11 +13,24 @@ const MP_PUBLIC_KEY = 'APP_USR-757eb00b-89bd-4f45-85e3-5c183644a3bd';
 const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/processar-pagamento';
 
 // ── CONSTANTES DE FRETE ──────────────────────────────────────
-const FRETE_STANDARD  = 10.00;  // Entrega padrão em João Pessoa / Grande JP
-const FRETE_NORDESTE  = 18.00;  // Entrega padrão no restante do Nordeste
-const FRETE_MOTOBOY   = 15.00;  // Motoboy em João Pessoa
-const CEP_JP_MIN      = 58000000; // João Pessoa cidade (motoboy + FRETEGRATIS válido)
-const CEP_JP_MAX      = 58099999;
+// Valores de referência (cálculo real feito pelo Edge Function calcular-frete)
+const FRETE_STANDARD  = 0;     // Grande JP: grátis
+const FRETE_NORDESTE  = 18.00; // Restante do Nordeste
+const FRETE_MOTOBOY   = 15.00; // Motoboy expresso em João Pessoa
+
+// Grande JP — frete grátis: João Pessoa, Cabedelo, Santa Rita, Bayeux, Conde
+const GRANDE_JP_RANGES = [
+  { min: 58000000, max: 58099999 }, // João Pessoa
+  { min: 58102000, max: 58109999 }, // Cabedelo
+  { min: 58300000, max: 58339999 }, // Santa Rita
+  { min: 58400000, max: 58419999 }, // Bayeux
+  { min: 58065000, max: 58066999 }, // Conde
+];
+function isGrandeJP(cep) {
+  const n = parseInt(String(cep).replace(/\D/g, ''), 10);
+  return GRANDE_JP_RANGES.some(r => n >= r.min && n <= r.max);
+}
+
 const NORDESTE_STATES = ['AL','BA','CE','MA','PB','PE','PI','RN','SE'];
 
 // ── ESTADO GLOBAL DO CHECKOUT ───────────────────────────────
