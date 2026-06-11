@@ -3,6 +3,16 @@
    Supabase Auth: login, cadastro, logout, pedidos, dados
    ============================================================ */
 
+// XSS prevention helper
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── REFS ────────────────────────────────────────────────────
@@ -288,10 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pedidosList.innerHTML = '<p style="color:var(--color-text-light);font-size:0.88rem">Carregando pedidos…</p>';
 
+    const emailLower = email.toLowerCase();
     const { data: pedidos, error } = await supabaseClient
       .from('pedidos')
       .select('*')
-      .eq('email_cliente', email.toLowerCase())
+      .or(`email_cliente.eq.${emailLower},cliente_email.eq.${emailLower}`)
       .order('criado_em', { ascending: false });
 
     if (error) {
@@ -338,14 +349,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const itensHtml = itens.map(it => `
       <div class="conta-pedido__item">
         <div class="conta-pedido__item-img"
-          style="${(it.imagem_url || it.imagem) ? `background-image:url('${it.imagem_url || it.imagem}');background-size:cover;background-position:center` : ''}">
+          style="${(it.imagem_url || it.imagem) ? `background-image:url('${escHtml(it.imagem_url || it.imagem)}');background-size:cover;background-position:center` : ''}">
         </div>
         <div>
-          <div class="conta-pedido__item-name">${it.nome || it.name || 'Produto'}</div>
+          <div class="conta-pedido__item-name">${escHtml(it.nome || it.name || 'Produto')}</div>
           <div class="conta-pedido__item-meta">
-            ${it.tamanho ? `Tam: ${it.tamanho}` : ''}
-            ${it.cor_nome || it.cor ? ` · Cor: ${it.cor_nome || it.cor}` : ''}
-            ${(it.qty || it.quantidade) ? ` · Qtd: ${it.qty || it.quantidade}` : ''}
+            ${it.tamanho ? `Tam: ${escHtml(it.tamanho)}` : ''}
+            ${it.cor_nome || it.cor ? ` · Cor: ${escHtml(it.cor_nome || it.cor)}` : ''}
+            ${(it.qty || it.quantidade) ? ` · Qtd: ${escHtml(String(it.qty || it.quantidade))}` : ''}
           </div>
         </div>
       </div>`).join('');

@@ -164,6 +164,24 @@ async function handleAcao(acao, id) {
 
     if (error) throw error;
 
+    // Registra entrada no fluxo de caixa quando peça é vendida
+    if (acao === 'vender') {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const { error: fcErr } = await supabaseClient.from('fluxo_caixa').insert({
+        tipo:             'entrada',
+        valor:            Number(peca.valor_virtu) || 0,
+        descricao:        `Bazar — venda ${peca.sku}: ${peca.descricao}`,
+        categoria:        'bazar',
+        data_lancamento:  hoje,
+        origem:           'bazar',
+        fonte_id:         peca.id,
+      });
+      if (fcErr) {
+        // Não bloqueia o fluxo principal, mas avisa
+        console.warn('[Bazar] fluxo_caixa insert error:', fcErr.message);
+      }
+    }
+
     // Atualiza cache local imediatamente
     const idx = _todasPecas.findIndex(p => p.id === id);
     if (idx !== -1) _todasPecas[idx] = { ..._todasPecas[idx], status: novoStatus, ...campo };
@@ -187,7 +205,7 @@ function bindEventos() {
     document.getElementById(id)?.addEventListener('change', renderTabela);
   });
 
-  document.getElementById('btnGerararRelatorio')?.addEventListener('click', gerarRelatorio);
+  document.getElementById('btnGerarRelatorio')?.addEventListener('click', gerarRelatorio);
   document.getElementById('btnExportarRelatorio')?.addEventListener('click', exportarRelatorioCSV);
 }
 

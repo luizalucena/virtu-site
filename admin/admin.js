@@ -647,7 +647,7 @@ async function deleteProduct(id) {
 
     DB.produtos = DB.produtos.filter(x => x.id !== id);
     renderTable();
-    toast(`"${p.nome}" excluído`, 'error');
+    toast(`"${p.nome}" excluído`);
     setStatus('info', `ℹ️ "${p.nome}" removido do banco de dados.`);
   } catch (e) {
     toast(`Erro: ${e.message}`, 'error');
@@ -1230,32 +1230,49 @@ async function carregarAvaliacoesAdmin() {
     </tbody>
   </table>`;
 
-  // Filtro
-  filtroEl?.addEventListener('change', carregarAvaliacoesAdmin, { once: true });
+  // Filtro — registra listener apenas uma vez (evita duplicatas sem { once })
+  if (filtroEl && !filtroEl.dataset.avListenerBound) {
+    filtroEl.dataset.avListenerBound = '1';
+    filtroEl.addEventListener('change', carregarAvaliacoesAdmin);
+  }
 
-  // Botão nova avaliação
-  document.getElementById('btnNovaAvaliacao')?.addEventListener('click', () => {
-    const modal = document.getElementById('modalAvaliacao');
-    if (modal) { modal.style.display = 'flex'; }
-  }, { once: true });
-  document.getElementById('btnFecharModalAv')?.addEventListener('click', () => {
-    document.getElementById('modalAvaliacao').style.display = 'none';
-  }, { once: true });
-  document.getElementById('btnSalvarAvaliacao')?.addEventListener('click', async () => {
-    const produto_id   = document.getElementById('avAdmProduto')?.value.trim();
-    const nome_cliente = document.getElementById('avAdmNome')?.value.trim();
-    const foto_cliente = document.getElementById('avAdmFoto')?.value.trim() || null;
-    const nota         = parseInt(document.getElementById('avAdmNota')?.value || '5');
-    const comentario   = document.getElementById('avAdmComentario')?.value.trim();
-    const aprovado     = document.getElementById('avAdmAprovado')?.checked;
-    const destaque     = document.getElementById('avAdmDestaque')?.checked;
-    if (!produto_id || !nome_cliente) { toast('Preencha produto ID e nome', 'error'); return; }
-    const { error } = await supabaseClient.from('avaliacoes').insert({ produto_id, nome_cliente, foto_cliente, nota, comentario, aprovado, destaque });
-    if (error) { toast(error.message, 'error'); return; }
-    toast('Avaliação adicionada!');
-    document.getElementById('modalAvaliacao').style.display = 'none';
-    carregarAvaliacoesAdmin();
-  }, { once: true });
+  // Botões do modal — registra cada listener apenas uma vez
+  const btnNovaAv = document.getElementById('btnNovaAvaliacao');
+  if (btnNovaAv && !btnNovaAv.dataset.avListenerBound) {
+    btnNovaAv.dataset.avListenerBound = '1';
+    btnNovaAv.addEventListener('click', () => {
+      const modal = document.getElementById('modalAvaliacao');
+      if (modal) { modal.style.display = 'flex'; }
+    });
+  }
+
+  const btnFecharAv = document.getElementById('btnFecharModalAv');
+  if (btnFecharAv && !btnFecharAv.dataset.avListenerBound) {
+    btnFecharAv.dataset.avListenerBound = '1';
+    btnFecharAv.addEventListener('click', () => {
+      document.getElementById('modalAvaliacao').style.display = 'none';
+    });
+  }
+
+  const btnSalvarAv = document.getElementById('btnSalvarAvaliacao');
+  if (btnSalvarAv && !btnSalvarAv.dataset.avListenerBound) {
+    btnSalvarAv.dataset.avListenerBound = '1';
+    btnSalvarAv.addEventListener('click', async () => {
+      const produto_id   = document.getElementById('avAdmProduto')?.value.trim();
+      const nome_cliente = document.getElementById('avAdmNome')?.value.trim();
+      const foto_cliente = document.getElementById('avAdmFoto')?.value.trim() || null;
+      const nota         = parseInt(document.getElementById('avAdmNota')?.value || '5');
+      const comentario   = document.getElementById('avAdmComentario')?.value.trim();
+      const aprovado     = document.getElementById('avAdmAprovado')?.checked;
+      const destaque     = document.getElementById('avAdmDestaque')?.checked;
+      if (!produto_id || !nome_cliente) { toast('Preencha produto ID e nome', 'error'); return; }
+      const { error } = await supabaseClient.from('avaliacoes').insert({ produto_id, nome_cliente, foto_cliente, nota, comentario, aprovado, destaque });
+      if (error) { toast(error.message, 'error'); return; }
+      toast('Avaliação adicionada!');
+      document.getElementById('modalAvaliacao').style.display = 'none';
+      carregarAvaliacoesAdmin();
+    });
+  }
 }
 
 window.aprovarAvaliacao = async (id) => {

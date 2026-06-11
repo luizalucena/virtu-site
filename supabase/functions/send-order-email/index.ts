@@ -2,12 +2,17 @@
  * send-order-email — Virtù
  * Dispara dois e-mails automáticos após confirmação de pedido:
  *   1. Para o cliente: confirmação premium com itens e link de rastreio
- *   2. Para a loja (wearvirtu@gmail.com): notificação imediata de novo pedido
+ *   2. Para a loja (wearvirtu@gmail.com): notificação de novo pedido PAGO
  *
- * Chamado por processar-pagamento após salvar o pedido no Supabase.
+ * Pode ser chamado com dados completos (de processar-pagamento) ou apenas
+ * com { pedido_id, status } (de pix-webhook) — neste caso busca os dados no DB.
+ *
+ * Chamado por:
+ *   - processar-pagamento: após confirmar pagamento (status pago ou pendente)
+ *   - pix-webhook: após PIX confirmado (status pago)
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -18,7 +23,7 @@ const SITE_URL    = 'https://wearvirtu.com';
 const STORE_EMAIL = 'wearvirtu@gmail.com';
 const FROM_EMAIL  = 'Virtù <notificacoes@wearvirtu.com>';
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -26,26 +31,70 @@ serve(async (req) => {
   try {
     const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
     if (!RESEND_KEY) {
-      return new Response(
-        JSON.stringify({ erro: 'RESEND_API_KEY não configurada.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-      );
+      return json({ erro: 'RESEND_API_KEY não configurada.' }, 500);
     }
 
     const body = await req.json();
-    const {
+
+    // ── Resolve dados do pedido ──────────────────────────────────────
+    // Se só veio pedido_id (chamada do pix-webhook), busca tudo no banco.
+    let {
       pedido_id,
-      cliente,        // { nome, email, cpf, telefone }
-      endereco,       // { cep, rua, numero, complemento, bairro, cidade, estado }
-      itens,          // array de itens do carrinho
+      cliente,
+      endereco,
+      itens,
       total,
       subtotal,
       frete,
       desconto,
       metodo_pagamento,
       parcelas,
-      status,         // 'pago' | 'pendente' | 'recusado'
+      status,
     } = body;
+
+    if (pedido_id && !itens) {
+      // Sem itens → chamada mínima do webhook; busca dados completos no DB
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+
+      const { data: pedido, error } = await supabase
+        .from('pedidos')
+        .select('*')
+        .eq('id', pedido_id)
+        .single();
+
+      if (error || !pedido) {
+        console.error('[send-order-email] Pedido não encontrado:', pedido_id, error?.message);
+        return json({ erro: 'Pedido não encontrado no banco' }, 404);
+      }
+
+      // Mapeia colunas do banco para o formato esperado pelo template
+      itens             = pedido.itens || [];
+      total             = pedido.total;
+      subtotal          = pedido.subtotal;
+      frete             = pedido.frete;
+      desconto          = pedido.desconto;
+      metodo_pagamento  = pedido.payment_method || pedido.metodo_pagamento;
+      parcelas          = pedido.parcelas;
+      status            = status || pedido.status; // usa status do body se fornecido
+      cliente = {
+        nome:     pedido.cliente_nome  || pedido.nome_cliente,
+        email:    pedido.cliente_email || pedido.email_cliente,
+        cpf:      pedido.cpf_cliente,
+        telefone: pedido.cliente_telefone || pedido.telefone,
+      };
+      endereco = {
+        cep:         pedido.cep,
+        rua:         pedido.rua,
+        numero:      pedido.numero,
+        complemento: pedido.complemento,
+        bairro:      pedido.bairro,
+        cidade:      pedido.cidade,
+        estado:      pedido.estado,
+      };
+    }
 
     const fmtBRL = (v: number) =>
       Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -60,8 +109,7 @@ serve(async (req) => {
     const primeiroNome = (cliente?.nome || 'Cliente').split(' ')[0];
     const rastreioUrl  = `${SITE_URL}/rastreio.html?id=${pedido_id}`;
 
-    // ── 1. E-mail premium para o cliente ─────────────────────────
-
+    // ── 1. E-mail premium para o cliente ────────────────────────────
     const itensHtmlCliente = (itens ?? []).map((it: Record<string, unknown>) => `
       <tr>
         <td style="padding:12px 8px;border-bottom:1px solid #f0ebe4">
@@ -201,8 +249,7 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    // ── 2. E-mail de notificação para a loja ──────────────────────
-
+    // ── 2. E-mail de notificação para a loja ────────────────────────
     const itensHtmlLoja = (itens ?? []).map((it: Record<string, unknown>) => `
       <tr>
         <td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:13px;color:#333">${it.nome || it.name || 'Produto'}</td>
@@ -276,7 +323,7 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    // ── Disparar os e-mails ───────────────────────────────────────
+    // ── Disparar os e-mails ──────────────────────────────────────────
     const emails: Promise<Response>[] = [];
 
     // E-mail para o cliente: apenas quando pedido pago E cliente tem e-mail
@@ -296,37 +343,47 @@ serve(async (req) => {
       }));
     }
 
-    // E-mail para a loja: sempre (independente do status)
-    emails.push(fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_KEY}`,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({
-        from:    FROM_EMAIL,
-        to:      [STORE_EMAIL],
-        subject: `🛍️ Novo pedido #${pedidoNum} — ${fmtBRL(Number(total))} (${metodoPagto})`,
-        html:    htmlLoja,
-      }),
-    }));
+    // E-mail para a loja: APENAS quando pedido pago
+    // (evita e-mail duplicado: PIX pendente → PIX confirmado)
+    if (status === 'pago') {
+      emails.push(fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_KEY}`,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({
+          from:    FROM_EMAIL,
+          to:      [STORE_EMAIL],
+          subject: `🛍️ Novo pedido #${pedidoNum} — ${fmtBRL(Number(total))} (${metodoPagto})`,
+          html:    htmlLoja,
+        }),
+      }));
+    }
+
+    if (emails.length === 0) {
+      // Status não é 'pago' (ex: pendente) — nenhum e-mail enviado ainda
+      console.log(`[send-order-email] Status '${status}' — nenhum e-mail enviado (aguardando confirmação)`);
+      return json({ ok: true, enviados: 0, msg: 'Aguardando confirmação de pagamento' });
+    }
 
     const results = await Promise.allSettled(emails);
     const errors = results
       .filter(r => r.status === 'rejected')
       .map(r => (r as PromiseRejectedResult).reason?.message ?? 'Erro desconhecido');
 
-    return new Response(
-      JSON.stringify({ ok: true, enviados: emails.length, erros: errors.length ? errors : undefined }),
-      { headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-    );
+    return json({ ok: true, enviados: emails.length, erros: errors.length ? errors : undefined });
 
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[send-order-email]', message);
-    return new Response(
-      JSON.stringify({ erro: message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-    );
+    return json({ erro: message }, 500);
   }
 });
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
