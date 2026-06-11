@@ -2,6 +2,10 @@
  * VIRTÙ — Edge Function: processar-pagamento
  * Recebe dados do checkout, chama o Mercado Pago e salva o pedido no Supabase.
  *
+ * Segurança:
+ *   - Cartão: aceita apenas token gerado pelo MP SDK no browser (PCI-DSS)
+ *   - Preços: recalculados no servidor a partir do banco (anti-tampering)
+ *
  * Variáveis de ambiente necessárias (Supabase Secrets):
  *   MP_ACCESS_TOKEN   — Token privado do MP (nunca vai ao frontend)
  *   SUPABASE_URL      — Injetada automaticamente pelo Supabase
@@ -25,22 +29,19 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       tipo,        // 'pix' | 'cartao'
-      total,       // number — valor final em R$
-      subtotal,
-      frete,
-      desconto,
-      itens,       // array do carrinho
+      subtotal,    // valor informado pelo cliente (usado apenas para log)
+      frete,       // frete informado pelo cliente
+      desconto,    // desconto informado pelo cliente
+      itens,       // array do carrinho (id, qty, variacao_id, preco)
       cliente,     // { nome, email, cpf, telefone }
       endereco,    // { cep, rua, numero, complemento, bairro, cidade, estado }
       // apenas para cartão:
-      token,       // string — token gerado pelo MP SDK no frontend
+      token,       // string — token gerado pelo MP SDK no browser (PCI-compliant)
       parcelas,    // number — 1..12
-      // apenas para cartão (enviado pelo frontend):
-      dadosCartao,  // { numero, mes, ano, cvv, nome, cpf }
     } = body;
 
-    // ── Validações básicas ──────────────────────────────
-    if (!tipo || !total || !cliente?.email) {
+    // ── Validações básicas ──────────────────────────────────
+    if (!tipo || !cliente?.email) {
       return json({ erro: 'Dados incompletos.' }, 400);
     }
 
@@ -49,12 +50,66 @@ Deno.serve(async (req) => {
       return json({ erro: 'Gateway não configurado.' }, 500);
     }
 
-    // ── Monta pagamento para o Mercado Pago ────────────
+    // ── Supabase client (service role) ─────────────────────
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+
+    // ── Recálculo server-side do total (anti-tampering) ────
+    // Busca preços reais no banco para todos os produtos do carrinho.
+    // Ignora o campo `total` enviado pelo cliente.
+    let serverSubtotal = 0;
+
+    if (itens?.length) {
+      const productIds = (itens as any[]).map((i) => i.id).filter(Boolean);
+
+      if (productIds.length > 0) {
+        const { data: produtos } = await supabase
+          .from('produtos')
+          .select('id, preco_original, preco_desconto')
+          .in('id', productIds);
+
+        const priceMap: Record<string, number> = {};
+        for (const p of produtos ?? []) {
+          priceMap[p.id] = Number(p.preco_desconto ?? p.preco_original) || 0;
+        }
+
+        for (const item of itens as any[]) {
+          const serverPrice = priceMap[item.id];
+          if (serverPrice === undefined) continue; // produto não encontrado — ignora
+          serverSubtotal += serverPrice * (Number(item.qty) || 1);
+        }
+      }
+    }
+
+    // Se nenhum produto foi encontrado (fallback: usa subtotal do cliente com aviso)
+    if (serverSubtotal === 0 && subtotal) {
+      console.warn('[processar-pagamento] Preços não encontrados no banco — usando subtotal do cliente:', subtotal);
+      serverSubtotal = Number(subtotal);
+    }
+
+    const freteNum    = Number(frete   ?? 0);
+    const descontoNum = Number(desconto ?? 0);
+
+    // Desconto de 5% PIX aplicado sobre o subtotal limpo (sem frete)
+    const descontoTotal = tipo === 'pix'
+      ? Math.round((descontoNum + (serverSubtotal - descontoNum) * 0.05) * 100) / 100
+      : descontoNum;
+
+    const totalBruto  = Math.max(0, serverSubtotal - descontoTotal) + freteNum;
+    const serverTotal = Math.round(totalBruto * 100) / 100;
+
+    if (serverTotal <= 0) {
+      return json({ erro: 'Valor do pedido inválido.' }, 400);
+    }
+
+    // ── Monta pagamento para o Mercado Pago ────────────────
     const [firstName, ...rest] = (cliente.nome || 'Cliente').split(' ');
     const lastName = rest.join(' ') || firstName;
 
     const paymentBody: Record<string, unknown> = {
-      transaction_amount: Number(Number(total).toFixed(2)),
+      transaction_amount: serverTotal,
       description: `Pedido Virtù — ${itens?.length ?? 0} item(s)`,
       external_reference: crypto.randomUUID(),
       payer: {
@@ -73,49 +128,24 @@ Deno.serve(async (req) => {
       paymentBody.payment_type_id   = 'bank_transfer';
 
     } else if (tipo === 'cartao') {
-      if (!dadosCartao) return json({ erro: 'Dados do cartão ausentes.' }, 400);
+      // Token gerado pelo MP SDK no browser — dados brutos do cartão
+      // nunca chegam ao nosso servidor (PCI-DSS).
+      if (!token) return json({ erro: 'Token do cartão ausente. Recarregue a página.' }, 400);
 
-      // Tokeniza o cartão no servidor (evita CORS no browser)
-      const tokenRes = await fetch('https://api.mercadopago.com/v1/card_tokens', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${MP_TOKEN}`,
-          'Content-Type':  'application/json',
-        },
-        body: JSON.stringify({
-          card_number:       dadosCartao.numero.replace(/\s/g, ''),
-          expiration_month:  Number(dadosCartao.mes),
-          expiration_year:   Number(dadosCartao.ano),
-          security_code:     dadosCartao.cvv,
-          cardholder: {
-            name: dadosCartao.nome,
-            identification: {
-              type:   'CPF',
-              number: (dadosCartao.cpf || cliente.cpf || '').replace(/\D/g, ''),
-            },
-          },
-        }),
-      });
-
-      const tokenData = await tokenRes.json();
-      if (!tokenRes.ok || !tokenData.id) {
-        console.error('[MP Token Error]', JSON.stringify(tokenData));
-        return json({ erro: tokenData.cause?.[0]?.description || 'Erro ao validar cartão.' }, 400);
-      }
-
-      paymentBody.token          = tokenData.id;
+      paymentBody.token           = token;
       paymentBody.payment_type_id = 'credit_card';
       paymentBody.installments    = Number(parcelas) || 1;
+
     } else {
       return json({ erro: 'Tipo de pagamento inválido.' }, 400);
     }
 
-    // ── Chama o Mercado Pago ────────────────────────────
+    // ── Chama o Mercado Pago ────────────────────────────────
     const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
-        'Authorization':  `Bearer ${MP_TOKEN}`,
-        'Content-Type':   'application/json',
+        'Authorization':     `Bearer ${MP_TOKEN}`,
+        'Content-Type':      'application/json',
         'X-Idempotency-Key': crypto.randomUUID(),
       },
       body: JSON.stringify(paymentBody),
@@ -131,12 +161,7 @@ Deno.serve(async (req) => {
       }, 502);
     }
 
-    // ── Salva pedido no Supabase ────────────────────────
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-
+    // ── Salva pedido no Supabase ────────────────────────────
     const statusPedido =
       mpData.status === 'approved' ? 'pago' :
       mpData.status === 'rejected' ? 'recusado' : 'pendente';
@@ -148,10 +173,10 @@ Deno.serve(async (req) => {
         payment_id:     String(mpData.id),
         payment_method: tipo,
         payment_status: mpData.status,
-        subtotal:       subtotal ?? total,
-        frete:          frete ?? 0,
-        desconto:       desconto ?? 0,
-        total,
+        subtotal:       serverSubtotal,
+        frete:          freteNum,
+        desconto:       descontoTotal,
+        total:          serverTotal,
         cep:              endereco?.cep,
         rua:              endereco?.rua,
         numero:           endereco?.numero,
@@ -191,10 +216,10 @@ Deno.serve(async (req) => {
       if (decrements.length > 0) await Promise.allSettled(decrements);
     }
 
-    //  ── Notificação por e-mail (via send-order-email) ──
+    // ── Notificação por e-mail (via send-order-email) ───────
     try {
-      const SUPABASE_URL  = Deno.env.get('SUPABASE_URL');
-      const ANON_KEY      = Deno.env.get('SUPABASE_ANON_KEY');
+      const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+      const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
       if (SUPABASE_URL && ANON_KEY && pedido?.id) {
         // Delega toda lógica de e-mail (cliente + loja) para a Edge Function dedicada
         fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
@@ -208,18 +233,17 @@ Deno.serve(async (req) => {
             cliente,
             endereco,
             itens,
-            total,
-            subtotal,
-            frete,
-            desconto,
+            total:            serverTotal,
+            subtotal:         serverSubtotal,
+            frete:            freteNum,
+            desconto:         descontoTotal,
             metodo_pagamento: tipo,
             parcelas,
             status:           statusPedido,
           }),
         }).catch(e => console.error('[Email dispatch]', e));
 
-        // ── Notificação WhatsApp para admin (Z-API) ──────
-        // Fire-and-forget: não bloqueia nem quebra o fluxo do pedido
+        // ── Notificação WhatsApp para admin (Z-API) ──────────
         fetch(`${SUPABASE_URL}/functions/v1/notificar-pedido-admin`, {
           method:  'POST',
           headers: {
@@ -230,147 +254,25 @@ Deno.serve(async (req) => {
             pedido_id:        pedido.id,
             status:           statusPedido,
             metodo_pagamento: tipo,
-            total,
-            subtotal,
-            frete,
-            desconto,
+            total:            serverTotal,
+            subtotal:         serverSubtotal,
+            frete:            freteNum,
+            desconto:         descontoTotal,
             itens,
             cliente,
             endereco,
           }),
         }).catch(e => console.error('[WhatsApp dispatch]', e));
       }
-      // ─── BLOCO LEGADO REMOVIDO ─── (substituído por send-order-email)
-      if (false) {
-        const fmtBRL = (v: number) =>
-          Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-        const metodoPagto =
-          tipo === 'pix'    ? 'PIX' :
-          tipo === 'cartao' ? `Cartão de crédito${parcelas > 1 ? ` (${parcelas}x)` : ''}` : tipo;
-
-        const statusLabel =
-          statusPedido === 'pago'     ? '✅ Pago' :
-          statusPedido === 'recusado' ? '❌ Recusado' : '⏳ Pendente';
-
-        const itensHtml = (itens ?? []).map((it: Record<string, unknown>) => `
-          <tr>
-            <td style="padding:6px 8px;border-bottom:1px solid #eee">${it.nome || it.name || 'Produto'}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center">${it.tamanho || '—'}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center">${it.qty || it.quantidade || 1}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${fmtBRL(Number(it.preco || 0))}</td>
-          </tr>`).join('');
-
-        const html = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;font-family:Georgia,serif;background:#f5f2ee">
-  <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)">
-    <!-- Header -->
-    <div style="background:#1A2744;padding:28px 32px;text-align:center">
-      <p style="margin:0;color:#C4934A;font-size:22px;letter-spacing:4px;font-style:italic">VIRTÙ</p>
-      <p style="margin:8px 0 0;color:#fff;font-size:13px;letter-spacing:1px">NOVO PEDIDO RECEBIDO</p>
-    </div>
-    <!-- Body -->
-    <div style="padding:28px 32px">
-      <p style="margin:0 0 4px;font-size:13px;color:#888">Pedido</p>
-      <p style="margin:0 0 20px;font-size:18px;font-weight:bold;color:#1A2744">#${String(pedido.id).slice(-6)}</p>
-
-      <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#333;margin-bottom:20px">
-        <tr>
-          <td style="padding:6px 0;color:#888;width:40%">Status</td>
-          <td style="padding:6px 0"><strong>${statusLabel}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding:6px 0;color:#888">Pagamento</td>
-          <td style="padding:6px 0">${metodoPagto}</td>
-        </tr>
-        <tr>
-          <td style="padding:6px 0;color:#888">Cliente</td>
-          <td style="padding:6px 0">${cliente.nome}</td>
-        </tr>
-        <tr>
-          <td style="padding:6px 0;color:#888">E-mail</td>
-          <td style="padding:6px 0">${cliente.email}</td>
-        </tr>
-        <tr>
-          <td style="padding:6px 0;color:#888">Telefone</td>
-          <td style="padding:6px 0">${cliente.telefone || '—'}</td>
-        </tr>
-        <tr>
-          <td style="padding:6px 0;color:#888">Endereço</td>
-          <td style="padding:6px 0">${endereco?.rua || ''}, ${endereco?.numero || ''} — ${endereco?.bairro || ''}, ${endereco?.cidade || ''}/${endereco?.estado || ''} · CEP ${endereco?.cep || ''}</td>
-        </tr>
-      </table>
-
-      <!-- Itens -->
-      <p style="margin:0 0 8px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px">Itens do pedido</p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#333;margin-bottom:20px">
-        <thead>
-          <tr style="background:#f9f6f2">
-            <th style="padding:6px 8px;text-align:left;font-weight:600;color:#888">Produto</th>
-            <th style="padding:6px 8px;text-align:center;font-weight:600;color:#888">Tam.</th>
-            <th style="padding:6px 8px;text-align:center;font-weight:600;color:#888">Qtd.</th>
-            <th style="padding:6px 8px;text-align:right;font-weight:600;color:#888">Preço</th>
-          </tr>
-        </thead>
-        <tbody>${itensHtml}</tbody>
-      </table>
-
-      <!-- Totais -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#333">
-        <tr>
-          <td style="padding:4px 0;color:#888">Subtotal</td>
-          <td style="padding:4px 0;text-align:right">${fmtBRL(Number(subtotal ?? total))}</td>
-        </tr>
-        <tr>
-          <td style="padding:4px 0;color:#888">Frete</td>
-          <td style="padding:4px 0;text-align:right">${Number(frete) === 0 ? 'Grátis' : fmtBRL(Number(frete))}</td>
-        </tr>
-        ${Number(desconto) > 0 ? `
-        <tr>
-          <td style="padding:4px 0;color:#888">Desconto</td>
-          <td style="padding:4px 0;text-align:right;color:#2e7d32">− ${fmtBRL(Number(desconto))}</td>
-        </tr>` : ''}
-        <tr style="border-top:2px solid #1A2744">
-          <td style="padding:10px 0 0;font-weight:bold;font-size:15px;color:#1A2744">Total</td>
-          <td style="padding:10px 0 0;text-align:right;font-weight:bold;font-size:15px;color:#C4934A">${fmtBRL(Number(total))}</td>
-        </tr>
-      </table>
-    </div>
-    <!-- Footer -->
-    <div style="background:#f9f6f2;padding:16px 32px;text-align:center">
-      <p style="margin:0;font-size:11px;color:#aaa">Este e-mail foi gerado automaticamente pelo sistema Virtù.</p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${RESEND_KEY}`,
-            'Content-Type':  'application/json',
-          },
-          body: JSON.stringify({
-            from:    'Virtù Loja <notificacoes@wearvirtu.com>',
-            to:      ['wearvirtu@gmail.com'],
-            subject: `🛍️ Novo pedido #${String(pedido.id).slice(-6)} — ${statusLabel} · ${fmtBRL(Number(total))}`,
-            html,
-          }),
-        });
-      } // fecha if(false) do bloco legado
     } catch (emailErr) {
-      // E-mail falhou mas o pedido já foi salvo — apenas loga, não interrompe
-      console.error('[Email Error]', emailErr);
+      console.error('[Email/WhatsApp Error]', emailErr);
     }
 
-    // ── Resposta ao frontend ────────────────────────────
+    // ── Resposta ao frontend ────────────────────────────────
     const resposta: Record<string, unknown> = {
       pedido_id:      pedido?.id ?? null,
       payment_id:     mpData.id,
-      status:         mpData.status,           // approved | rejected | pending
+      status:         mpData.status,
       status_detail:  mpData.status_detail,
     };
 

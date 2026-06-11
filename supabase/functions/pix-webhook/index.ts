@@ -25,6 +25,57 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
 
+    // ── Validação de assinatura HMAC (Mercado Pago) ──────────────
+    // Configure em: MP Dashboard → Seu aplicativo → Webhooks → Chave secreta
+    // Variável de ambiente: MP_WEBHOOK_SECRET
+    const WEBHOOK_SECRET = Deno.env.get('MP_WEBHOOK_SECRET');
+
+    if (WEBHOOK_SECRET) {
+      const xSignature = req.headers.get('x-signature') || '';
+      const xRequestId = req.headers.get('x-request-id') || '';
+
+      // Extrai ts e v1 do header "ts=...,v1=..."
+      const sigParts: Record<string, string> = {};
+      for (const part of xSignature.split(',')) {
+        const [k, v] = part.split('=');
+        if (k && v) sigParts[k.trim()] = v.trim();
+      }
+
+      const ts = sigParts['ts'];
+      const v1 = sigParts['v1'];
+
+      if (!ts || !v1) {
+        console.error('[Webhook] x-signature ausente ou malformado');
+        return json({ erro: 'Assinatura inválida' }, 401);
+      }
+
+      // Mensagem: id:[paymentId];request-id:[xRequestId];ts:[ts]
+      const dataId   = String(body.data?.id ?? '');
+      const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts}`;
+
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(WEBHOOK_SECRET),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+      );
+
+      const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(manifest));
+      const computed  = Array.from(new Uint8Array(sigBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      if (computed !== v1) {
+        console.error('[Webhook] Assinatura HMAC inválida — possível webhook forjado');
+        return json({ erro: 'Assinatura inválida' }, 401);
+      }
+    } else {
+      // Secret não configurado — avisa mas não bloqueia (permite ativação gradual)
+      console.warn('[Webhook] MP_WEBHOOK_SECRET não configurado — validação HMAC desativada');
+    }
+
     if (body.type !== 'payment' || !body.data?.id) {
       return json({ ok: true, msg: 'Evento ignorado' });
     }

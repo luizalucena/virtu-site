@@ -713,21 +713,40 @@ document.addEventListener('DOMContentLoaded', () => {
       endereco,
     };
 
-    // ── Cartão: envia dados ao servidor para tokenizar (evita CORS) ──────
+    // ── Cartão: tokeniza no browser via MP SDK (PCI-DSS compliant) ──────
+    // Dados brutos do cartão NUNCA são enviados ao nosso servidor.
     if (!isPix) {
+      if (!mpInstance) {
+        throw new Error('SDK do Mercado Pago não carregou. Recarregue a página e tente novamente.');
+      }
+
       const expiry   = document.getElementById('cardExpiry')?.value.split('/') || [];
       const expiryMM = (expiry[0] || '').trim();
       const expiryYY = expiry[1] ? '20' + expiry[1].trim() : '';
 
-      payload.dadosCartao = {
-        numero: document.getElementById('cardNumber')?.value.replace(/\s/g, ''),
-        mes:    expiryMM,
-        ano:    expiryYY,
-        cvv:    document.getElementById('cardCvv')?.value.trim(),
-        nome:   document.getElementById('cardName')?.value.trim(),
-        cpf:    cliente.cpf.replace(/\D/g, ''),
-      };
+      btn.innerHTML = 'Validando cartão…';
+
+      // Tokeniza diretamente com os servidores do Mercado Pago — nosso backend
+      // só recebe um token opaco, nunca os dados do cartão.
+      const tokenResult = await mpInstance.createCardToken({
+        cardNumber:           document.getElementById('cardNumber')?.value.replace(/\s/g, ''),
+        cardholderName:       document.getElementById('cardName')?.value.trim(),
+        cardExpirationMonth:  expiryMM,
+        cardExpirationYear:   expiryYY,
+        securityCode:         document.getElementById('cardCvv')?.value.trim(),
+        identificationType:   'CPF',
+        identificationNumber: cliente.cpf.replace(/\D/g, ''),
+      });
+
+      if (!tokenResult?.id) {
+        const errMsg = tokenResult?.cause?.[0]?.description
+          || 'Não foi possível validar o cartão. Verifique os dados e tente novamente.';
+        throw new Error(errMsg);
+      }
+
+      payload.token    = tokenResult.id;
       payload.parcelas = parseInt(document.getElementById('installments')?.value || '1', 10);
+      btn.innerHTML    = 'Processando pagamento…';
     }
 
     // ── Chama Edge Function ──────────────────────
