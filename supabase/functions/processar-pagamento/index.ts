@@ -69,6 +69,8 @@ Deno.serve(async (req) => {
       // apenas para cartão:
       token,              // string — token gerado pelo MP SDK no browser (PCI-compliant)
       parcelas,           // number — 1..12
+      // cupom:
+      cupom_codigo,       // string | null — código do cupom aplicado (para registro no pedido)
       // fidelidade:
       user_id,            // UUID do usuário autenticado (enviado pelo frontend)
       fidelidade_desconto, // boolean — cliente alega ter direito ao desconto de R$100
@@ -344,6 +346,8 @@ Deno.serve(async (req) => {
         cpf_cliente:        cliente.cpf,
         telefone:           cliente.telefone,
         itens:              itens ?? [],
+        cupom_codigo:       cupom_codigo ? String(cupom_codigo).trim().toUpperCase().slice(0, 50) : null,
+        parcelas:           tipo === 'cartao' ? (Number(parcelas) || 1) : null,
         pix_qr_code:        mpData.point_of_interaction?.transaction_data?.qr_code ?? null,
         pix_qr_base64:      mpData.point_of_interaction?.transaction_data?.qr_code_base64 ?? null,
         pix_expires_at:     mpData.date_of_expiration ?? null,
