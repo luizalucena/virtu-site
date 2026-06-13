@@ -38,13 +38,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const ZAPI_INSTANCE = Deno.env.get('ZAPI_INSTANCE_ID');
-    const ZAPI_TOKEN    = Deno.env.get('ZAPI_TOKEN');
-    const ADMIN_PHONE   = Deno.env.get('ADMIN_WHATSAPP');
+    const ZAPI_INSTANCE  = Deno.env.get('ZAPI_INSTANCE_ID');
+    const ZAPI_TOKEN     = Deno.env.get('ZAPI_TOKEN');
+    const ZAPI_CLI_TOKEN = Deno.env.get('ZAPI_CLIENT_TOKEN') ?? '';
+    const ADMIN_PHONE    = Deno.env.get('ADMIN_WHATSAPP');
+
+    console.log('[WhatsApp Admin] Secrets presentes:',
+      `INSTANCE=${!!ZAPI_INSTANCE}`,
+      `TOKEN=${!!ZAPI_TOKEN}`,
+      `CLI_TOKEN=${!!ZAPI_CLI_TOKEN}`,
+      `ADMIN_PHONE=${!!ADMIN_PHONE}`,
+    );
 
     if (!ZAPI_INSTANCE || !ZAPI_TOKEN || !ADMIN_PHONE) {
       console.error('[WhatsApp] Secrets obrigatórios não configurados: ZAPI_INSTANCE_ID, ZAPI_TOKEN ou ADMIN_WHATSAPP');
-      // Retorna 200 para não interromper o fluxo do pedido
       return json({ ok: false, msg: 'Z-API não configurado — pedido salvo normalmente' });
     }
 
@@ -101,24 +108,36 @@ Deno.serve(async (req) => {
     // ── Formata e envia a mensagem ─────────────────────────
     const mensagem = formatarMensagem(dados);
 
+    // Normaliza telefone admin: apenas dígitos, com DDI 55
+    const rawAdminPhone = String(ADMIN_PHONE).replace(/\D/g, '');
+    const adminPhone    = rawAdminPhone.startsWith('55') ? rawAdminPhone : `55${rawAdminPhone}`;
+
+    const zapiHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    // Client-Token é obrigatório nas versões novas da Z-API
+    if (ZAPI_CLI_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLI_TOKEN;
+
+    console.log('[WhatsApp Admin] Enviando para:', adminPhone);
+
     const zapiRes = await fetch(
       `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`,
       {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ phone: ADMIN_PHONE, message: mensagem }),
+        headers: zapiHeaders,
+        body:    JSON.stringify({ phone: adminPhone, message: mensagem }),
       },
     );
 
     const zapiData = await zapiRes.json().catch(() => ({}));
 
     if (!zapiRes.ok) {
-      console.error('[WhatsApp Z-API]', zapiRes.status, JSON.stringify(zapiData));
-      return json({ ok: false, msg: 'Falha ao enviar WhatsApp', detalhes: zapiData });
+      console.error('[WhatsApp Z-API] HTTP', zapiRes.status, JSON.stringify(zapiData));
+      return json({ ok: false, msg: 'Falha ao enviar WhatsApp', status: zapiRes.status, detalhes: zapiData });
     }
 
-    console.log('[WhatsApp] Notificação enviada | pedido:', dados.pedido_id);
-    return json({ ok: true });
+    console.log('[WhatsApp Admin] Enviado com sucesso | pedido:', dados.pedido_id, '| resposta:', JSON.stringify(zapiData));
+    return json({ ok: true, zapiData });
 
   } catch (err) {
     console.error('[WhatsApp Unexpected]', err);

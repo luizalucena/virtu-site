@@ -410,7 +410,6 @@ Deno.serve(async (req) => {
     }
 
     if (emails.length === 0) {
-      // Status não é 'pago' (ex: pendente) — nenhum e-mail enviado ainda
       console.log(`[send-order-email] Status '${status}' — nenhum e-mail enviado (aguardando confirmação)`);
       return json({ ok: true, enviados: 0, msg: 'Aguardando confirmação de pagamento' });
     }
@@ -419,6 +418,87 @@ Deno.serve(async (req) => {
     const errors = results
       .filter(r => r.status === 'rejected')
       .map(r => (r as PromiseRejectedResult).reason?.message ?? 'Erro desconhecido');
+
+    // ── WhatsApp de confirmação para a CLIENTE ───────────────────────────
+    // Enviado via Z-API apenas quando pedido pago e cliente tem telefone
+    if (status === 'pago' && cliente?.telefone) {
+      const ZAPI_INSTANCE   = Deno.env.get('ZAPI_INSTANCE_ID');
+      const ZAPI_TOKEN      = Deno.env.get('ZAPI_TOKEN');
+      const ZAPI_CLI_TOKEN  = Deno.env.get('ZAPI_CLIENT_TOKEN') ?? '';
+
+      if (ZAPI_INSTANCE && ZAPI_TOKEN) {
+        // Normaliza telefone: remove tudo exceto dígitos, adiciona DDI 55 se necessário
+        const rawPhone = String(cliente.telefone).replace(/\D/g, '');
+        const phone    = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
+
+        // Monta mensagem de confirmação
+        const fmtBRL2 = (v: unknown) =>
+          Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const itensWa = (itens ?? []).map((it: Record<string, unknown>) => {
+          const nome    = String(it.nome || it.name || 'Produto');
+          const tam     = String(it.tamanho || '');
+          const cor     = String(it.cor_nome || it.cor || '');
+          const qty     = Number(it.qty || 1);
+          const preco   = fmtBRL2(Number(it.preco || 0));
+          const variante = [tam, cor].filter(Boolean).join('/');
+          return `  • ${nome}${variante ? ` (${variante})` : ''} × ${qty} — ${preco}`;
+        }).join('\n');
+
+        const metodoPagtoWa =
+          metodo_pagamento === 'pix'    ? '⚡ PIX'              :
+          metodo_pagamento === 'cartao' ? '💳 Cartão de crédito' :
+          String(metodo_pagamento || '—');
+
+        const freteWa   = Number(frete || 0) === 0 ? 'Grátis' : fmtBRL2(Number(frete));
+        const descWa    = Number(desconto || 0) > 0
+          ? `\n💸 *Desconto:* -${fmtBRL2(Number(desconto))}` : '';
+
+        const msgCliente = [
+          `🛍️ *Pedido confirmado — Virtù*`,
+          ``,
+          `Olá, ${primeiroNome}! Obrigada pela sua compra 🤍`,
+          ``,
+          `📋 *Pedido #${pedidoNum}* — ✅ PAGO`,
+          ``,
+          `━━━━━━━━━━━━━━`,
+          `🛒 *Seus itens:*`,
+          itensWa || '  (sem itens)',
+          ``,
+          `💰 *Valores:*`,
+          `Subtotal: ${fmtBRL2(Number(subtotal))}`,
+          `Frete: ${freteWa}${descWa}`,
+          `*Total: ${fmtBRL2(Number(total))}*`,
+          `${metodoPagtoWa}`,
+          ``,
+          `━━━━━━━━━━━━━━`,
+          `📦 Acompanhe seu pedido:`,
+          `${rastreioUrl}`,
+          ``,
+          `Qualquer dúvida é só responder essa mensagem 💬`,
+          `_Equipe Virtù_ ✨`,
+        ].join('\n');
+
+        const zapiHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (ZAPI_CLI_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLI_TOKEN;
+
+        fetch(
+          `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`,
+          {
+            method:  'POST',
+            headers: zapiHeaders,
+            body:    JSON.stringify({ phone, message: msgCliente }),
+          },
+        )
+        .then(r => r.json())
+        .then(d => console.log('[WA Cliente]', JSON.stringify(d)))
+        .catch(e => console.error('[WA Cliente erro]', e));
+      } else {
+        console.warn('[WA Cliente] Z-API secrets não configurados — WhatsApp não enviado');
+      }
+    }
 
     return json({ ok: true, enviados: emails.length, erros: errors.length ? errors : undefined });
 
