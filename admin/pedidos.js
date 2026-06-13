@@ -168,7 +168,7 @@
             <p style="margin:0;font-size:20px;font-weight:700;color:#1A2744">#${escHtml(String(p.id).slice(-6).toUpperCase())}</p>
             <p style="margin:4px 0 0;font-size:12px;color:#999">${fmtDate(p.criado_em)}</p>
           </div>
-          <div style="text-align:right">${statusBadge(p.status)}<p style="margin:8px 0 0;font-size:18px;font-weight:700;color:#C4934A">${fmt(p.total)}</p><p style="margin:2px 0 0;font-size:12px;color:#888">${metodoPagto(p)}</p></div>
+          <div style="text-align:right">${statusBadge(p.status)}<p style="margin:8px 0 0;font-size:18px;font-weight:700;color:#C4934A">${fmt(p.total)}</p><p style="margin:2px 0 0;font-size:12px;color:#888">${p.payment_method==='cartao'&&p.parcelas>1?`Cartão ${p.parcelas}x`:metodoPagto(p)}</p></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;font-size:13px">
           <div><p style="margin:0 0 2px;color:#888;font-size:11px;text-transform:uppercase">Cliente</p><p style="margin:0;font-weight:500">${escHtml(p.nome_cliente)||'—'}</p><p style="margin:2px 0 0;color:#666">${escHtml(p.email_cliente)||'—'}</p><p style="margin:2px 0 0;color:#666">${escHtml(p.telefone)||'—'}</p></div>
@@ -181,8 +181,10 @@
         </table>
         <div style="text-align:right;margin-bottom:16px;font-size:13px">
           ${Number(p.desconto)>0?`<p style="margin:2px 0;color:#2e7d32">Desconto: − ${fmt(p.desconto)}</p>`:''}
+          ${p.cupom_codigo?`<p style="margin:2px 0;font-size:12px;color:#555">Cupom: <strong style="color:#2e7d32">${escHtml(p.cupom_codigo)}</strong></p>`:''}
           ${Number(p.frete)>0?`<p style="margin:2px 0;color:#555">Frete: ${fmt(p.frete)}</p>`:'<p style="margin:2px 0;color:#2e7d32">Frete grátis</p>'}
           <p style="margin:4px 0 0;font-weight:700;font-size:15px;color:#1A2744">Total: ${fmt(p.total)}</p>
+          ${p.parcelas&&p.parcelas>1?`<p style="margin:4px 0 0;font-size:12px;color:#888">Cartão parcelado em <strong>${p.parcelas}×</strong></p>`:''}
         </div>
         <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
