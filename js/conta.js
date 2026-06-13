@@ -713,9 +713,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = user.email;
       const { data: pedidos, error } = await supabaseClient
         .from('pedidos')
-        .select('id, created_at, status, total, payment_method, itens')
+        .select('id, criado_em, status, total, payment_method, itens')
         .or(`email_cliente.eq.${email},cliente_email.eq.${email},user_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
+        .order('criado_em', { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isPago = p.status === 'pago';
         if (isPago) cicloCount++;
         const numPedido = String(p.id).slice(-6).toUpperCase();
-        const data = new Date(p.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const data = new Date(p.criado_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
         const itensCount = Array.isArray(p.itens) ? p.itens.length : '–';
         const totalFmt = fmtPrice(p.total);
         const ciclo = isPago ? `<span style="font-size:0.7rem;color:#9E9690;font-weight:500">#${cicloCount}</span>` : '–';
