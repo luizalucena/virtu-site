@@ -387,7 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
       setMsg('', 'ok');
 
       try {
-        const { data, error } = await supabaseClient.rpc('validar_cupom', { p_codigo: codigo });
+        // Get user email for per-customer limit check
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        const emailUser = user?.email || document.getElementById('emailInput')?.value?.trim() || null;
+        const { data, error } = await supabaseClient.rpc('validar_cupom', { p_codigo: codigo, p_email: emailUser });
         if (error) throw error;
 
         if (!data.valido) {

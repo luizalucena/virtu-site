@@ -74,6 +74,22 @@ async function carregarProduto(produtoId) {
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.content = p.descricao || `${p.nome} — Virtù`;
 
+    // Helper: resolve Google Drive URLs for OG image
+    function _cvDriveOg(u) {
+      if (!u) return u;
+      const m1 = u.match(/drive\.google\.com\/file\/d\/([^/?&]+)/);
+      if (m1) return `https://lh3.googleusercontent.com/d/${m1[1]}`;
+      const m2 = u.match(/[?&]id=([^&]+)/);
+      if (m2 && u.includes('drive.google.com')) return `https://lh3.googleusercontent.com/d/${m2[1]}`;
+      return u;
+    }
+    const imgOgUrl = _cvDriveOg(p.imagem_url || (Array.isArray(p.imagens) && p.imagens[0]) || '');
+
+    // Determine availability from variacoes
+    const temEstoque = p.variacoes
+      ? p.variacoes.some(v => v.estoque > 0)
+      : !p._esgotado;
+
     // OG tags dinâmicos (compartilhar no WhatsApp/Instagram)
     const ogTitle = document.querySelector('meta[property="og:title"]');
     const ogDesc  = document.querySelector('meta[property="og:description"]');
@@ -82,13 +98,20 @@ async function carregarProduto(produtoId) {
     const twTitle = document.querySelector('meta[name="twitter:title"]');
     const twDesc  = document.querySelector('meta[name="twitter:description"]');
     const twImg   = document.querySelector('meta[name="twitter:image"]');
+    const ppAmt   = document.querySelector('meta[property="product:price:amount"]');
+    const ppAvail = document.querySelector('meta[property="product:availability"]');
     if (ogTitle) ogTitle.content = `${p.nome} — Virtù`;
     if (ogDesc)  ogDesc.content  = p.descricao || `${p.nome} — Moda feminina atemporal. Virtù.`;
-    if (ogImg && p.imagem_url)  ogImg.content  = p.imagem_url;
+    if (ogImg  && imgOgUrl) ogImg.content  = imgOgUrl;
     if (ogUrl)   ogUrl.content   = `https://wearvirtu.com/produto.html?id=${p.id}`;
     if (twTitle) twTitle.content = `${p.nome} — Virtù`;
     if (twDesc)  twDesc.content  = p.descricao || `${p.nome} — Moda feminina atemporal.`;
-    if (twImg && p.imagem_url)  twImg.content  = p.imagem_url;
+    if (twImg  && imgOgUrl) twImg.content  = imgOgUrl;
+    if (ppAmt)   ppAmt.content   = String(preco);
+    if (ppAvail) ppAvail.content = temEstoque ? 'in stock' : 'out of stock';
+    // canonical URL
+    const canon = document.querySelector('link[rel="canonical"]');
+    if (canon) canon.href = `https://wearvirtu.com/produto.html?id=${p.id}`;
 
     // Schema.org Product (rich snippets no Google)
     const existingLd = document.getElementById('ld-product');
@@ -96,25 +119,51 @@ async function carregarProduto(produtoId) {
     const ldScript = document.createElement('script');
     ldScript.type = 'application/ld+json';
     ldScript.id   = 'ld-product';
+    const allImages = [imgOgUrl, ...(Array.isArray(p.imagens) ? p.imagens : [])].filter(Boolean);
     ldScript.text = JSON.stringify({
       '@context': 'https://schema.org',
       '@type':    'Product',
       name:        p.nome,
       description: p.descricao || '',
-      image:       p.imagem_url || '',
+      image:       allImages.length > 1 ? allImages : (allImages[0] || ''),
       url:         `https://wearvirtu.com/produto.html?id=${p.id}`,
+      sku:         String(p.id),
       brand:       { '@type': 'Brand', name: 'Virtù' },
+      category:    p.categoria || '',
       offers: {
-        '@type':        'Offer',
-        price:          String(preco),
-        priceCurrency:  'BRL',
-        availability:   'https://schema.org/InStock',
-        url:            `https://wearvirtu.com/produto.html?id=${p.id}`,
+        '@type':           'Offer',
+        price:             String(preco),
+        priceCurrency:     'BRL',
+        availability:      temEstoque
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        itemCondition:     'https://schema.org/NewCondition',
+        url:               `https://wearvirtu.com/produto.html?id=${p.id}`,
+        seller:            { '@type': 'Organization', name: 'Virtù' },
+        ...(p.preco_desconto ? { highPrice: String(p.preco_original), lowPrice: String(p.preco_desconto) } : {}),
       },
     });
     document.head.appendChild(ldScript);
 
-    // Breadcrumb
+    // Schema.org BreadcrumbList (melhora rich snippets no Google)
+    const existingBc = document.getElementById('ld-breadcrumb');
+    if (existingBc) existingBc.remove();
+    const cap2 = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : 'Produtos';
+    const ldBc = document.createElement('script');
+    ldBc.type = 'application/ld+json';
+    ldBc.id   = 'ld-breadcrumb';
+    ldBc.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type':    'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home',     item: 'https://wearvirtu.com/' },
+        { '@type': 'ListItem', position: 2, name: cap2(p.categoria), item: `https://wearvirtu.com/catalogo.html?cat=${p.categoria || ''}` },
+        { '@type': 'ListItem', position: 3, name: p.nome,     item: `https://wearvirtu.com/produto.html?id=${p.id}` },
+      ],
+    });
+    document.head.appendChild(ldBc);
+
+    // Breadcrumb visual
     const bcLinks = document.querySelectorAll('.breadcrumb__link');
     if (bcLinks[1]) {
       bcLinks[1].textContent = cap(p.categoria || 'Produtos');
@@ -233,10 +282,15 @@ async function carregarProduto(produtoId) {
           }
           // Só revela quando a imagem está pronta
           mainImg.style.opacity = '1';
+          // Dismiss skeleton shimmer
+          const galeriaMain = mainImg.closest('.galeria-main');
+          if (galeriaMain) galeriaMain.classList.add('img-loaded');
         };
         preload.onerror = () => {
-          // Mesmo com erro, restaura opacidade
+          // Mesmo com erro, restaura opacidade e remove skeleton
           mainImg.style.opacity = '1';
+          const galeriaMain = mainImg.closest('.galeria-main');
+          if (galeriaMain) galeriaMain.classList.add('img-loaded');
         };
         preload.src = url;
       }

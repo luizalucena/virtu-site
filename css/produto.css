@@ -360,6 +360,39 @@
   min-height: 18px;
 }
 
+/* ── Indicador de Estoque (#stockInfo) ── */
+.stock-info {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-top: var(--space-2);
+  transition: opacity 0.2s;
+}
+.stock-info:empty { display: none; }
+
+.stock-info--disponivel {
+  color: #2e7d32;
+  background: #e8f5e9;
+}
+.stock-info--urgente {
+  color: #b71c1c;
+  background: #fdecea;
+  animation: virtu-pulse 1.6s ease-in-out infinite;
+}
+.stock-info--esgotado {
+  color: #757575;
+  background: #f5f5f5;
+}
+
+@keyframes virtu-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
 /* Ações */
 .produto-acoes {
   display: flex;
@@ -1157,4 +1190,37 @@
 @media (max-width: 768px) {
   .depoimentos__grid { grid-template-columns: 1fr; }
   .avaliacao-form-wrap { padding: 1.25rem; }
+}
+
+/* ──────────────────────────────────────────
+   SKELETON LOADER — produto.html
+   Enquanto o layout está opacity:0 o shimmer
+   cobre a imagem principal evitando flash.
+   ────────────────────────────────────────── */
+@keyframes virtu-shimmer-produto {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+#mainImg[src=""] ,
+#mainImg:not([src]) {
+  visibility: hidden;
+}
+
+.galeria-main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #ede9e3 25%, #e0dbd3 50%, #ede9e3 75%);
+  background-size: 1200px 100%;
+  animation: virtu-shimmer-produto 1.4s ease-in-out infinite;
+  z-index: 1;
+  border-radius: inherit;
+  transition: opacity 0.3s ease;
+}
+
+/* Once image loads, hide the skeleton */
+.galeria-main.img-loaded::before {
+  opacity: 0;
+  pointer-events: none;
 }

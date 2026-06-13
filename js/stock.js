@@ -294,7 +294,12 @@ const VirtuStock = (() => {
         btnComprar.textContent = 'Esgotado';
         btnComprar.disabled    = true;
         btnComprar.classList.add('esgotado');
+        // Mostra botão "Avise-me quando chegar"
+        _mostrarBotaoAviso();
       } else {
+        // Remove botão de aviso se stock voltou
+        document.getElementById('btnAvisarReposicao')?.remove();
+        document.getElementById('avisoReposicaoForm')?.remove();
         btnComprar.textContent = 'Adicionar ao Carrinho';
         btnComprar.disabled    = false;
         btnComprar.classList.remove('esgotado');
@@ -316,6 +321,81 @@ const VirtuStock = (() => {
     } else if (stockInfo) {
       stockInfo.textContent = '';
     }
+  }
+
+  /* ── "AVISE-ME QUANDO CHEGAR" ───────────────────────────────── */
+  function _mostrarBotaoAviso() {
+    // Evita duplicar
+    if (document.getElementById('btnAvisarReposicao')) return;
+
+    const acoes = document.querySelector('.produto-acoes');
+    if (!acoes) return;
+
+    const btnAviso = document.createElement('button');
+    btnAviso.id        = 'btnAvisarReposicao';
+    btnAviso.className = 'btn btn--outline btn--full btn--md virtu-aviso-btn';
+    btnAviso.innerHTML = '🔔 Avise-me quando chegar';
+    btnAviso.style.cssText = 'margin-top:8px;border-color:var(--color-gold);color:var(--color-gold)';
+    acoes.appendChild(btnAviso);
+
+    btnAviso.addEventListener('click', function () {
+      // Exibe form inline se ainda não existir
+      if (document.getElementById('avisoReposicaoForm')) return;
+
+      const form = document.createElement('div');
+      form.id = 'avisoReposicaoForm';
+      form.style.cssText = 'margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+      form.innerHTML = `
+        <input id="avisoEmailInput" type="email" placeholder="Seu e-mail" required
+               style="flex:1;min-width:180px;padding:10px 12px;border:1px solid #ddd;border-radius:2px;font-size:13px"/>
+        <button id="avisoEmailEnviar" type="button"
+                style="padding:10px 16px;background:var(--color-navy);color:#fff;border:none;border-radius:2px;font-size:13px;cursor:pointer;white-space:nowrap">
+          Cadastrar
+        </button>
+        <p id="avisoEmailFeedback" style="width:100%;font-size:12px;margin:0;min-height:16px"></p>`;
+      acoes.appendChild(form);
+
+      document.getElementById('avisoEmailEnviar').addEventListener('click', async function () {
+        const emailInput = document.getElementById('avisoEmailInput');
+        const feedback   = document.getElementById('avisoEmailFeedback');
+        const email      = emailInput?.value.trim();
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          feedback.textContent = 'Por favor, informe um e-mail válido.';
+          feedback.style.color = '#c0392b';
+          return;
+        }
+
+        this.disabled = true;
+        this.textContent = '…';
+        feedback.textContent = '';
+
+        try {
+          const { error } = await supabaseClient
+            .from('avisos_reposicao')
+            .upsert({
+              produto_id: _produtoId,
+              email,
+              tamanho:  _tamSelecionado  || null,
+              cor_nome: _corSelecionada  || null,
+              notificado: false,
+            }, { onConflict: 'produto_id,email,tamanho,cor_nome', ignoreDuplicates: false });
+
+          if (error) throw error;
+
+          feedback.textContent   = '✓ Cadastrado! Você receberá um e-mail assim que chegar.';
+          feedback.style.color   = '#2e7d32';
+          emailInput.value       = '';
+          this.textContent       = '✓ Cadastrado';
+          this.style.background  = '#2e7d32';
+        } catch (err) {
+          feedback.textContent = 'Erro ao cadastrar. Tente novamente.';
+          feedback.style.color = '#c0392b';
+          this.disabled        = false;
+          this.textContent     = 'Cadastrar';
+        }
+      });
+    });
   }
 
   /* ── 7. INICIALIZAÇÃO COMPLETA ──────────────────────────── */

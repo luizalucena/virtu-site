@@ -472,6 +472,61 @@
   color: rgba(255,255,255,0.35);
 }
 
+/* ──────────────────────────────────────────
+   SKELETON LOADER (shimmer)
+   ────────────────────────────────────────── */
+@keyframes virtu-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.product-card--skeleton {
+  pointer-events: none;
+  animation: none;
+}
+
+.product-card--skeleton .product-card__img-wrap {
+  background: #ede9e3;
+  overflow: hidden;
+}
+
+.skeleton-block {
+  display: block;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ede9e3 25%, #e0dbd3 50%, #ede9e3 75%);
+  background-size: 800px 100%;
+  animation: virtu-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Image area: full height shimmer */
+.product-card--skeleton .product-card__img-wrap .skeleton-block {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* Info area skeletons */
+.product-card--skeleton .product-card__info {
+  padding: var(--space-3) 0 var(--space-2);
+}
+
+.product-card--skeleton .skeleton-name {
+  height: 12px;
+  width: 70%;
+  margin-bottom: 8px;
+}
+
+.product-card--skeleton .skeleton-cat {
+  height: 10px;
+  width: 40%;
+  margin-bottom: 12px;
+}
+
+.product-card--skeleton .skeleton-price {
+  height: 14px;
+  width: 35%;
+}
+
 /* Produto oculto (filtro) */
 .product-card--hidden {
   display: none;

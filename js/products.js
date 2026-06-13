@@ -149,8 +149,9 @@ const VirtuProducts = (() => {
     const novidadeAttr  = produto.novidade  ? 'true' : '';
     const destaqueAttr  = produto.destaque  ? 'true' : '';
 
+    const dateAttr = produto.criado_em ? new Date(produto.criado_em).getTime() : 0;
     return `
-      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" role="listitem">
+      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" data-date="${dateAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
           <div class="product-card__image-wrap" ${wrapStyle}>
             ${imgHtml}
@@ -179,7 +180,20 @@ const VirtuProducts = (() => {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `<div class="products-loading" style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--color-text-light);font-family:var(--font-body);font-size:0.85rem;letter-spacing:0.08em">Carregando…</div>`;
+    // Inject skeleton cards while data loads
+    const SKELETON_COUNT = filtros.limite || 8;
+    const skeletonCard = `
+      <article class="product-card product-card--skeleton">
+        <a class="product-card__img-wrap" tabindex="-1" aria-hidden="true">
+          <span class="skeleton-block" style="width:100%;height:100%;border-radius:0;display:block;"></span>
+        </a>
+        <div class="product-card__info">
+          <span class="skeleton-block skeleton-name"></span>
+          <span class="skeleton-block skeleton-cat"></span>
+          <span class="skeleton-block skeleton-price"></span>
+        </div>
+      </article>`;
+    container.innerHTML = Array(SKELETON_COUNT).fill(skeletonCard).join('');
 
     const data = await fetchAll();
     if (!data) {

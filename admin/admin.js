@@ -252,7 +252,7 @@ function bindEvents() {
       document.querySelectorAll('.admin-view').forEach(v => v.classList.add('admin-view--hidden'));
       document.getElementById(`view${capitalize(view)}`)?.classList.remove('admin-view--hidden');
       // Títulos legíveis na topbar
-      const viewTitles = { produtos: 'Produtos', pedidos: 'Pedidos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades' };
+      const viewTitles = { dashboard: 'Dashboard', produtos: 'Produtos', pedidos: 'Pedidos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades' };
       document.getElementById('viewTitle').textContent = viewTitles[view] || capitalize(view);
       // Ocultar/mostrar botão Novo Produto
       document.getElementById('btnNewProduct').style.display = view === 'produtos' ? '' : 'none';
@@ -260,6 +260,7 @@ function bindEvents() {
       if (view === 'sobre')        populateSobre();
       if (view === 'avaliacoes')   carregarAvaliacoesAdmin();
       if (view === 'pedidos') { if (typeof window.pedidosInit === 'function') window.pedidosInit(); }
+      if (view === 'dashboard')    carregarDashboard();
     });
   });
 
@@ -1350,3 +1351,89 @@ window.excluirAvaliacao = async (id) => {
     _avaliacaoOps.delete(opKey);
   }
 };
+
+/* ══════════════════════════════════════════
+   DASHBOARD DE MÉTRICAS
+   ══════════════════════════════════════════ */
+async function carregarDashboard() {
+  const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+
+  try {
+    // Fetch em paralelo
+    const [
+      { data: pedidos },
+      { count: clientes },
+      { count: carrinhos },
+      { count: cuponsAtivos },
+      { data: fidelidadeRows },
+      { data: varEstoque }
+    ] = await Promise.all([
+      supabaseClient.from('pedidos').select('id,total,status,nome_cliente,criado_em,pagamento').order('criado_em', { ascending: false }),
+      supabaseClient.from('clientes_perfil').select('id', { count: 'exact', head: true }),
+      supabaseClient.from('carrinhos_abandonados').select('id', { count: 'exact', head: true }),
+      supabaseClient.from('cupons').select('id', { count: 'exact', head: true }).eq('ativo', true),
+      supabaseClient.from('clientes_perfil').select('compras_total').gt('compras_total', 0),
+      supabaseClient.from('variacoes').select('produto_id,tamanho,cor_nome,estoque').lte('estoque', 3).gt('estoque', 0).order('estoque', { ascending: true }),
+    ]);
+
+    const pagos = (pedidos || []).filter(p => ['confirmado','pago','em preparação','enviado','a caminho','entregue'].includes(p.status));
+    const aEnviar = (pedidos || []).filter(p => ['confirmado','pago','em preparação'].includes(p.status));
+    const receita = pagos.reduce((s, p) => s + Number(p.total || 0), 0);
+    const ticket  = pagos.length ? receita / pagos.length : 0;
+
+    // KPIs
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('dashReceita',    fmt(receita));
+    set('dashPedidos',    pagos.length);
+    set('dashCarrinhos',  carrinhos ?? '—');
+    set('dashClientes',   clientes  ?? '—');
+    set('dashTicket',     fmt(ticket));
+    set('dashFidelidade', (fidelidadeRows || []).length);
+    set('dashPendente',   aEnviar.length);
+    set('dashCupons',     cuponsAtivos ?? '—');
+
+    // Pedidos recentes (top 8)
+    const tbody = document.getElementById('dashPedidosRecentes');
+    if (tbody) {
+      const recentes = (pedidos || []).slice(0, 8);
+      const statusBadge = (s) => {
+        const map = { pendente:'#f59e0b', confirmado:'#3b82f6', pago:'#22c55e', 'em preparação':'#8b5cf6', enviado:'#0ea5e9', 'a caminho':'#06b6d4', entregue:'#16a34a', cancelado:'#ef4444', recusado:'#dc2626' };
+        return `<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600;background:${map[s]||'#ccc'}20;color:${map[s]||'#888'}">${s}</span>`;
+      };
+      tbody.innerHTML = recentes.map(p => `
+        <tr>
+          <td style="font-weight:600;color:#555;font-size:0.75rem">#${String(p.id).slice(-6).toUpperCase()}</td>
+          <td>${p.nome_cliente || '—'}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td style="text-align:right;font-weight:600">${fmt(p.total)}</td>
+          <td style="color:#aaa;font-size:0.75rem">${p.criado_em ? new Date(p.criado_em).toLocaleDateString('pt-BR') : '—'}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#aaa">Nenhum pedido ainda.</td></tr>';
+    }
+
+    // Estoque baixo
+    const divEstoque = document.getElementById('dashEstoqueBaixo');
+    if (divEstoque) {
+      if ((varEstoque || []).length === 0) {
+        divEstoque.innerHTML = '<span style="color:#16a34a">✓ Todos os produtos com estoque saudável.</span>';
+      } else {
+        divEstoque.innerHTML = `
+          <table class="dash-table">
+            <thead><tr><th>Produto ID</th><th>Tamanho</th><th>Cor</th><th style="text-align:right">Estoque</th></tr></thead>
+            <tbody>
+              ${varEstoque.slice(0, 12).map(v => `
+                <tr>
+                  <td style="font-size:0.75rem;color:#888">${v.produto_id?.slice(0,8) || '—'}</td>
+                  <td>${v.tamanho || '—'}</td>
+                  <td>${v.cor_nome || '—'}</td>
+                  <td style="text-align:right;color:${v.estoque <= 1 ? '#dc2626' : '#f59e0b'};font-weight:700">${v.estoque}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>`;
+      }
+    }
+  } catch (e) {
+    console.error('[Dashboard]', e);
+  }
+}

@@ -241,10 +241,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sortSelect')?.addEventListener('change', function () {
     const prods = [...document.querySelectorAll('.product-card[data-cat]')];
     prods.sort((a, b) => {
-      const pa = parseInt(a.getAttribute('data-price') || 0);
-      const pb = parseInt(b.getAttribute('data-price') || 0);
+      const pa   = parseFloat(a.getAttribute('data-price') || 0);
+      const pb   = parseFloat(b.getAttribute('data-price') || 0);
+      const da   = parseInt(a.getAttribute('data-date')  || 0);
+      const db   = parseInt(b.getAttribute('data-date')  || 0);
+      const destaA = a.getAttribute('data-destaque') === 'true' ? 1 : 0;
+      const destaB = b.getAttribute('data-destaque') === 'true' ? 1 : 0;
       if (this.value === 'price-asc')  return pa - pb;
       if (this.value === 'price-desc') return pb - pa;
+      if (this.value === 'newest')     return db - da;  // mais recente primeiro
+      if (this.value === 'bestseller') return destaB - destaA; // destaque primeiro
       return 0;
     });
     prods.forEach(p => grid?.appendChild(p));

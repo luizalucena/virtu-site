@@ -196,9 +196,55 @@ function renderCartItems() {
     if (couponEl)  couponEl.hidden  = false;
     if (summaryEl) summaryEl.hidden = false;
     bindItemEvents();
+    // Verifica estoque baixo de cada item de forma assíncrona
+    _verificarEstoqueBaixoNoCarrinho(items);
   }
 
   updateSummary();
+}
+
+/* ── VERIFICAÇÃO DE ESTOQUE BAIXO NO CARRINHO ───────────────── */
+async function _verificarEstoqueBaixoNoCarrinho(items) {
+  if (typeof supabaseClient === 'undefined') return;
+  const variacaoIds = items
+    .map((item, idx) => ({ idx, id: item.variacao_id }))
+    .filter(x => x.id);
+  if (!variacaoIds.length) return;
+
+  try {
+    const { data } = await supabaseClient
+      .from('variacoes')
+      .select('id, estoque')
+      .in('id', variacaoIds.map(x => x.id));
+
+    if (!data) return;
+
+    const estoqueMap = {};
+    data.forEach(v => { estoqueMap[v.id] = v.estoque; });
+
+    variacaoIds.forEach(({ idx, id }) => {
+      const estoque = estoqueMap[id];
+      if (estoque == null) return;
+
+      const itemEl = document.querySelector(`.cart-item[data-index="${idx}"]`);
+      if (!itemEl) return;
+
+      // Remove badge anterior se houver
+      itemEl.querySelector('.cart-item__stock-badge')?.remove();
+
+      if (estoque === 0) {
+        const badge = document.createElement('p');
+        badge.className = 'cart-item__stock-badge cart-item__stock-badge--esgotado';
+        badge.textContent = '⚠ Esgotado — remova ou troque';
+        itemEl.querySelector('.cart-item__info')?.appendChild(badge);
+      } else if (estoque <= 3) {
+        const badge = document.createElement('p');
+        badge.className = 'cart-item__stock-badge cart-item__stock-badge--urgente';
+        badge.textContent = `🔥 Últimas ${estoque} unidade${estoque > 1 ? 's' : ''}!`;
+        itemEl.querySelector('.cart-item__info')?.appendChild(badge);
+      }
+    });
+  } catch { /* silencioso — não prejudica o carrinho */ }
 }
 
 /* ── RESUMO DO PEDIDO ──────────────────────────────────────── */

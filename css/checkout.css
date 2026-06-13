@@ -539,18 +539,78 @@
   margin-top: 0.2rem;
 }
 
-.checkout-order-summary__trust {
+/* Legacy trust (kept for safety, now replaced by .checkout-trust) */
+.checkout-order-summary__trust { display: none; }
+
+/* ── COMPRA SEGURA BADGE ─────────────────── */
+.checkout-trust {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-top: 1px solid var(--color-border);
+  background: #faf9f7;
+  border-radius: var(--radius-sm);
+}
+
+.checkout-trust__headline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+  margin-bottom: 0.75rem;
+}
+
+.checkout-trust__headline svg {
+  flex-shrink: 0;
+  color: #2e7d32;
+}
+
+.checkout-trust__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.9rem;
   display: flex;
   flex-direction: column;
+  gap: 0.35rem;
+}
+
+.checkout-trust__list li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  color: var(--color-text-light);
+}
+
+.checkout-trust__list li svg {
+  flex-shrink: 0;
+  color: #2e7d32;
+}
+
+.checkout-trust__methods {
+  display: flex;
   gap: 0.4rem;
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--color-border);
 }
-.checkout-order-summary__trust span {
+
+.checkout-trust__method {
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--color-text-light);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0.25rem 0.55rem;
 }
 
 /* ── SUCCESS MODAL ───────────────────────── */

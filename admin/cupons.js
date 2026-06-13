@@ -186,8 +186,9 @@ window.editarCupom = function(id) {
   document.getElementById('formTipo').value       = c.tipo;
   document.getElementById('formValor').value      = c.valor;
   document.getElementById('formMinimo').value     = c.valor_minimo || '';
-  document.getElementById('formMaxUsos').value    = c.uso_maximo || '';
-  document.getElementById('formValidade').value   = c.validade || '';
+  document.getElementById('formMaxUsos').value            = c.uso_maximo || '';
+  document.getElementById('formMaxUsosPorCliente').value  = c.uso_maximo_por_cliente || '';
+  document.getElementById('formValidade').value           = c.validade || '';
   document.getElementById('formAtivo').checked    = c.ativo;
   atualizarPrefixo();
   abrirModal();
@@ -225,7 +226,8 @@ async function salvarCupom() {
   const tipo     = document.getElementById('formTipo').value;
   const valor    = parseFloat(document.getElementById('formValor').value) || 0;
   const minimo   = parseFloat(document.getElementById('formMinimo').value) || 0;
-  const maxUsos  = parseInt(document.getElementById('formMaxUsos').value)  || null;
+  const maxUsos           = parseInt(document.getElementById('formMaxUsos').value) || null;
+  const maxUsosPorCliente = parseInt(document.getElementById('formMaxUsosPorCliente').value) || null;
   const validade = document.getElementById('formValidade').value || null;
   const ativo    = document.getElementById('formAtivo').checked;
 
@@ -233,7 +235,7 @@ async function salvarCupom() {
   if (tipo !== 'frete' && valor <= 0) { showToast('O valor do desconto deve ser maior que zero.', 'error'); return; }
   if (tipo === 'percentual' && valor > 100) { showToast('Desconto percentual não pode ultrapassar 100%.', 'error'); return; }
 
-  const payload = { codigo, descricao: desc || null, tipo, valor, valor_minimo: minimo, uso_maximo: maxUsos, validade, ativo };
+  const payload = { codigo, descricao: desc || null, tipo, valor, valor_minimo: minimo, uso_maximo: maxUsos, uso_maximo_por_cliente: maxUsosPorCliente, validade, ativo };
 
   try {
     const btnSalvar = document.getElementById('btnSalvarCupom');
@@ -277,7 +279,7 @@ function fecharModal() {
 }
 function resetModal() {
   document.getElementById('cupomModalTitle').textContent = 'Novo Cupom';
-  ['formCupomId','formCodigo','formDescricao','formValor','formMinimo','formMaxUsos','formValidade'].forEach(id => {
+  ['formCupomId','formCodigo','formDescricao','formValor','formMinimo','formMaxUsos','formMaxUsosPorCliente','formValidade'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });

@@ -13,7 +13,12 @@
   <meta property="og:title" content="Virtù — Moda Feminina" />
   <meta property="og:description" content="Peças atemporais com propósito. Moda feminina clássica e elegante." />
   <meta property="og:image" content="https://wearvirtu.com/images/logo-concha.png" />
+  <meta property="og:image:width" content="800" />
+  <meta property="og:image:height" content="1067" />
   <meta property="og:url" content="https://wearvirtu.com/produto.html" />
+  <meta property="product:price:amount" content="" />
+  <meta property="product:price:currency" content="BRL" />
+  <meta property="product:availability" content="in stock" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Virtù — Moda Feminina" />
   <meta name="twitter:description" content="Peças atemporais com propósito." />
@@ -549,9 +554,98 @@
   <script src="js/wishlist.js"></script>
   <script src="js/stock.js"></script>
   <script src="js/produto.js"></script>
-    <script src="js/produto-share.js"></script>
+  <script src="js/produto-share.js"></script>
   <script src="js/navbar-cats.js"></script>
   <script src="js/exit-popup.js"></script>
   <script src="js/whatsapp-btn.js"></script>
+
+  <!-- ── Lightbox de zoom ──────────────────────────────── -->
+  <div id="virtu-lightbox" role="dialog" aria-modal="true" aria-label="Ampliar imagem" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);cursor:zoom-out;align-items:center;justify-content:center;">
+    <button id="virtu-lb-close" aria-label="Fechar" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;z-index:1;line-height:1;">×</button>
+    <button id="virtu-lb-prev" aria-label="Foto anterior" style="position:absolute;left:16px;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:24px;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
+    <button id="virtu-lb-next" aria-label="Próxima foto" style="position:absolute;right:16px;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:24px;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>
+    <img id="virtu-lb-img" src="" alt="Foto ampliada" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:2px;transition:opacity 0.15s;" />
+    <p id="virtu-lb-counter" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.5);font-size:12px;letter-spacing:2px;"></p>
+  </div>
+  <script>
+  (function () {
+    var lb      = document.getElementById('virtu-lightbox');
+    var lbImg   = document.getElementById('virtu-lb-img');
+    var lbClose = document.getElementById('virtu-lb-close');
+    var lbPrev  = document.getElementById('virtu-lb-prev');
+    var lbNext  = document.getElementById('virtu-lb-next');
+    var lbCount = document.getElementById('virtu-lb-counter');
+    var _imgs   = [];
+    var _idx    = 0;
+
+    function openLb(idx) {
+      if (!_imgs.length) return;
+      _idx = idx;
+      lb.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      showImg(_idx);
+    }
+
+    function closeLb() {
+      lb.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function showImg(idx) {
+      lbImg.style.opacity = '0';
+      var img = new Image();
+      img.onload = function () {
+        lbImg.src = _imgs[idx];
+        lbImg.style.opacity = '1';
+      };
+      img.src = _imgs[idx];
+      if (lbCount) lbCount.textContent = (_imgs.length > 1) ? (idx + 1) + ' / ' + _imgs.length : '';
+      lbPrev.style.display = _imgs.length > 1 ? '' : 'none';
+      lbNext.style.display = _imgs.length > 1 ? '' : 'none';
+    }
+
+    // Abre ao clicar na imagem principal
+    var mainImg = document.getElementById('mainImg');
+    if (mainImg) {
+      mainImg.style.cursor = 'zoom-in';
+      mainImg.addEventListener('click', function () {
+        // Coleta todas as URLs dos thumbs
+        var thumbs = document.querySelectorAll('.galeria-thumb[data-url]');
+        if (thumbs.length > 0) {
+          _imgs = [...thumbs].map(t => t.getAttribute('data-url')).filter(Boolean);
+          // Descobre qual thumb está ativo
+          var ativos = [...thumbs].findIndex(t => t.classList.contains('galeria-thumb--active'));
+          openLb(ativos >= 0 ? ativos : 0);
+        } else {
+          // Fallback: pega src da <img> atual
+          var realImg = mainImg.querySelector('img.galeria-main__real-img');
+          if (realImg && realImg.src) { _imgs = [realImg.src]; openLb(0); }
+        }
+      });
+    }
+
+    lbClose.addEventListener('click', closeLb);
+    lb.addEventListener('click', function (e) { if (e.target === lb) closeLb(); });
+    lbPrev.addEventListener('click', function (e) { e.stopPropagation(); _idx = (_idx - 1 + _imgs.length) % _imgs.length; showImg(_idx); });
+    lbNext.addEventListener('click', function (e) { e.stopPropagation(); _idx = (_idx + 1) % _imgs.length; showImg(_idx); });
+
+    document.addEventListener('keydown', function (e) {
+      if (lb.style.display === 'none') return;
+      if (e.key === 'Escape') closeLb();
+      if (e.key === 'ArrowLeft')  { _idx = (_idx - 1 + _imgs.length) % _imgs.length; showImg(_idx); }
+      if (e.key === 'ArrowRight') { _idx = (_idx + 1) % _imgs.length; showImg(_idx); }
+    });
+
+    // Swipe no mobile
+    var _touchStartX = 0;
+    lb.addEventListener('touchstart', function (e) { _touchStartX = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+      var diff = _touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) < 40) return;
+      if (diff > 0) { _idx = (_idx + 1) % _imgs.length; showImg(_idx); }
+      else          { _idx = (_idx - 1 + _imgs.length) % _imgs.length; showImg(_idx); }
+    }, { passive: true });
+  })();
+  </script>
 </body>
 </html>

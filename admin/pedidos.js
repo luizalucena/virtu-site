@@ -221,7 +221,9 @@
     try {
       const { error } = await supabaseClient.from('pedidos').update({ status: select.value }).eq('id', id);
       if (error) throw error;
-      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
+      const statusNotificaveis = ['confirmado','em preparação','enviado','a caminho','entregue'];
+      const notifica = statusNotificaveis.includes(select.value);
+      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${notifica ? ' 📲 Cliente notificada por WhatsApp e e-mail automaticamente.' : ''}${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
       carregarPedidos(); carregarKPIs();
     } catch (err) {
       if (feedback) feedback.innerHTML = `<span style="color:#ef4444">⚠️ Erro: ${err.message}</span>`;
@@ -246,7 +248,7 @@
       const { error } = await supabaseClient.from('pedidos').update(updates).eq('id', id);
       if (error) throw error;
       if (feedback) feedback.innerHTML = codigo
-        ? '<span style="color:#22c55e">✓ Código salvo. Status atualizado para Enviado.</span>'
+        ? '<span style="color:#22c55e">✓ Código salvo. Status → Enviado. 📲 Cliente notificada por WhatsApp e e-mail com link de rastreio.</span>'
         : '<span style="color:#888">Código removido.</span>';
       carregarPedidos(); carregarKPIs();
     } catch (err) {
@@ -305,6 +307,62 @@
 
     carregarKPIs();
     carregarPedidos();
+
+    // Exportar CSV
+    const btnCSV = document.getElementById('btnExportarCSV');
+    if (btnCSV && !btnCSV._csvBound) {
+      btnCSV._csvBound = true;
+      btnCSV.addEventListener('click', async () => {
+        btnCSV.disabled = true;
+        btnCSV.textContent = 'Gerando…';
+        try {
+          const filtroStatus = document.getElementById('pedidosFiltroStatus')?.value || '';
+          let query = supabaseClient
+            .from('pedidos')
+            .select('id,nome_cliente,email_cliente,telefone,total,status,pagamento,rastreio,criado_em,itens')
+            .order('criado_em', { ascending: false });
+          if (filtroStatus) query = query.eq('status', filtroStatus);
+
+          const { data, error } = await query;
+          if (error) throw error;
+
+          // Build CSV
+          const escape = (v) => {
+            const s = String(v ?? '').replace(/"/g, '""');
+            return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+          };
+          const header = ['ID','Nome','E-mail','Telefone','Total','Status','Pagamento','Rastreio','Data'];
+          const rows = (data || []).map(p => [
+            p.id,
+            p.nome_cliente || '',
+            p.email_cliente || '',
+            p.telefone || '',
+            Number(p.total || 0).toFixed(2).replace('.',','),
+            p.status || '',
+            p.pagamento || '',
+            p.rastreio || '',
+            p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
+          ].map(escape).join(','));
+
+          const csv = [header.join(','), ...rows].join('\r\n');
+          const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a');
+          const date = new Date().toISOString().slice(0,10);
+          a.href     = url;
+          a.download = `pedidos-virtu-${date}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          alert('Erro ao exportar: ' + e.message);
+        } finally {
+          btnCSV.disabled = false;
+          btnCSV.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar CSV`;
+        }
+      });
+    }
   };
 
   // Indicador visual de conexão ao vivo

@@ -416,9 +416,18 @@
               placeholder="0 = sem mínimo" min="0" step="0.01" />
           </div>
           <div class="admin-form-group">
-            <label class="admin-label">Limite de usos</label>
+            <label class="admin-label">Limite total de usos</label>
             <input type="number" class="admin-input" id="formMaxUsos"
               placeholder="Vazio = ilimitado" min="1" step="1" />
+          </div>
+        </div>
+
+        <div class="cupom-modal__row">
+          <div class="admin-form-group">
+            <label class="admin-label">Limite por cliente</label>
+            <input type="number" class="admin-input" id="formMaxUsosPorCliente"
+              placeholder="Vazio = sem limite" min="1" step="1"
+              title="Número máximo de vezes que o mesmo cliente pode usar este cupom" />
           </div>
         </div>
 
