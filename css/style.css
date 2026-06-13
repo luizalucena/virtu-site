@@ -1525,3 +1525,176 @@ body.menu-open {
     font-size: 0.75rem;
   }
 }
+
+/* ============================================================
+   MOBILE POLISH — Virtù (junho 2026)
+   Refinamento estético e de usabilidade para telas ≤ 768px
+   ============================================================ */
+
+/* ── 1. PRODUCT CARD: otimizado para touch ──────────────────── */
+@media (max-width: 1024px) {
+  /* Wishlist sempre visível em touch */
+  .product-card__wishlist {
+    opacity: 1;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(4px);
+    width: 34px;
+    height: 34px;
+    box-shadow: 0 2px 8px rgba(43,63,84,0.12);
+  }
+
+  /* Quick-add sempre visível em mobile */
+  .product-card__quick-add {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .product-card__quick-btn {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(4px);
+    font-size: 9px;
+    padding: 8px;
+    letter-spacing: 1.5px;
+  }
+}
+
+/* ── 2. SECTION HEADERS mobile ──────────────────────────────── */
+@media (max-width: 768px) {
+  .section-header {
+    margin-bottom: var(--space-8);
+  }
+
+  .section-header h2,
+  .section-title {
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    letter-spacing: 0.02em;
+  }
+
+  .section-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Sections menos espaçadas em mobile */
+  .section { padding-block: var(--space-10); }
+  .section--lg { padding-block: var(--space-16); }
+  .section--sm { padding-block: var(--space-8); }
+}
+
+/* ── 3. NAVBAR mobile refinamentos ──────────────────────────── */
+@media (max-width: 768px) {
+  .navbar__inner {
+    padding-inline: var(--space-4);
+  }
+
+  .navbar__logo-text {
+    font-size: 19px;
+    letter-spacing: 5px;
+  }
+
+  .navbar__logo-icon {
+    width: 18px;
+  }
+
+  .navbar__actions {
+    gap: var(--space-2);
+  }
+
+  .navbar__action-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navbar__action-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+/* ── 4. PRODUTO CARD: tipografia mobile ─────────────────────── */
+@media (max-width: 768px) {
+  .product-card__name {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .product-card__price-current {
+    font-size: 1rem;
+  }
+
+  .product-card__category {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+  }
+
+  .product-card__info {
+    gap: var(--space-1);
+    padding-top: var(--space-2);
+  }
+}
+
+/* ── 5. INPUTS & BUTTONS: toque mais confortável ────────────── */
+@media (max-width: 768px) {
+  .input {
+    padding: 13px var(--space-4);
+    font-size: 16px; /* evita zoom automático no iOS */
+    border-radius: 4px;
+  }
+
+  .btn {
+    min-height: 48px;
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .btn--sm {
+    min-height: 40px;
+    font-size: 10px;
+  }
+}
+
+/* ── 6. FOOTER mobile compacto ─────────────────────────────── */
+@media (max-width: 768px) {
+  .footer {
+    padding-top: var(--space-12);
+    padding-bottom: var(--space-6);
+  }
+
+  .footer__desc { max-width: 100%; }
+
+  .footer__bottom {
+    padding-top: var(--space-5);
+  }
+
+  .footer__copy {
+    font-size: 10px;
+  }
+}
+
+/* ── 7. MOBILE MENU: refinado ───────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-menu__drawer {
+    padding: var(--space-6);
+    gap: var(--space-6);
+  }
+
+  .mobile-menu__link {
+    font-size: 1.6rem;
+    padding: var(--space-3) 0;
+  }
+}
+
+/* ── 8. ANNOUNCEMENT BAR mobile ────────────────────────────── */
+@media (max-width: 480px) {
+  .announcement-bar {
+    height: 32px;
+  }
+
+  .announcement-bar__item {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  :root { --announcement-h: 32px; }
+}

@@ -1224,3 +1224,55 @@
   opacity: 0;
   pointer-events: none;
 }
+
+/* ============================================================
+   MOBILE POLISH — Produto (junho 2026)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Layout: galeria em cima, info embaixo */
+  .produto-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  /* Galeria: só imagem principal, sem thumbnails visíveis */
+  .produto-galeria {
+    grid-template-columns: 1fr;
+    position: static;
+    top: auto;
+  }
+
+  .galeria-thumbs {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: var(--space-2);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+
+  .galeria-thumbs::-webkit-scrollbar { display: none; }
+
+  .galeria-thumb {
+    width: 56px;
+    height: 68px;
+    flex-shrink: 0;
+  }
+
+  .galeria-main__img {
+    aspect-ratio: 3 / 4;
+    border-radius: 4px;
+  }
+
+  .produto-section {
+    padding-bottom: var(--space-10);
+  }
+}
+
+@media (max-width: 480px) {
+  .galeria-thumb {
+    width: 48px;
+    height: 58px;
+  }
+}

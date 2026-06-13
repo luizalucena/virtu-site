@@ -682,3 +682,41 @@
   .cat-pills { gap: var(--space-2); }
   .sort-bar { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 }
+
+/* ============================================================
+   MOBILE POLISH — Catálogo (junho 2026)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .cat-header {
+    padding-block: var(--space-4);
+  }
+
+  /* Filtros e ordenação mais compactos */
+  .cat-toolbar,
+  .cat-filters {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Grid: 2 colunas compactas */
+  .products-grid {
+    gap: 1.25rem 0.875rem !important;
+  }
+
+  .products-grid--3,
+  .products-grid--4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Placeholder mais bonito */
+  .product-card__image-wrap {
+    background: linear-gradient(145deg, #ede8e0, #d4c4b5);
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    gap: 1rem 0.625rem !important;
+  }
+}
