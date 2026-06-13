@@ -1,0 +1,17 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- MIGRATION: remove overload antigo de validar_cupom
+--
+-- PROBLEMA: existiam DOIS overloads de validar_cupom:
+--   1. validar_cupom(p_codigo text)
+--   2. validar_cupom(p_codigo text, p_email text DEFAULT NULL::text)
+--
+-- Como o overload 2 tem DEFAULT NULL em p_email, ele também aceita chamadas
+-- com apenas 1 argumento — tornando-os AMBÍGUOS. O PostgreSQL/PostgREST não
+-- conseguia resolver qual chamar, retornando erro que o frontend tratava como
+-- "cupom inválido", mesmo para cupons válidos como SINTIQUE.
+--
+-- SOLUÇÃO: dropar o overload antigo (1 parâmetro). O overload com p_email
+-- DEFAULT NULL já cobre todos os casos: sem email (NULL) e com email (check
+-- de limite por cliente). A ambiguidade é eliminada.
+-- ─────────────────────────────────────────────────────────────────────────────
+DROP FUNCTION IF EXISTS public.validar_cupom(p_codigo text);
