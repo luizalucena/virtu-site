@@ -5,9 +5,9 @@
  * (ou manualmente pelo admin) quando o status de um pedido muda.
  *
  * Ações por status:
- *   confirmado / em preparação → WhatsApp + e-mail ao cliente
- *   enviado / a caminho        → WhatsApp + e-mail com link de rastreio
- *   entregue                   → WhatsApp + e-mail de conclusão
+ *   confirmado / em preparação → e-mail ao cliente
+ *   enviado / a caminho        → e-mail com link de rastreio
+ *   entregue                   → e-mail de conclusão
  *
  * Input POST (via pg_net pelo trigger):
  *   pedido_id    string  — UUID do pedido
@@ -16,7 +16,6 @@
  *
  * Variáveis de ambiente:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
- *   ZAPI_INSTANCE_ID, ZAPI_TOKEN
  *   RESEND_API_KEY
  */
 
@@ -218,8 +217,6 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL  = Deno.env.get('SUPABASE_URL')!;
     const SERVICE_ROLE  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const ZAPI_INSTANCE = Deno.env.get('ZAPI_INSTANCE_ID');
-    const ZAPI_TOKEN    = Deno.env.get('ZAPI_TOKEN');
     const RESEND_KEY    = Deno.env.get('RESEND_API_KEY');
 
     const body        = await req.json();
@@ -265,34 +262,6 @@ Deno.serve(async (req) => {
     const linkRastreio = `https://wearvirtu.com/rastreio.html?id=${pedidoId}`;
 
     const erros: string[] = [];
-
-    // ── WhatsApp ──────────────────────────────────────────────
-    if (telefone && ZAPI_INSTANCE && ZAPI_TOKEN) {
-      const tel = String(telefone).replace(/\D/g, '');
-      if (tel.length >= 10) {
-        const mensagem = config.whatsapp(primeiroNome, pedidoId, linkRastreio);
-        try {
-          const zapiRes = await fetch(
-            `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`,
-            {
-              method:  'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: tel, message: mensagem }),
-            },
-          );
-          if (!zapiRes.ok) {
-            const err = await zapiRes.json().catch(() => ({}));
-            console.error('[notificar-status-pedido] Z-API erro:', err);
-            erros.push('whatsapp');
-          } else {
-            console.log(`[notificar-status-pedido] WA enviado para ${tel.slice(0,4)}****`);
-          }
-        } catch (e) {
-          console.error('[notificar-status-pedido] WA exception:', e);
-          erros.push('whatsapp');
-        }
-      }
-    }
 
     // ── E-mail ────────────────────────────────────────────────
     if (email && RESEND_KEY) {

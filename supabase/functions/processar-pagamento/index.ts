@@ -426,22 +426,7 @@ Deno.serve(async (req) => {
           }),
         }).catch(e => console.error('[Email dispatch]', e));
 
-        fetch(`${SUPABASE_URL}/functions/v1/notificar-pedido-admin`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
-          body: JSON.stringify({
-            pedido_id:        pedido.id,
-            status:           statusPedido,
-            metodo_pagamento: tipo,
-            total:            serverTotal,
-            subtotal:         serverSubtotal,
-            frete:            freteNum,
-            desconto:         descontoCupomTotal + descontoFidelidade,
-            itens,
-            cliente,
-            endereco,
-          }),
-        }).catch(e => console.error('[WhatsApp dispatch]', e));
+        // WhatsApp removido — apenas e-mail ativo
       }
     } catch (emailErr) {
       console.error('[Email/WhatsApp Error]', emailErr);

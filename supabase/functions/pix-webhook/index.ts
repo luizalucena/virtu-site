@@ -195,15 +195,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ pedido_id: pedidoId, status: 'pago' }),
       }).catch(e => console.error('[Email PIX dispatch]', e));
 
-      // ── Notificação WhatsApp admin (fire-and-forget) ──────────
-      fetch(`${SUPABASE_URL}/functions/v1/notificar-pedido-admin`, {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${ANON_KEY}`,
-        },
-        body: JSON.stringify({ pedido_id: pedidoId }),
-      }).catch(e => console.error('[WhatsApp PIX dispatch]', e));
+      // WhatsApp removido — apenas e-mail ativo
     }
 
     return json({ ok: true, pedido_id: pedidoId });

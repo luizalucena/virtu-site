@@ -1,9 +1,8 @@
 /**
  * VIRTÙ — Edge Function: notificar-premio-fidelidade
  *
- * Envia duas notificações para a cliente ao ganhar prêmio de fidelidade:
- *   1. WhatsApp via Z-API (com template configurável pelo admin)
- *   2. E-mail via Resend (com template HTML premium)
+ * Envia notificação por e-mail para a cliente ao ganhar prêmio de fidelidade.
+ * (via Resend — template HTML premium)
  *
  * Input: POST {
  *   user_id  : string  — UUID da cliente
@@ -17,7 +16,6 @@
  *
  * Secrets obrigatórios:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (injetados automaticamente)
- *   ZAPI_INSTANCE_ID, ZAPI_TOKEN, ADMIN_WHATSAPP (Z-API)
  *   RESEND_API_KEY (e-mail)
  */
 
@@ -64,34 +62,7 @@ function primeiroNome(nome: string | null | undefined): string {
 
 // ── Templates ─────────────────────────────────────────────────────────
 
-/**
- * Substitui variáveis no template de WhatsApp:
- * {{NOME}}, {{META}}, {{VALOR}}, {{CODIGO}}, {{VALIDADE}}
- */
-function buildWhatsappMsg(
-  template: string,
-  vars: { nome: string; meta: number; valor: number; codigo: string; validade: string },
-): string {
-  return template
-    .replace(/\{\{NOME\}\}/g,     primeiroNome(vars.nome))
-    .replace(/\{\{META\}\}/g,     String(vars.meta))
-    .replace(/\{\{VALOR\}\}/g,    vars.valor.toFixed(2).replace('.', ','))
-    .replace(/\{\{CODIGO\}\}/g,   vars.codigo)
-    .replace(/\{\{VALIDADE\}\}/g, vars.validade);
-}
 
-/** Template padrão caso config_fidelidade não tenha msg_whatsapp */
-const DEFAULT_WHATSAPP = `🎁 *Parabéns, {{NOME}}!*
-
-Você completou {{META}} compras na Virtù e ganhou *R$ {{VALOR}} de desconto*! 🛍️
-
-Seu cupom exclusivo é:
-*{{CODIGO}}*
-
-Válido até {{VALIDADE}}
-Use em: wearvirtu.com 💙
-
-_Virtù — Moda com propósito_`;
 
 /** E-mail HTML premium */
 function buildEmailHtml(vars: {
@@ -237,7 +208,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const { user_id, codigo, validade } = body;
-    let { nome, email, whatsapp } = body;
+    let { nome, email } = body;
 
     if (!user_id || !codigo) {
       return json({ ok: false, erro: 'user_id e codigo são obrigatórios' }, 400);
@@ -252,12 +223,11 @@ Deno.serve(async (req) => {
     if (!nome || !email) {
       const { data: perfil } = await supabase
         .from('clientes_perfil')
-        .select('nome, whatsapp')
+        .select('nome')
         .eq('id', user_id)
         .maybeSingle();
 
-      if (!nome    && perfil?.nome)      nome     = perfil.nome;
-      if (!whatsapp && perfil?.whatsapp) whatsapp = perfil.whatsapp;
+      if (!nome && perfil?.nome) nome = perfil.nome;
 
       if (!email) {
         const { data: userRow } = await supabase.auth.admin.getUserById(user_id);
@@ -274,53 +244,11 @@ Deno.serve(async (req) => {
 
     const meta         = cfg?.meta_compras  ?? 10;
     const valor        = Number(cfg?.valor_desconto ?? 100);
-    const templateWpp  = cfg?.msg_whatsapp  || DEFAULT_WHATSAPP;
     const validadeFmt  = fmtData(validade);
     const primeiroN    = primeiroNome(nome);
     const errors: string[] = [];
 
-    // ── 1. WhatsApp para a cliente ─────────────────────────
-    const ZAPI_INSTANCE = Deno.env.get('ZAPI_INSTANCE_ID');
-    const ZAPI_TOKEN    = Deno.env.get('ZAPI_TOKEN');
-    const clienteWpp    = (whatsapp || '').replace(/\D/g, '');
-
-    if (ZAPI_INSTANCE && ZAPI_TOKEN && clienteWpp.length >= 10) {
-      try {
-        const mensagem = buildWhatsappMsg(templateWpp, {
-          nome: primeiroN, meta, valor, codigo, validade: validadeFmt,
-        });
-        const phoneFormatted = clienteWpp.startsWith('55')
-          ? clienteWpp
-          : `55${clienteWpp}`;
-
-        const zapiRes = await fetch(
-          `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`,
-          {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ phone: phoneFormatted, message: mensagem }),
-          },
-        );
-        if (!zapiRes.ok) {
-          const errData = await zapiRes.json().catch(() => ({}));
-          console.error('[Premio WhatsApp]', zapiRes.status, JSON.stringify(errData));
-          errors.push('whatsapp: ' + zapiRes.status);
-        } else {
-          console.log(`[Premio WhatsApp] Enviado para ${phoneFormatted}`);
-        }
-      } catch (e) {
-        console.error('[Premio WhatsApp Exception]', e);
-        errors.push('whatsapp: exception');
-      }
-    } else {
-      if (!ZAPI_INSTANCE || !ZAPI_TOKEN) {
-        console.warn('[Premio WhatsApp] Z-API não configurado — skipping');
-      } else {
-        console.warn('[Premio WhatsApp] WhatsApp da cliente não disponível');
-      }
-    }
-
-    // ── 2. E-mail para a cliente ───────────────────────────
+    // ── E-mail para a cliente ────────────────────────────────
     const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
 
     if (RESEND_KEY && email) {
