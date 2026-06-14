@@ -196,7 +196,7 @@ function buildEmailHtml(vars: {
 
               <p style="margin:24px 0 0;font-size:12px;color:#B0A8A0;text-align:center;line-height:1.6">
                 Seus itens estão reservados por tempo limitado.<br/>
-                Dúvidas? Fale conosco pelo WhatsApp.
+                Dúvidas? <a href="mailto:wearvirtu@gmail.com" style="color:#B0A8A0">wearvirtu@gmail.com</a>
               </p>
 
             </td>

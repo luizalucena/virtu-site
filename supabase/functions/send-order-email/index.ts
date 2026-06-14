@@ -289,7 +289,7 @@ Deno.serve(async (req) => {
         <a href="${SITE_URL}" style="color:#bbb;text-decoration:none">wearvirtu.com</a>
       </p>
       <p style="margin:6px 0 0;font-size:11px;color:#d5d0c8">
-        Este e-mail foi gerado automaticamente. Dúvidas? Fale conosco pelo WhatsApp.
+        Este e-mail foi gerado automaticamente. Dúvidas? <a href="mailto:wearvirtu@gmail.com" style="color:#d5d0c8">wearvirtu@gmail.com</a>
       </p>
     </div>
 

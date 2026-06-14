@@ -309,15 +309,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const parcelas = parseInt(document.getElementById('installments')?.value || '1');
-    const repasse  = calcularRepasse(totalBase, metodoAtivo, parcelas);
+    // Débito é processado pelo gateway como crédito 1x — exibe a mesma taxa para evitar divergência
+    const metodoCalculo = metodoAtivo === 'debito' ? 'cartao' : metodoAtivo;
+    const repasse  = calcularRepasse(totalBase, metodoCalculo, parcelas);
 
     // ── Linha de taxa — só exibe se houver cobrança real ─────
     const mostrarTaxa = repasse.taxaRetida > 0;
     if (taxaLine) taxaLine.style.display = mostrarTaxa ? '' : 'none';
 
     if (mostrarTaxa) {
+      // Débito é processado como crédito 1x pelo gateway — label é 'Débito' mas taxa é a mesma
       const eDebito = metodoAtivo === 'debito';
-      const aVista  = metodoAtivo === 'cartao' && parcelas === 1;
+      const aVista  = (metodoAtivo === 'cartao' || eDebito) && parcelas === 1;
 
       const labelHtml = eDebito
         ? `🏦 Débito <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`
@@ -329,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (taxaEl) {
         taxaEl.textContent = `+${formatCurrency(repasse.taxaRetida)}`;
-        taxaEl.style.color = eDebito ? '#27ae60' : '#C0824A';
+        taxaEl.style.color = '#C0824A';
       }
     }
 

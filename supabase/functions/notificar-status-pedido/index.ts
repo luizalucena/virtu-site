@@ -111,7 +111,7 @@ function getStatusConfig(statusNorm: string): StatusConfig | null {
         icon: '🎁',
         subtitulo: `${nome}, seu pedido chegou!`,
         corpo: `Seu pedido <strong>#${id6(id)}</strong> foi entregue. Esperamos que você ame cada peça tanto quanto a gente amou preparar para você.`,
-        rodape: 'Se precisar de ajuda com troca ou devolução em até 7 dias, é só nos chamar no WhatsApp.',
+        rodape: 'Se precisar de ajuda com troca ou devolução em até 7 dias, é só nos enviar um e-mail: wearvirtu@gmail.com',
         cta: null,
       }),
     },
@@ -196,7 +196,7 @@ function emailTemplate(opts: EmailTemplateOpts): string {
               © Virtù — wearvirtu.com
             </p>
             <p style="margin:6px 0 0;font-size:11px;color:#ccc">
-              Dúvidas? Fale conosco pelo WhatsApp
+              Dúvidas? <a href="mailto:wearvirtu@gmail.com" style="color:#ccc;text-decoration:none">wearvirtu@gmail.com</a>
             </p>
           </td>
         </tr>

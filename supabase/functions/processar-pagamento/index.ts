@@ -393,9 +393,8 @@ Deno.serve(async (req) => {
                   codigo:   fidData.codigo,
                   validade: fidData.validade,
                   // Passa dados já disponíveis para evitar roundtrip extra
-                  nome:     cliente?.nome     || null,
-                  email:    cliente?.email    || null,
-                  whatsapp: cliente?.telefone || null,
+                  nome:     cliente?.nome  || null,
+                  email:    cliente?.email || null,
                 }),
               }).catch(e => console.error('[Premio dispatch]', e));
             }
@@ -403,7 +402,7 @@ Deno.serve(async (req) => {
         });
     }
 
-    // ── Notificações (e-mail + WhatsApp) ───────────────────
+    // ── Notificações por e-mail (Resend via send-order-email) ──
     try {
       const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
       const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
