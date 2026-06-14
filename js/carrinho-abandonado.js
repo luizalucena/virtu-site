@@ -1,20 +1,22 @@
 /**
  * carrinho-abandonado.js — Virtù
- * Detecta abandono de carrinho e salva no Supabase para follow-up via WhatsApp.
+ * Detecta abandono de carrinho e salva no Supabase para follow-up via e-mail.
  *
  * Fluxo:
- *  1. Carrinho.html  → exit intent popup captura WhatsApp → salva abandono
- *  2. Checkout.html  → usuário preenche telefone mas sai → salva abandono
- *  3. Admin recebe notificação e envia WhatsApp (manual ou via webhook automático)
+ *  1. Carrinho.html  → exit intent popup captura e-mail → salva abandono → envia e-mail
+ *  2. Checkout.html  → usuário preenche e-mail mas sai → salva abandono → envia e-mail
+ *  3. Admin visualiza carrinhos abandonados no painel
+ *
+ * Nota: WhatsApp removido — Z-API não é autorizado pelo WhatsApp/Meta (risco de ban).
+ * Notificação via Resend (e-mail) apenas.
  */
 
 (function () {
   'use strict';
 
-  const CART_KEY       = 'virtu_cart';
-  const ABANDONO_KEY   = 'virtu_abandono_saved';  // evita duplicatas na sessão
-  const POPUP_KEY      = 'virtu_popup_shown';     // mostra popup só 1x por sessão
-  const WHATSAPP_VIRTU = '5583999947734';         // número da loja para o link de recuperação
+  const CART_KEY     = 'virtu_cart';
+  const ABANDONO_KEY = 'virtu_abandono_saved';  // evita duplicatas na sessão
+  const POPUP_KEY    = 'virtu_popup_shown';     // mostra popup só 1x por sessão
 
   // Timer de abandono: dispara após MIN_INATIVIDADE ms sem interação
   const MIN_INATIVIDADE = 25 * 60 * 1000;  // 25 minutos
@@ -35,15 +37,8 @@
     }, 0);
   }
 
-  function formatPhone(raw) {
-    // Garante formato internacional sem +
-    const digits = raw.replace(/\D/g, '');
-    // Se o número não começa com código de país (55 para Brasil),
-    // prepend '55' para números com 10 ou 11 dígitos (DDD + número).
-    if (digits.length === 10 || digits.length === 11) return '55' + digits;
-    // Substitui prefixo 0 por 55 (ex: 0800...)
-    if (digits.startsWith('0')) return '55' + digits.slice(1);
-    return digits;
+  function isValidEmail(email) {
+    return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }
 
   function buildRecoveryUrl() {
@@ -69,10 +64,9 @@
 
   /* ─── Salvar no Supabase ──────────────────────────────────── */
 
-  async function saveAbandono({ nome, email, telefone, origem }) {
+  async function saveAbandono({ nome, email, origem }) {
     if (alreadySaved()) return;
-    const tel = formatPhone(telefone);
-    if (!tel || tel.length < 10) return;
+    if (!isValidEmail(email)) return; // e-mail é obrigatório para envio
 
     markSaved();
 
@@ -86,9 +80,8 @@
       const { data: registro } = await supabaseClient
         .from('carrinhos_abandonados')
         .insert({
-          telefone:        tel,
+          email:           email.trim(),
           nome:            nome || null,
-          email:           email || null,
           itens:           cart,
           valor_total:     total,
           origem:          origem || 'carrinho',
@@ -98,11 +91,10 @@
         .select('id')
         .maybeSingle();
 
-      // Dispara webhook automático (se configurado no admin)
-      dispararWebhook({
+      // Dispara notificação por e-mail via Edge Function
+      dispararEmail({
         nome,
-        telefone: tel,
-        email,
+        email: email.trim(),
         itens: cart,
         total,
         url: url_rec,
@@ -143,32 +135,29 @@
     if (alreadySaved()) return;
 
     // Tenta usar dados já salvos em localStorage (preenchidos no checkout)
-    const tel   = localStorage.getItem('virtu_telefone') || '';
-    const nome  = localStorage.getItem('virtu_nome')     || '';
-    const email = localStorage.getItem('virtu_email')    || '';
+    const nome  = localStorage.getItem('virtu_nome')  || '';
+    const email = localStorage.getItem('virtu_email') || '';
 
-    if (tel && tel.replace(/\D/g,'').length >= 10) {
-      await saveAbandono({ nome, email, telefone: tel, origem: 'timer_inatividade' });
+    if (isValidEmail(email)) {
+      await saveAbandono({ nome, email, origem: 'timer_inatividade' });
     }
-    // Se não tiver telefone, o webhook não dispara — não há como enviar o WA
-    // O registro fica pendente até o exit popup coletar o telefone
+    // Se não tiver e-mail, o registro aguarda o popup ou a digitação no checkout
   }
 
-  /* ─── Notificação WhatsApp via Edge Function dedicada ────── */
-  // Chama diretamente a EF notificar-abandono-carrinho que usa Z-API.
-  // A EF formata a mensagem com cada peça listada e atualiza o registro no banco.
+  /* ─── Notificação por e-mail via Edge Function ────────────── */
+  // Chama a EF notificar-abandono-carrinho que usa Resend para enviar e-mail.
+  // WhatsApp removido — Z-API não autorizado pelo WhatsApp/Meta (risco de ban).
 
-  async function dispararWebhook(dados) {
+  async function dispararEmail(dados) {
     try {
       const { error } = await supabaseClient.functions.invoke(
         'notificar-abandono-carrinho',
         {
           body: {
-            telefone:        dados.telefone,
-            nome:            dados.nome   || null,
-            email:           dados.email  || null,
-            itens:           dados.itens  || [],
-            total:           dados.total  || 0,
+            email:           dados.email,
+            nome:            dados.nome        || null,
+            itens:           dados.itens       || [],
+            total:           dados.total       || 0,
             url_recuperacao: dados.url,
             abandono_id:     dados.abandono_id || null,
           },
@@ -181,7 +170,7 @@
 
     } catch (err) {
       // Falha silenciosa — não prejudica a experiência da cliente
-      console.warn('[Virtù] dispararWebhook falhou:', err?.message);
+      console.warn('[Virtù] dispararEmail falhou:', err?.message);
     }
   }
 
@@ -198,22 +187,21 @@
         <button id="vt-abandono-close" aria-label="Fechar">✕</button>
         <div id="vt-abandono-icon">🛍️</div>
         <h2 id="vt-abandono-title">Espera! Seus itens vão embora</h2>
-        <p id="vt-abandono-sub">Deixe seu WhatsApp e te lembramos quando você quiser retomar.</p>
+        <p id="vt-abandono-sub">Deixe seu e-mail e te mandamos um lembrete para retomar sua compra.</p>
         <form id="vt-abandono-form" novalidate>
           <input
-            type="tel"
-            id="vt-abandono-phone"
-            placeholder="(83) 99999-9999"
-            inputmode="numeric"
-            maxlength="15"
+            type="email"
+            id="vt-abandono-email"
+            placeholder="seu@email.com"
+            inputmode="email"
             required
-            autocomplete="tel"
-            aria-label="Seu WhatsApp"
+            autocomplete="email"
+            aria-label="Seu e-mail"
           />
-          <button type="submit" id="vt-abandono-btn">Salvar meu carrinho 💬</button>
+          <button type="submit" id="vt-abandono-btn">Salvar meu carrinho 📧</button>
         </form>
         <p id="vt-abandono-msg" role="alert" aria-live="polite"></p>
-        <p id="vt-abandono-disclaimer">Só enviamos 1 mensagem. Nada de spam.</p>
+        <p id="vt-abandono-disclaimer">Só enviamos 1 e-mail. Nada de spam.</p>
       </div>
     `;
 
@@ -265,16 +253,7 @@
     document.head.appendChild(style);
     document.body.appendChild(overlay);
 
-    // Formata o campo de telefone
-    const phoneInput = document.getElementById('vt-abandono-phone');
-    phoneInput?.addEventListener('input', function () {
-      let v = this.value.replace(/\D/g, '');
-      if (v.length > 11) v = v.slice(0, 11);
-      if (v.length > 7) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
-      else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
-      else if (v.length > 0) v = `(${v}`;
-      this.value = v;
-    });
+    const emailInput = document.getElementById('vt-abandono-email');
 
     // Fechar ao clicar fora ou no X
     overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
@@ -288,12 +267,12 @@
     // Submit
     document.getElementById('vt-abandono-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const telefone = phoneInput?.value || '';
+      const email = emailInput?.value?.trim() || '';
       const btn = document.getElementById('vt-abandono-btn');
       const msg = document.getElementById('vt-abandono-msg');
 
-      if (telefone.replace(/\D/g,'').length < 10) {
-        msg.textContent = 'Digite um número válido com DDD.';
+      if (!isValidEmail(email)) {
+        msg.textContent = 'Digite um e-mail válido.';
         msg.style.color = '#c62828';
         return;
       }
@@ -301,10 +280,10 @@
       btn.disabled = true;
       btn.textContent = 'Salvando…';
 
-      await saveAbandono({ telefone, origem: 'exit_popup' });
+      await saveAbandono({ email, origem: 'exit_popup' });
 
       btn.textContent = '✓ Salvo!';
-      msg.textContent = 'Perfeito! Te avisamos no WhatsApp. 😊';
+      msg.textContent = 'Perfeito! Te avisamos por e-mail. 📧';
       msg.style.color = '#27ae60';
 
       setTimeout(closePopup, 1800);
@@ -341,8 +320,8 @@
         // Para o timer quando sai da aba — o beforeunload cuida do registro
         clearTimeout(_timerAbandono);
         if (!popupTriggered) {
-          const tel = localStorage.getItem('virtu_telefone') || '';
-          if (tel) saveAbandono({ telefone: tel, origem: 'carrinho_mobile' });
+          const em = localStorage.getItem('virtu_email') || '';
+          if (isValidEmail(em)) saveAbandono({ email: em, origem: 'carrinho_mobile' });
         }
       } else if (document.visibilityState === 'visible') {
         // Retornou à aba — reinicia o timer
@@ -367,21 +346,20 @@
     iniciarTimerAbandono();
 
     function trySave() {
-      const { nome, email, telefone } = getCheckoutData();
-      if (telefone) {
+      const { nome, email } = getCheckoutData();
+      if (isValidEmail(email)) {
         // Persiste para possível uso em próximas sessões
-        localStorage.setItem('virtu_telefone', telefone);
-        localStorage.setItem('virtu_nome',     nome);
-        localStorage.setItem('virtu_email',    email);
-        saveAbandono({ nome, email, telefone, origem: 'checkout' });
+        localStorage.setItem('virtu_nome',  nome);
+        localStorage.setItem('virtu_email', email);
+        saveAbandono({ nome, email, origem: 'checkout' });
       }
     }
 
-    // Guarda telefone enquanto digita (para capturar mesmo sem submit)
-    document.getElementById('phone')?.addEventListener('blur', () => {
-      const tel = document.getElementById('phone')?.value || '';
-      if (tel.replace(/\D/g,'').length >= 10) {
-        localStorage.setItem('virtu_telefone', tel);
+    // Guarda e-mail enquanto digita (para capturar mesmo sem submit)
+    document.getElementById('email')?.addEventListener('blur', () => {
+      const em = document.getElementById('email')?.value?.trim() || '';
+      if (isValidEmail(em)) {
+        localStorage.setItem('virtu_email', em);
       }
     });
 
@@ -398,15 +376,15 @@
     const params = new URLSearchParams(window.location.search);
     if (!params.has('recuperar')) return;
 
-    const tel = localStorage.getItem('virtu_telefone');
-    if (!tel) return;
+    const email = localStorage.getItem('virtu_email');
+    if (!isValidEmail(email)) return;
 
     try {
-      // Busca o registro mais recente para aquele telefone
+      // Busca o registro mais recente para aquele e-mail
       const { data: row } = await supabaseClient
         .from('carrinhos_abandonados')
         .select('id')
-        .eq('telefone', formatPhone(tel))
+        .eq('email', email.trim())
         .eq('recuperado', false)
         .order('created_at', { ascending: false })
         .limit(1)
