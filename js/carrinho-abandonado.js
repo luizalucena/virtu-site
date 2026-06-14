@@ -47,10 +47,9 @@
 
   function getCheckoutData() {
     return {
-      nome:     ((document.getElementById('firstName')?.value || '') + ' ' +
-                 (document.getElementById('lastName')?.value  || '')).trim(),
-      email:    document.getElementById('email')?.value   || '',
-      telefone: document.getElementById('phone')?.value   || '',
+      nome:  ((document.getElementById('firstName')?.value || '') + ' ' +
+               (document.getElementById('lastName')?.value  || '')).trim(),
+      email: (document.getElementById('email')?.value || '').trim(),
     };
   }
 
@@ -232,18 +231,18 @@
       }
       #vt-abandono-sub { font-size:14px;color:#666;margin:0 0 20px;line-height:1.5; }
       #vt-abandono-form { display:flex;flex-direction:column;gap:10px; }
-      #vt-abandono-phone {
+      #vt-abandono-email {
         border:1px solid #ddd;border-radius:4px;padding:12px 14px;
         font-size:15px;outline:none;width:100%;box-sizing:border-box;
         font-family:inherit;
       }
-      #vt-abandono-phone:focus { border-color:#C4934A; }
+      #vt-abandono-email:focus { border-color:#C4934A; }
       #vt-abandono-btn {
-        background:#25D366;color:#fff;border:none;border-radius:4px;
+        background:#2B3F54;color:#fff;border:none;border-radius:4px;
         padding:13px;font-size:14px;font-weight:600;cursor:pointer;
         font-family:inherit;transition:background .2s;
       }
-      #vt-abandono-btn:hover { background:#1da851; }
+      #vt-abandono-btn:hover { background:#1c2e3e; }
       #vt-abandono-msg { font-size:12px;color:#27ae60;margin:8px 0 0;min-height:16px; }
       #vt-abandono-disclaimer { font-size:11px;color:#bbb;margin:10px 0 0; }
       @media(max-width:440px){
