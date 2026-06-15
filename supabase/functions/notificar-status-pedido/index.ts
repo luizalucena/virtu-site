@@ -41,7 +41,6 @@ function normStatus(s: string): string {
 
 // ── Mapa de mensagens por status ─────────────────────────────────
 interface StatusConfig {
-  whatsapp: (nome: string, pedidoId: string, link: string) => string;
   emailSubject: string;
   emailBody: (nome: string, pedidoId: string, link: string) => string;
 }
@@ -51,8 +50,6 @@ function getStatusConfig(statusNorm: string): StatusConfig | null {
 
   const configs: Record<string, StatusConfig> = {
     'confirmado': {
-      whatsapp: (nome, id) =>
-        `Oi ${nome}! 🎉\n\nSeu pedido *#${id6(id)}* foi confirmado e está sendo preparado com muito carinho!\n\nAssim que sair para entrega, você recebe uma nova mensagem com o rastreio. 📦\n\n_Qualquer dúvida é só chamar! 💛_`,
       emailSubject: 'Seu pedido foi confirmado! ✅',
       emailBody: (nome, id) => emailTemplate({
         titulo: 'Pedido Confirmado!',
@@ -64,8 +61,6 @@ function getStatusConfig(statusNorm: string): StatusConfig | null {
       }),
     },
     'em preparacao': {
-      whatsapp: (nome, id) =>
-        `Oi ${nome}! 🧵\n\nSeu pedido *#${id6(id)}* está em preparação! Nossa equipe está separando e embalando tudo com cuidado.\n\nVocê receberá uma nova mensagem assim que o pedido sair para entrega. 📦\n\n_Qualquer dúvida é só chamar! 💛_`,
       emailSubject: 'Seu pedido está sendo preparado 🧵',
       emailBody: (nome, id) => emailTemplate({
         titulo: 'Em Preparação',
@@ -77,8 +72,6 @@ function getStatusConfig(statusNorm: string): StatusConfig | null {
       }),
     },
     'enviado': {
-      whatsapp: (nome, id, link) =>
-        `Oi ${nome}! 🚚\n\nSeu pedido *#${id6(id)}* saiu para entrega!\n\nAcompanhe em tempo real aqui:\n${link}\n\n_Qualquer dúvida é só chamar! 💛_`,
       emailSubject: 'Seu pedido está a caminho! 🚚',
       emailBody: (nome, id, link) => emailTemplate({
         titulo: 'Pedido Enviado!',
@@ -90,8 +83,6 @@ function getStatusConfig(statusNorm: string): StatusConfig | null {
       }),
     },
     'a caminho': {
-      whatsapp: (nome, id, link) =>
-        `Oi ${nome}! 📦\n\nSeu pedido *#${id6(id)}* está a caminho e chegará em breve!\n\nRastreie aqui: ${link}\n\n_Qualquer dúvida é só chamar! 💛_`,
       emailSubject: 'Seu pedido está chegando! 📦',
       emailBody: (nome, id, link) => emailTemplate({
         titulo: 'A Caminho!',
@@ -103,8 +94,6 @@ function getStatusConfig(statusNorm: string): StatusConfig | null {
       }),
     },
     'entregue': {
-      whatsapp: (nome, id) =>
-        `Oi ${nome}! 🎁\n\nSeu pedido *#${id6(id)}* foi entregue! Esperamos que você ame cada peça. 💛\n\nSe precisar de qualquer ajuda com troca ou devolução, é só nos chamar!\n\n_Obrigada por escolher a Virtù ✨_`,
       emailSubject: 'Pedido entregue! Esperamos que você ame 💛',
       emailBody: (nome, id) => emailTemplate({
         titulo: 'Entregue com Amor!',
@@ -245,7 +234,7 @@ Deno.serve(async (req) => {
 
     const { data: pedido, error: dbErr } = await supabase
       .from('pedidos')
-      .select('id, cliente_nome, nome_cliente, cliente_email, email_cliente, telefone, cliente_telefone')
+      .select('id, cliente_nome, nome_cliente, cliente_email, email_cliente')
       .eq('id', pedidoId)
       .maybeSingle();
 
@@ -254,9 +243,8 @@ Deno.serve(async (req) => {
       return json({ erro: 'Pedido não encontrado' }, 404);
     }
 
-    const nome     = pedido.nome_cliente     || pedido.cliente_nome     || 'cliente';
-    const email    = pedido.email_cliente    || pedido.cliente_email    || null;
-    const telefone = pedido.telefone         || pedido.cliente_telefone || null;
+    const nome  = pedido.nome_cliente  || pedido.cliente_nome  || 'cliente';
+    const email = pedido.email_cliente || pedido.cliente_email || null;
     const primeiroNome = nome.trim().split(' ')[0];
 
     const linkRastreio = `https://wearvirtu.com/rastreio.html?id=${pedidoId}`;

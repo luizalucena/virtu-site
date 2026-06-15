@@ -11,7 +11,6 @@
  *   // Opcionais — se omitidos, busca no banco
  *   nome?    : string
  *   email?   : string
- *   whatsapp?: string
  * }
  *
  * Secrets obrigatórios:
@@ -165,7 +164,7 @@ function buildEmailHtml(vars: {
 
               <p style="margin:24px 0 0;font-size:12px;color:#B0A8A0;text-align:center;line-height:1.6">
                 Este cupom é de uso único e pessoal. Expira em ${vars.validade}.<br/>
-                Dúvidas? Fale conosco no WhatsApp.
+                Dúvidas? <a href="mailto:wearvirtu@gmail.com" style="color:#B0A8A0">wearvirtu@gmail.com</a>
               </p>
 
             </td>
@@ -238,7 +237,7 @@ Deno.serve(async (req) => {
     // ── Lê configurações do programa ───────────────────────
     const { data: cfg } = await supabase
       .from('config_fidelidade')
-      .select('meta_compras, valor_desconto, msg_whatsapp')
+      .select('meta_compras, valor_desconto')
       .eq('id', 1)
       .maybeSingle();
 
