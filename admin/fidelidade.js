@@ -105,7 +105,6 @@ async function carregarConfig() {
     set('cfgMeta',        data.meta_compras);
     set('cfgValor',       data.valor_desconto);
     set('cfgDias',        data.dias_expiracao);
-    set('cfgMsgWpp',      data.msg_whatsapp || '');
     set('cfgEmailTitulo', data.msg_email_titulo || '');
 
     const ativoEl = document.getElementById('cfgAtivo');
@@ -134,7 +133,6 @@ document.getElementById('formConfig')?.addEventListener('submit', async (e) => {
     const valor = parseFloat(document.getElementById('cfgValor')?.value || '100');
     const dias  = parseInt(document.getElementById('cfgDias')?.value || '30', 10);
     const ativo = document.getElementById('cfgAtivo')?.checked ?? true;
-    const wpp   = document.getElementById('cfgMsgWpp')?.value.trim() || null;
     const titulo= document.getElementById('cfgEmailTitulo')?.value.trim() || null;
 
     if (!meta || meta < 1)  throw new Error('Meta de compras inválida.');
@@ -149,7 +147,6 @@ document.getElementById('formConfig')?.addEventListener('submit', async (e) => {
         valor_desconto:   valor,
         dias_expiracao:   dias,
         ativo,
-        msg_whatsapp:     wpp,
         msg_email_titulo: titulo,
         atualizado_em:    new Date().toISOString(),
       }, { onConflict: 'id' });

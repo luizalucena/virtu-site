@@ -19,7 +19,7 @@
   const POPUP_KEY    = 'virtu_popup_shown';     // mostra popup só 1x por sessão
 
   // Timer de abandono: dispara após MIN_INATIVIDADE ms sem interação
-  const MIN_INATIVIDADE = 25 * 60 * 1000;  // 25 minutos
+  const MIN_INATIVIDADE = 30 * 60 * 1000;  // 30 minutos
   let   _timerAbandono  = null;
   let   _timerIniciado  = false;
 
@@ -300,7 +300,7 @@
     const cart = getCart();
     if (!cart.length) return;
 
-    // Inicia timer de 25 min de inatividade
+    // Inicia timer de 30 min de inatividade
     iniciarTimerAbandono();
 
     let popupTriggered = false;
@@ -341,7 +341,7 @@
     const cart = getCart();
     if (!cart.length) return;
 
-    // Inicia timer de 25 min também no checkout
+    // Inicia timer de 30 min também no checkout
     iniciarTimerAbandono();
 
     function trySave() {

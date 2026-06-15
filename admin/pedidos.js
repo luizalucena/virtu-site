@@ -225,7 +225,7 @@
       if (error) throw error;
       const statusNotificaveis = ['confirmado','em preparação','enviado','a caminho','entregue'];
       const notifica = statusNotificaveis.includes(select.value);
-      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${notifica ? ' 📲 Cliente notificada por WhatsApp e e-mail automaticamente.' : ''}${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
+      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${notifica ? ' 📧 Cliente notificada por e-mail automaticamente.' : ''}${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
       carregarPedidos(); carregarKPIs();
     } catch (err) {
       if (feedback) feedback.innerHTML = `<span style="color:#ef4444">⚠️ Erro: ${err.message}</span>`;
@@ -250,7 +250,7 @@
       const { error } = await supabaseClient.from('pedidos').update(updates).eq('id', id);
       if (error) throw error;
       if (feedback) feedback.innerHTML = codigo
-        ? '<span style="color:#22c55e">✓ Código salvo. Status → Enviado. 📲 Cliente notificada por WhatsApp e e-mail com link de rastreio.</span>'
+        ? '<span style="color:#22c55e">✓ Código salvo. Status → Enviado. 📧 Cliente notificada por e-mail com link de rastreio.</span>'
         : '<span style="color:#888">Código removido.</span>';
       carregarPedidos(); carregarKPIs();
     } catch (err) {
