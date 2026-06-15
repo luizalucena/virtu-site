@@ -428,7 +428,7 @@ Deno.serve(async (req) => {
         // WhatsApp removido — apenas e-mail ativo
       }
     } catch (emailErr) {
-      console.error('[Email/WhatsApp Error]', emailErr);
+      console.error('[Email Error]', emailErr);
     }
 
     // ── Resposta ao frontend ────────────────────────────────
