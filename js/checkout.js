@@ -101,7 +101,10 @@ let metodoAtivo = 'cartao'; // padrão: aba Cartão está ativa no HTML
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
       window.location.href = 'conta.html?redirect=checkout.html';
+      return;
     }
+    // Auth OK → exibe o conteúdo (remove o anti-flash)
+    document.body.style.opacity = '1';
   } catch {
     window.location.href = 'conta.html?redirect=checkout.html';
   }
@@ -972,9 +975,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const preco           = calcularPreco(subtotalLiquido, freteReal, metodoRepasse, parcelasNum);
     const finalTotal      = preco.valorFinal;
 
+    // Email: usa SEMPRE o email da sessão autenticada como fonte autoritativa.
+    // O campo do formulário pode ter sido editado pela cliente — isso evita
+    // que notificações vão para um email diferente do login.
+    let emailAuth = document.getElementById('email')?.value.trim() || '';
+    try {
+      const { data: { user: uAuth } } = await supabaseClient.auth.getUser();
+      if (uAuth?.email) emailAuth = uAuth.email;
+    } catch { /* usa valor do form como fallback */ }
+
     const cliente = {
       nome:     `${document.getElementById('firstName')?.value.trim()} ${document.getElementById('lastName')?.value.trim()}`.trim(),
-      email:    document.getElementById('email')?.value.trim(),
+      email:    emailAuth,
       cpf:      document.getElementById('cpf')?.value.trim(),
       telefone: document.getElementById('phone')?.value.trim(),
     };

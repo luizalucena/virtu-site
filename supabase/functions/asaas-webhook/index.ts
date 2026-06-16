@@ -119,24 +119,11 @@ Deno.serve(async (req) => {
 
     console.log(`[asaas-webhook] ${evento}: pedido ${pedidoId} → pago`);
 
-    // ── Decremento de estoque (fire-and-forget) ──────────────
-    // Só itens com variacao_id definido
-    const variacaoItems = itens.filter((i: any) => i.variacao_id);
-    if (variacaoItems.length > 0) {
-      try {
-        await Promise.allSettled(
-          variacaoItems.map((i: any) =>
-            supabase.rpc('comprar_variacao', {
-              p_variacao_id: i.variacao_id,
-              p_quantidade:  i.qty || 1,
-            })
-          )
-        );
-        console.log(`[asaas-webhook] Estoque decrementado: ${variacaoItems.length} variação(ões)`);
-      } catch (stockErr) {
-        console.error('[asaas-webhook] Erro ao decrementar estoque:', stockErr);
-      }
-    }
+    // ── Estoque ──────────────────────────────────────────────
+    // O decremento de estoque é feito atomicamente pelo trigger
+    // trg_pedido_pago_baixa_estoque (AFTER UPDATE ON pedidos).
+    // NÃO chamar comprar_variacao aqui — causaria duplo débito.
+    console.log(`[asaas-webhook] Estoque: delegado ao trigger DB (trg_pedido_pago_baixa_estoque)`);
 
     // ── Fidelidade: registra a compra confirmada ─────────────
     if (userId) {

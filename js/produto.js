@@ -701,6 +701,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       cart.push({
         id:                  _urlId || 'produto',
+        produto_id:          _urlId || 'produto', // campo lido pelo trigger de estoque
         nome,
         tamanho:             selectedSize,
         cor_nome:            cor,

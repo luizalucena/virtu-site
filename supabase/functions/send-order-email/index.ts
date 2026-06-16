@@ -415,10 +415,29 @@ Deno.serve(async (req) => {
     }
 
     const results = await Promise.allSettled(emails);
-    const errors = results
-      .filter(r => r.status === 'rejected')
-      .map(r => (r as PromiseRejectedResult).reason?.message ?? 'Erro desconhecido');
+    const errors: string[] = [];
 
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      if (r.status === 'rejected') {
+        // Erro de rede / timeout
+        const msg = (r as PromiseRejectedResult).reason?.message ?? 'Erro de rede';
+        errors.push(`email[${i}]: ${msg}`);
+        console.error(`[send-order-email] email[${i}] rede erro:`, msg);
+      } else {
+        // Verifica status HTTP da resposta do Resend (4xx = bad request, rate limit, etc.)
+        const res = (r as PromiseFulfilledResult<Response>).value;
+        if (!res.ok) {
+          let bodyText = '';
+          try { bodyText = await res.text(); } catch { /* ignore */ }
+          const msg = `HTTP ${res.status} — ${bodyText.slice(0, 200)}`;
+          errors.push(`email[${i}]: ${msg}`);
+          console.error(`[send-order-email] email[${i}] Resend erro:`, msg);
+        } else {
+          console.log(`[send-order-email] email[${i}] enviado com sucesso (HTTP ${res.status})`);
+        }
+      }
+    }
 
     return json({ ok: true, enviados: emails.length, erros: errors.length ? errors : undefined });
 
