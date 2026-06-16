@@ -41,73 +41,43 @@ let cupomAplicado = null; // { codigo, tipo, valor } ou null
 let descontoFidelidade = 0;    // R$100 quando aplicável na 10ª compra
 let currentUserId      = null; // UUID do usuário autenticado
 
-// ── TAXAS ASAAS ─────────────────────────────────────────────
-// Edite aqui quando as taxas do gateway mudarem (sincronize com o EF).
-// O cálculo é "por dentro": Valor_Final = Valor_Desejado / (1 − taxa)
-// Garantindo que a Virtù sempre receba EXATAMENTE o preço do produto.
-const ASAAS_TAXAS = {
-  pix:    0.0099, // 0,99% — ajuste conforme contrato ASAAS
-  debito: 0.0199, // 1,99%
-  credito: [
-    0,      // index 0: não usado
-    0.0299, // 1x:  2,99%
-    0.0349, // 2x:  3,49%
-    0.0399, // 3x:  3,99%
-    0.0449, // 4x:  4,49%
-    0.0499, // 5x:  4,99%
-    0.0549, // 6x:  5,49%
-    0.0599, // 7x:  5,99%
-    0.0649, // 8x:  6,49%
-    0.0699, // 9x:  6,99%
-    0.0749, // 10x: 7,49%
-    0.0799, // 11x: 7,99%
-    0.0849, // 12x: 8,49%
-  ],
+// ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────
+// Edite aqui (e no processar-pagamento/index.ts) quando mudar as regras.
+//   PIX:    −5% sobre o subtotal (desconto)
+//   Débito: +10% sobre o subtotal (acréscimo)
+//   Crédito:+10% sobre o subtotal (acréscimo) — parcelamento divide o total
+const AJUSTE_METODO = {
+  pix:    -0.05,  // 5% de DESCONTO
+  debito:  0.10,  // 10% de ACRÉSCIMO
+  cartao:  0.10,  // 10% de ACRÉSCIMO
 };
 
 /**
- * Calcula o repasse de taxa do gateway (cálculo "por dentro").
- * A cliente paga valorFinal; a Virtù recebe valorBase; a MP retém a diferença.
+ * Calcula o preço final aplicando o ajuste do método de pagamento.
+ * O ajuste incide sobre o subtotalLiquido (produtos − descontos).
+ * O frete é somado depois, sem ajuste — ele é custo fixo de logística.
  *
- * Fórmula: valorFinal = valorBase / (1 − taxa)
- * Arredondamento para CIMA em centavos — garante que a taxa nunca fique descoberta.
- *
- * @param {number} valorBase  Valor que a Virtù quer receber (produto+frete−descontos)
- * @param {'pix'|'debito'|'cartao'|'boleto'} metodo
- * @param {number} [parcelas] Número de parcelas (cartão apenas, 1..12)
- * @returns {{ valorFinal, taxaRetida, taxa, taxaLabel, valorPorParcela }}
+ * @param {number} subtotalLiquido  Subtotal após cupom e fidelidade
+ * @param {number} freteReal        Valor do frete selecionado
+ * @param {'pix'|'debito'|'cartao'} metodo
+ * @param {number} [parcelas]       Número de parcelas (cartão, 1..12)
+ * @returns {{ valorFinal, diff, ehDesconto, pct, valorPorParcela }}
  */
-function calcularRepasse(valorBase, metodo, parcelas = 1) {
-  let taxa;
-  if (metodo === 'pix') {
-    taxa = ASAAS_TAXAS.pix;
-  } else if (metodo === 'debito') {
-    taxa = ASAAS_TAXAS.debito;
-  } else if (metodo === 'cartao') {
-    const n = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
-    taxa = ASAAS_TAXAS.credito[n] ?? ASAAS_TAXAS.credito[1];
-  } else {
-    // desconhecido — sem taxa
-    taxa = 0;
-  }
+function calcularPreco(subtotalLiquido, freteReal, metodo, parcelas = 1) {
+  const ajuste = AJUSTE_METODO[metodo] ?? 0;
+  const sub    = Math.max(0, subtotalLiquido);
 
-  // Taxa zero: cliente paga exatamente o valor base (sem repasse)
-  if (taxa === 0) {
-    return { valorFinal: valorBase, taxaRetida: 0, taxa: 0, taxaLabel: '0,00%', valorPorParcela: null };
-  }
-
-  // Arredondamento para cima (centavos) — taxa nunca fica descoberta
-  const n               = parseInt(parcelas) || 1;
-  const valorFinalCents = Math.ceil((valorBase / (1 - taxa)) * 100);
-  const valorFinal      = valorFinalCents / 100;
-  const taxaRetida      = +(valorFinal - valorBase).toFixed(2);
-  const taxaLabel       = (taxa * 100).toFixed(2).replace('.', ',') + '%';
+  // Subtotal ajustado arredondado para 2 casas
+  const subAjustado  = Math.round(sub * (1 + ajuste) * 100) / 100;
+  const valorFinal   = subAjustado + freteReal;
+  const diff         = +(subAjustado - sub).toFixed(2); // negativo = desconto
+  const n            = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
 
   return {
     valorFinal,
-    taxaRetida,
-    taxa,
-    taxaLabel,
+    diff,
+    ehDesconto:     ajuste < 0,
+    pct:            Math.abs(ajuste * 100),
     valorPorParcela: metodo === 'cartao' ? +(valorFinal / n).toFixed(2) : null,
   };
 }
@@ -275,12 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarTaxaETotal();
   }
 
-  // ── ATUALIZA LINHA DE TAXA E TOTAL FINAL ──────────────────
+  // ── ATUALIZA LINHA DE AJUSTE E TOTAL FINAL ────────────────
   // Chamada sempre que: frete muda, aba de pagamento muda, nº de parcelas muda.
+  // PIX → desconto verde (−5%); Débito/Crédito → acréscimo laranja (+10%).
   function atualizarTaxaETotal() {
-    const descontoCupom = calcularDesconto(baseTotal);
-    const freteReal     = freteEfetivo();
-    const totalBase     = Math.max(0, baseTotal - descontoCupom - descontoFidelidade) + freteReal;
+    const descontoCupom   = calcularDesconto(baseTotal);
+    const freteReal       = freteEfetivo();
+    const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoFidelidade);
 
     const totalEl   = document.getElementById('checkoutTotal');
     const taxaLine  = document.getElementById('checkoutTaxaLine');
@@ -288,50 +259,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const taxaEl    = document.getElementById('checkoutTaxaValor');
     const installEl = document.getElementById('checkoutInstallments');
 
-    if (totalBase <= 0) {
+    if (subtotalLiquido <= 0 && freteReal <= 0) {
       if (totalEl)  totalEl.textContent = formatCurrency(0);
       if (taxaLine) taxaLine.style.display = 'none';
       return;
     }
 
     const parcelas = parseInt(document.getElementById('installments')?.value || '1');
-    const repasse  = calcularRepasse(totalBase, metodoAtivo, parcelas);
+    const preco    = calcularPreco(subtotalLiquido, freteReal, metodoAtivo, parcelas);
 
-    // ── Linha de taxa — só exibe se houver cobrança real ─────
-    const mostrarTaxa = repasse.taxaRetida > 0;
-    if (taxaLine) taxaLine.style.display = mostrarTaxa ? '' : 'none';
+    // ── Linha de ajuste (sempre visível quando há subtotal) ──
+    if (taxaLine) taxaLine.style.display = '';
 
-    if (mostrarTaxa) {
-      // Débito é processado como crédito 1x pelo gateway — label é 'Débito' mas taxa é a mesma
-      const eDebito = metodoAtivo === 'debito';
-      const aVista  = (metodoAtivo === 'cartao' || eDebito) && parcelas === 1;
-
-      const labelHtml = eDebito
-        ? `🏦 Débito <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`
-        : aVista
-          ? `💳 Crédito à vista <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`
-          : `💳 Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(taxa ${repasse.taxaLabel})</span>`;
-
-      if (taxaLabel) taxaLabel.innerHTML = labelHtml;
-
+    if (preco.ehDesconto) {
+      // PIX — desconto verde
+      if (taxaLabel) taxaLabel.innerHTML =
+        `🎉 Desconto PIX <span style="color:#999;font-size:.78rem;font-weight:400">(${preco.pct.toFixed(0)}% de desconto)</span>`;
       if (taxaEl) {
-        taxaEl.textContent = `+${formatCurrency(repasse.taxaRetida)}`;
+        taxaEl.textContent = `−${formatCurrency(Math.abs(preco.diff))}`;
+        taxaEl.style.color = '#2e7d32';
+      }
+    } else {
+      // Débito / Crédito — acréscimo laranja
+      const eDebito   = metodoAtivo === 'debito';
+      const labelHtml = eDebito
+        ? `🏦 Acréscimo Débito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
+        : parcelas === 1
+          ? `💳 Acréscimo Crédito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
+          : `💳 Acréscimo Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`;
+      if (taxaLabel) taxaLabel.innerHTML = labelHtml;
+      if (taxaEl) {
+        taxaEl.textContent = `+${formatCurrency(preco.diff)}`;
         taxaEl.style.color = '#C0824A';
       }
     }
 
-    // ── Total final (com taxa) ─────────────────────────────
+    // ── Total final ────────────────────────────────────────
     if (totalEl) {
-      totalEl.textContent        = formatCurrency(repasse.valorFinal);
-      totalEl.dataset.baseTotal  = String(totalBase);
-      totalEl.dataset.valorFinal = String(repasse.valorFinal);
+      totalEl.textContent        = formatCurrency(preco.valorFinal);
+      totalEl.dataset.valorFinal = String(preco.valorFinal);
     }
 
     // ── Atualiza seletor de parcelas (apenas no cartão) ────
     if (installEl && metodoAtivo === 'cartao') {
-      updateInstallments(totalBase);
+      updateInstallments(subtotalLiquido, freteReal);
     } else if (installEl && metodoAtivo !== 'cartao') {
-      // Oculta a linha de parcelamento para outros métodos
       const installParentEl = document.getElementById('checkoutInstallments');
       if (installParentEl) installParentEl.textContent = '';
     }
@@ -432,24 +404,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── PARCELAS DINÂMICAS (com taxa por dentro) ─────────────
-  // Recebe totalBase (valor SEM taxa). Para cada número de parcelas, calcula
-  // o repasse correto — cada opção tem sua própria taxa de parcelamento.
-  function updateInstallments(totalBase) {
+  // ── PARCELAS DINÂMICAS (acréscimo fixo +10% sobre subtotal) ─
+  // O total com acréscimo é sempre subtotalLiquido×1,10 + frete,
+  // independente do número de parcelas — divide-se apenas pelo N.
+  function updateInstallments(subtotalLiquido, freteReal) {
     const sel = document.getElementById('installments');
     if (!sel) return;
     const parcelaAtual = parseInt(sel.value || '1');
+    const totalComAcrescimo = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
     sel.innerHTML = '';
     for (let i = 1; i <= 12; i++) {
-      const rep = calcularRepasse(totalBase, 'cartao', i);
+      const valParcela = +(totalComAcrescimo / i).toFixed(2);
       const opt = document.createElement('option');
       opt.value = i;
-      if (i === 1) {
-        opt.textContent = `1x de ${formatCurrency(rep.valorFinal)} (taxa ${rep.taxaLabel})`;
-      } else {
-        const valParcela = +(rep.valorFinal / i).toFixed(2);
-        opt.textContent = `${i}x de ${formatCurrency(valParcela)} (taxa ${rep.taxaLabel})`;
-      }
+      opt.textContent = i === 1
+        ? `1x de ${formatCurrency(totalComAcrescimo)} (+10%)`
+        : `${i}x de ${formatCurrency(valParcela)} (+10% = ${formatCurrency(totalComAcrescimo)})`;
       if (i === parcelaAtual) opt.selected = true;
       sel.appendChild(opt);
     }
@@ -988,19 +958,19 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled  = true;
 
     // Monta dados do cliente e endereço
-    const cart          = getCart();
-    const isPix         = activeTab === 'pix';
-    const descontoCupom = calcularDesconto(baseTotal);
-    const freteReal     = freteEfetivo();
-    const totalBruto    = Math.max(0, baseTotal - descontoCupom - descontoFidelidade) + freteReal;
+    const cart            = getCart();
+    const isPix           = activeTab === 'pix';
+    const descontoCupom   = calcularDesconto(baseTotal);
+    const freteReal       = freteEfetivo();
 
-    // ── Repasse de taxa (cálculo "por dentro") ────────────
-    // A cliente paga finalTotal; a Virtù recebe totalBruto; a ASAAS retém a diferença.
-    const isDebito_    = activeTab === 'debito';
-    const parcelasNum  = (isPix || isDebito_) ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
-    const metodoRepasse = isPix ? 'pix' : isDebito_ ? 'debito' : 'cartao';
-    const repasse       = calcularRepasse(totalBruto, metodoRepasse, parcelasNum);
-    const finalTotal  = repasse.valorFinal;
+    // ── Calcula total final com ajuste por método ─────────
+    // PIX −5%, Débito/Crédito +10% sobre o subtotalLiquido; frete sem ajuste.
+    const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoFidelidade);
+    const isDebito        = activeTab === 'debito';
+    const metodoRepasse   = isPix ? 'pix' : isDebito ? 'debito' : 'cartao';
+    const parcelasNum     = (isPix || isDebito) ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
+    const preco           = calcularPreco(subtotalLiquido, freteReal, metodoRepasse, parcelasNum);
+    const finalTotal      = preco.valorFinal;
 
     const cliente = {
       nome:     `${document.getElementById('firstName')?.value.trim()} ${document.getElementById('lastName')?.value.trim()}`.trim(),
@@ -1025,7 +995,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Monta payload base ───────────────────────
-    const isDebito = activeTab === 'debito';
     const tipoEnvio = isPix ? 'pix' : isDebito ? 'debito' : 'cartao';
 
     const freteNome = document.querySelector('input[name="shipping"]:checked')
@@ -1041,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
       frete:               freteReal,
       frete_selecionado:   freteNome,
       desconto:            descontoCupom,
-      valor_sem_taxa:      totalBruto,
+      valor_sem_ajuste:    subtotalLiquido + freteReal,
       cupom_codigo:        cupomAplicado?.codigo || null,
       itens:               cart,
       cliente,
@@ -1137,14 +1106,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // ── Cartão: feedback de aprovação ────────────
-      if (result.status === 'approved') {
+      // Status ASAAS: CONFIRMED | RECEIVED → aprovado; DECLINED → recusado
+      if (['CONFIRMED', 'RECEIVED', 'PENDING'].includes(result.status)) {
         exibirSucesso(cliente.nome.split(' ')[0], result.pedido_id);
-      } else if (result.status === 'rejected') {
+      } else if (result.status === 'DECLINED') {
         btn.innerHTML = '🔒 Finalizar Pedido';
         btn.disabled  = false;
         showCheckoutMsg(`Pagamento recusado: ${result.mensagem || 'Verifique os dados do cartão e tente novamente.'}`, 'erro');
       } else {
-        // in_process — cartão em análise
+        // Outro status (AWAITING_RISK_ANALYSIS etc.) — trata como em análise
         exibirSucesso(cliente.nome.split(' ')[0], result.pedido_id, true);
       }
 

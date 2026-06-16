@@ -36,24 +36,14 @@ const securityHeaders = {
   'Content-Security-Policy':   "default-src 'none'",
 };
 
-// ── TAXAS ASAAS — espelho de ASAAS_TAXAS no frontend ───────
-// Cálculo "por dentro": valorFinal = valorBase / (1 - taxa)
+// ── AJUSTE POR MÉTODO — espelho de AJUSTE_METODO no frontend ──
+// PIX: −5% sobre o subtotal (desconto); Débito/Crédito: +10% (acréscimo).
+// O frete NÃO sofre ajuste — é custo fixo de logística.
 // Edite aqui E no checkout.js de forma sincronizada.
-const ASAAS_TAXA_PIX    = 0.0099;  // 0,99% — ajuste conforme contrato
-const ASAAS_TAXA_DEBITO = 0.0199;  // 1,99%
-const ASAAS_TAXAS_CREDITO: Record<number, number> = {
-   1: 0.0299,  // 2,99%
-   2: 0.0349,  // 3,49%
-   3: 0.0399,  // 3,99%
-   4: 0.0449,  // 4,49%
-   5: 0.0499,  // 4,99%
-   6: 0.0549,  // 5,49%
-   7: 0.0599,  // 5,99%
-   8: 0.0649,  // 6,49%
-   9: 0.0699,  // 6,99%
-  10: 0.0749,  // 7,49%
-  11: 0.0799,  // 7,99%
-  12: 0.0849,  // 8,49%
+const AJUSTE_METODO: Record<string, number> = {
+  pix:    -0.05,  // 5% de DESCONTO
+  debito:  0.10,  // 10% de ACRÉSCIMO
+  cartao:  0.10,  // 10% de ACRÉSCIMO
 };
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -294,31 +284,25 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Calcula taxa ASAAS (por dentro) ─────────────────────
-    const parcelasNum = Math.max(1, Math.min(Number(parcelas) || 1, 12));
-    let taxa = 0;
-    if (tipo === 'pix') {
-      taxa = ASAAS_TAXA_PIX;
-    } else if (tipo === 'debito') {
-      taxa = ASAAS_TAXA_DEBITO;
-    } else {
-      taxa = ASAAS_TAXAS_CREDITO[parcelasNum] ?? ASAAS_TAXAS_CREDITO[1];
-    }
-
-    const totalBase        = Math.max(0, serverSubtotal - descontoNum - descontoFidelidade) + freteNum;
-    const serverTotalCents = Math.ceil((totalBase / (1 - taxa)) * 100);
-    const serverTotal      = serverTotalCents / 100;
+    // ── Calcula preço final com ajuste por método ───────────
+    // PIX −5%, Débito/Crédito +10% sobre o subtotalLiquido.
+    // O frete não sofre ajuste — é custo fixo de logística.
+    const parcelasNum     = Math.max(1, Math.min(Number(parcelas) || 1, 12));
+    const ajuste          = AJUSTE_METODO[tipo] ?? 0;
+    const subtotalLiquido = Math.max(0, serverSubtotal - descontoNum - descontoFidelidade);
+    const subAjustado     = Math.round(subtotalLiquido * (1 + ajuste) * 100) / 100;
+    const serverTotal     = Math.max(0, subAjustado) + freteNum;
 
     if (serverTotal <= 0) {
       return json({ erro: 'Valor do pedido inválido.' }, 400);
     }
 
-    // Cross-check ±2 centavos
+    // Cross-check ±2 centavos (tolerância para arredondamento client-side)
     const totalCliente = Number(body.total ?? 0);
     if (totalCliente > 0 && Math.abs(totalCliente - serverTotal) > 0.02) {
       console.warn(
         `[processar-pagamento] Divergência: cliente=${totalCliente} servidor=${serverTotal} ` +
-        `(base=${totalBase}, taxa=${(taxa * 100).toFixed(2)}%, parcelas=${parcelasNum})`,
+        `(subtotalLiq=${subtotalLiquido}, ajuste=${(ajuste * 100).toFixed(0)}%, frete=${freteNum})`,
       );
     }
 
