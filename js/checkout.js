@@ -1,13 +1,8 @@
 /* ============================================================
    VIRTÙ — Checkout JavaScript
    Frete: Todo o Nordeste. Frete grátis automático para Grande JP.
-   Pagamento: Mercado Pago via Supabase Edge Function
+   Pagamento: ASAAS v3 via Supabase Edge Function
    ============================================================ */
-
-// ── MERCADO PAGO PUBLIC KEY ──────────────────────────────────
-// Substitua pelo seu Public Key do Mercado Pago (sandbox ou produção)
-// Este valor é SEGURO no frontend — apenas o Access Token é secreto.
-const MP_PUBLIC_KEY = 'APP_USR-757eb00b-89bd-4f45-85e3-5c183644a3bd';
 
 // URL da Edge Function do Supabase
 const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/processar-pagamento';
@@ -37,7 +32,6 @@ const NORDESTE_STATES = ['AL','BA','CE','MA','PB','PE','PI','RN','SE'];
 let freteValorSelecionado = FRETE_STANDARD;
 let freteBase             = FRETE_STANDARD; // frete sem cupom (referência)
 let baseTotal             = 0;              // subtotal + gift wrap, sem frete
-let mpInstance            = null;
 let freteCalculado        = false;          // flag: frete foi calculado com sucesso
 
 // ── ESTADO DO CUPOM ─────────────────────────────────────────
@@ -47,27 +41,28 @@ let cupomAplicado = null; // { codigo, tipo, valor } ou null
 let descontoFidelidade = 0;    // R$100 quando aplicável na 10ª compra
 let currentUserId      = null; // UUID do usuário autenticado
 
-// ── TAXAS MERCADO PAGO ───────────────────────────────────────
-// Edite aqui quando as taxas do gateway mudarem.
+// ── TAXAS ASAAS ─────────────────────────────────────────────
+// Edite aqui quando as taxas do gateway mudarem (sincronize com o EF).
 // O cálculo é "por dentro": Valor_Final = Valor_Desejado / (1 − taxa)
 // Garantindo que a Virtù sempre receba EXATAMENTE o preço do produto.
-const MP_TAXAS = {
-  pix:    0,      // sem repasse — a Virtù absorve a taxa do PIX
-  debito: 0.0199, // 1,99% — liberação imediata
-  credito: {
-     1: 0.0499,  //  4,99% à vista
-     2: 0.0698,  //  6,98% = 4,99% base + 1,99% parcelamento
-     3: 0.0798,  //  7,98%
-     4: 0.0898,  //  8,98%
-     5: 0.0998,  //  9,98%
-     6: 0.1097,  // 10,97%
-     7: 0.1197,  // 11,97%
-     8: 0.1297,  // 12,97%
-     9: 0.1397,  // 13,97%
-    10: 0.1497,  // 14,97%
-    11: 0.1597,  // 15,97%
-    12: 0.1697,  // 16,97%
-  },
+const ASAAS_TAXAS = {
+  pix:    0.0099, // 0,99% — ajuste conforme contrato ASAAS
+  debito: 0.0199, // 1,99%
+  credito: [
+    0,      // index 0: não usado
+    0.0299, // 1x:  2,99%
+    0.0349, // 2x:  3,49%
+    0.0399, // 3x:  3,99%
+    0.0449, // 4x:  4,49%
+    0.0499, // 5x:  4,99%
+    0.0549, // 6x:  5,49%
+    0.0599, // 7x:  5,99%
+    0.0649, // 8x:  6,49%
+    0.0699, // 9x:  6,99%
+    0.0749, // 10x: 7,49%
+    0.0799, // 11x: 7,99%
+    0.0849, // 12x: 8,49%
+  ],
 };
 
 /**
@@ -85,14 +80,14 @@ const MP_TAXAS = {
 function calcularRepasse(valorBase, metodo, parcelas = 1) {
   let taxa;
   if (metodo === 'pix') {
-    taxa = MP_TAXAS.pix;
+    taxa = ASAAS_TAXAS.pix;
   } else if (metodo === 'debito') {
-    taxa = MP_TAXAS.debito;
+    taxa = ASAAS_TAXAS.debito;
   } else if (metodo === 'cartao') {
     const n = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
-    taxa = MP_TAXAS.credito[n] ?? MP_TAXAS.credito[1];
+    taxa = ASAAS_TAXAS.credito[n] ?? ASAAS_TAXAS.credito[1];
   } else {
-    // boleto ou desconhecido — sem taxa por enquanto
+    // desconhecido — sem taxa
     taxa = 0;
   }
 
@@ -162,15 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
-  }
-
-  // ── INICIALIZA MERCADO PAGO SDK ──────────────────────────
-  try {
-    if (typeof MercadoPago !== 'undefined') {
-      mpInstance = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
-    }
-  } catch (e) {
-    console.warn('[MP SDK] Não inicializado:', e.message);
   }
 
   // ── RENDERIZA RESUMO DO PEDIDO ───────────────────────────
@@ -309,9 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const parcelas = parseInt(document.getElementById('installments')?.value || '1');
-    // Débito é processado pelo gateway como crédito 1x — exibe a mesma taxa para evitar divergência
-    const metodoCalculo = metodoAtivo === 'debito' ? 'cartao' : metodoAtivo;
-    const repasse  = calcularRepasse(totalBase, metodoCalculo, parcelas);
+    const repasse  = calcularRepasse(totalBase, metodoAtivo, parcelas);
 
     // ── Linha de taxa — só exibe se houver cobrança real ─────
     const mostrarTaxa = repasse.taxaRetida > 0;
@@ -976,9 +960,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalBruto    = Math.max(0, baseTotal - descontoCupom - descontoFidelidade) + freteReal;
 
     // ── Repasse de taxa (cálculo "por dentro") ────────────
-    // A cliente paga finalTotal; a Virtù recebe totalBruto; a MP retém a diferença.
-    const parcelasNum = isPix ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
-    const repasse     = calcularRepasse(totalBruto, isPix ? 'pix' : 'cartao', parcelasNum);
+    // A cliente paga finalTotal; a Virtù recebe totalBruto; a ASAAS retém a diferença.
+    const isDebito_    = activeTab === 'debito';
+    const parcelasNum  = (isPix || isDebito_) ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
+    const metodoRepasse = isPix ? 'pix' : isDebito_ ? 'debito' : 'cartao';
+    const repasse       = calcularRepasse(totalBruto, metodoRepasse, parcelasNum);
     const finalTotal  = repasse.valorFinal;
 
     const cliente = {
@@ -1004,6 +990,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Monta payload base ───────────────────────
+    const isDebito = activeTab === 'debito';
+    const tipoEnvio = isPix ? 'pix' : isDebito ? 'debito' : 'cartao';
+
     const freteNome = document.querySelector('input[name="shipping"]:checked')
       ?.closest('label')
       ?.querySelector('.shipping-option__name')?.textContent?.trim()
@@ -1011,15 +1000,13 @@ document.addEventListener('DOMContentLoaded', () => {
       || 'Entrega padrão';
 
     const payload = {
-      tipo:                isPix ? 'pix' : 'cartao',
+      tipo:                tipoEnvio,
       total:               finalTotal,
       subtotal:            baseTotal,
       frete:               freteReal,
       frete_selecionado:   freteNome,
-      desconto:            descontoCupom,        // apenas desconto de cupom (fidelidade validada server-side)
-      taxa_mp_percentual:  repasse.taxa,          // ex: 0.0099 (PIX) ou 0.0499 (crédito 1x) — para validação no servidor
-      taxa_mp_valor:       repasse.taxaRetida,    // valor retido pela MP em R$
-      valor_sem_taxa:      totalBruto,            // valor líquido que entra para a Virtù
+      desconto:            descontoCupom,
+      valor_sem_taxa:      totalBruto,
       cupom_codigo:        cupomAplicado?.codigo || null,
       itens:               cart,
       cliente,
@@ -1028,40 +1015,20 @@ document.addEventListener('DOMContentLoaded', () => {
       fidelidade_desconto: descontoFidelidade > 0,
     };
 
-    // ── Cartão: tokeniza no browser via MP SDK (PCI-DSS compliant) ──────
-    // Dados brutos do cartão NUNCA são enviados ao nosso servidor.
+    // ── Cartão / Débito: inclui dados no payload para tokenização ASAAS ──
+    // O ASAAS cuida da tokenização PCI no lado do servidor.
     if (!isPix) {
-      if (!mpInstance) {
-        throw new Error('SDK do Mercado Pago não carregou. Recarregue a página e tente novamente.');
-      }
-
-      const expiry   = document.getElementById('cardExpiry')?.value.split('/') || [];
-      const expiryMM = (expiry[0] || '').trim();
+      const expiry   = (document.getElementById('cardExpiry')?.value || '').split('/');
+      const expiryMM = (expiry[0] || '').trim().padStart(2, '0');
       const expiryYY = expiry[1] ? '20' + expiry[1].trim() : '';
 
-      btn.innerHTML = 'Validando cartão…';
-
-      // Tokeniza diretamente com os servidores do Mercado Pago — nosso backend
-      // só recebe um token opaco, nunca os dados do cartão.
-      const tokenResult = await mpInstance.createCardToken({
-        cardNumber:           document.getElementById('cardNumber')?.value.replace(/\s/g, ''),
-        cardholderName:       document.getElementById('cardName')?.value.trim(),
-        cardExpirationMonth:  expiryMM,
-        cardExpirationYear:   expiryYY,
-        securityCode:         document.getElementById('cardCvv')?.value.trim(),
-        identificationType:   'CPF',
-        identificationNumber: cliente.cpf.replace(/\D/g, ''),
-      });
-
-      if (!tokenResult?.id) {
-        const errMsg = tokenResult?.cause?.[0]?.description
-          || 'Não foi possível validar o cartão. Verifique os dados e tente novamente.';
-        throw new Error(errMsg);
-      }
-
-      payload.token    = tokenResult.id;
-      payload.parcelas = parseInt(document.getElementById('installments')?.value || '1', 10);
-      btn.innerHTML    = 'Processando pagamento…';
+      payload.card_number       = document.getElementById('cardNumber')?.value.replace(/\D/g, '');
+      payload.card_holder_name  = document.getElementById('cardName')?.value.trim();
+      payload.card_expiry_month = expiryMM;
+      payload.card_expiry_year  = expiryYY;
+      payload.card_cvv          = document.getElementById('cardCvv')?.value.trim();
+      payload.parcelas          = parseInt(document.getElementById('installments')?.value || '1', 10);
+      btn.innerHTML = 'Processando pagamento…';
     }
 
     // ── Chama Edge Function ──────────────────────
@@ -1084,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Nota: uso do cupom é registrado server-side pela edge function
-      // (cartão: em processar-pagamento quando approved; PIX: em pix-webhook quando confirmado)
+      // (cartão/débito: em processar-pagamento quando CONFIRMED; PIX: em asaas-webhook quando RECEIVED)
 
       // Para PIX: mantém carrinho em backup — só limpa após confirmação real
       // Para Cartão aprovado: limpa imediatamente

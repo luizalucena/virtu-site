@@ -1,21 +1,24 @@
 /**
- * VIRTÙ — Edge Function: processar-pagamento  (v30)
- * Recebe dados do checkout, chama o Mercado Pago e salva o pedido no Supabase.
+ * VIRTÙ — Edge Function: processar-pagamento  (v31 — ASAAS)
+ * Recebe dados do checkout, chama o ASAAS v3 e salva o pedido no Supabase.
  *
  * Segurança:
- *   - Cartão: aceita apenas token gerado pelo MP SDK no browser (PCI-DSS)
+ *   - Cartão: dados tokenizados via ASAAS (PCI-DSS) — nosso servidor repassa
+ *             dados criptografados diretamente ao ASAAS, nunca os armazena
  *   - Preços: recalculados no servidor a partir do banco (anti-tampering)
- *   - Fidelidade: desconto de R$100 validado server-side (não confiar no cliente)
+ *   - Fidelidade: desconto de R$100 validado server-side
  *
  * Variáveis de ambiente necessárias (Supabase Secrets):
- *   MP_ACCESS_TOKEN   — Token privado do MP (nunca vai ao frontend)
- *   SUPABASE_URL      — Injetada automaticamente pelo Supabase
+ *   ASAAS_API_KEY        — access_token do ASAAS (nunca vai ao frontend)
+ *   ASAAS_SANDBOX        — 'true' para sandbox, 'false' para produção
+ *   SUPABASE_URL         — Injetada automaticamente pelo Supabase
  *   SUPABASE_SERVICE_ROLE_KEY — Injetada automaticamente
+ *   SUPABASE_ANON_KEY    — Injetada automaticamente
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ── Segurança: CORS restrito ao domínio da loja ─────────────────
+// ── CORS / Security ─────────────────────────────────────────
 const ALLOWED_ORIGIN = 'https://wearvirtu.com';
 
 const corsHeaders = {
@@ -25,7 +28,6 @@ const corsHeaders = {
   'Access-Control-Max-Age':       '86400',
 };
 
-// Headers de segurança adicionados em todas as respostas
 const securityHeaders = {
   'X-Content-Type-Options':    'nosniff',
   'X-Frame-Options':           'DENY',
@@ -34,24 +36,133 @@ const securityHeaders = {
   'Content-Security-Policy':   "default-src 'none'",
 };
 
-// ── Helpers de segurança ─────────────────────────────────────────
-/** Remove PII da resposta do MP antes de logar (CPF, e-mail, nome). */
-function redactMpError(data: Record<string, unknown>): Record<string, unknown> {
-  const { payer, card, ...rest } = data as Record<string, unknown>;
-  return {
-    ...rest,
-    ...(payer  ? { payer:  { email: '***', identification: { type: 'CPF', number: '***' } } } : {}),
-    ...(card   ? { card:   { id: (card as Record<string, unknown>).id, last_four_digits: (card as Record<string, unknown>).last_four_digits } } : {}),
-  };
-}
+// ── TAXAS ASAAS — espelho de ASAAS_TAXAS no frontend ───────
+// Cálculo "por dentro": valorFinal = valorBase / (1 - taxa)
+// Edite aqui E no checkout.js de forma sincronizada.
+const ASAAS_TAXA_PIX    = 0.0099;  // 0,99% — ajuste conforme contrato
+const ASAAS_TAXA_DEBITO = 0.0199;  // 1,99%
+const ASAAS_TAXAS_CREDITO: Record<number, number> = {
+   1: 0.0299,  // 2,99%
+   2: 0.0349,  // 3,49%
+   3: 0.0399,  // 3,99%
+   4: 0.0449,  // 4,49%
+   5: 0.0499,  // 4,99%
+   6: 0.0549,  // 5,49%
+   7: 0.0599,  // 5,99%
+   8: 0.0649,  // 6,49%
+   9: 0.0699,  // 6,99%
+  10: 0.0749,  // 7,49%
+  11: 0.0799,  // 7,99%
+  12: 0.0849,  // 8,49%
+};
 
-/** Sanitiza string removendo caracteres perigosos e limita comprimento. */
+// ── Helpers ──────────────────────────────────────────────────
 function sanitize(val: unknown, maxLen = 255): string {
   return String(val ?? '').trim().replace(/[<>"'`]/g, '').slice(0, maxLen);
 }
 
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+/** Base URL da API ASAAS (sandbox ou produção) */
+function asaasBase(): string {
+  const sandbox = Deno.env.get('ASAAS_SANDBOX');
+  return sandbox === 'true'
+    ? 'https://sandbox.asaas.com/api/v3'
+    : 'https://api.asaas.com/v3';
+}
+
+/** Headers padrão para todas as chamadas ASAAS */
+function asaasHeaders(): Record<string, string> {
+  return {
+    'access_token':  Deno.env.get('ASAAS_API_KEY') ?? '',
+    'Content-Type':  'application/json',
+    'User-Agent':    'Virtu-EF/1.0',
+  };
+}
+
+/** Cria ou recupera cliente no ASAAS. Retorna o asaas_customer_id. */
+async function upsertAsaasCustomer(params: {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone?: string;
+  supabase: ReturnType<typeof createClient>;
+  userId: string | null;
+}): Promise<string> {
+  const { nome, email, cpf, telefone, supabase, userId } = params;
+
+  // 1. Verifica se já existe um customer salvo no Supabase
+  if (userId) {
+    const { data: perfil } = await supabase
+      .from('clientes_perfil')
+      .select('asaas_customer_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (perfil?.asaas_customer_id) {
+      return perfil.asaas_customer_id;
+    }
+  }
+
+  // 2. Tenta buscar pelo CPF no ASAAS
+  const cpfClean = cpf.replace(/\D/g, '');
+  const searchRes = await fetch(
+    `${asaasBase()}/customers?cpfCnpj=${cpfClean}&limit=1`,
+    { headers: asaasHeaders() },
+  );
+  if (searchRes.ok) {
+    const searchData = await searchRes.json();
+    if (searchData?.data?.[0]?.id) {
+      const existingId: string = searchData.data[0].id;
+      // Persiste para evitar nova busca na próxima compra
+      if (userId) {
+        await supabase
+          .from('clientes_perfil')
+          .update({ asaas_customer_id: existingId })
+          .eq('id', userId);
+      }
+      return existingId;
+    }
+  }
+
+  // 3. Cria novo cliente no ASAAS
+  const createRes = await fetch(`${asaasBase()}/customers`, {
+    method:  'POST',
+    headers: asaasHeaders(),
+    body: JSON.stringify({
+      name:       nome,
+      email:      email,
+      cpfCnpj:    cpfClean,
+      mobilePhone: telefone ? telefone.replace(/\D/g, '') : undefined,
+      notificationDisabled: true, // notificações gerenciadas pela Virtù via Resend
+    }),
+  });
+
+  const createData = await createRes.json();
+  if (!createRes.ok || !createData.id) {
+    throw new Error(`ASAAS criar cliente: ${createData.errors?.[0]?.description || createData.error || 'Erro desconhecido'}`);
+  }
+
+  const newId: string = createData.id;
+
+  // Persiste o customer_id no perfil do usuário
+  if (userId) {
+    await supabase
+      .from('clientes_perfil')
+      .update({ asaas_customer_id: newId })
+      .eq('id', userId);
+  }
+
+  return newId;
+}
+
+// ── Handler principal ────────────────────────────────────────
 Deno.serve(async (req) => {
-  // Preflight CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -59,36 +170,44 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const {
-      tipo,               // 'pix' | 'cartao'
-      subtotal,           // valor informado pelo cliente (usado apenas para log)
-      frete,              // frete informado pelo cliente
-      desconto,           // desconto de cupom informado pelo cliente (sem fidelidade)
-      itens,              // array do carrinho (id, qty, variacao_id, preco)
+      tipo,               // 'pix' | 'cartao' | 'debito'
+      subtotal,
+      frete,
+      desconto,
+      itens,
       cliente,            // { nome, email, cpf, telefone }
-      endereco,           // { cep, rua, numero, complemento, bairro, cidade, estado }
-      // apenas para cartão:
-      token,              // string — token gerado pelo MP SDK no browser (PCI-compliant)
+      endereco,
+      // cartão — enviados diretamente (ASAAS cuida da tokenização PCI)
+      card_number,        // string — apenas dígitos
+      card_holder_name,   // string
+      card_expiry_month,  // string — MM
+      card_expiry_year,   // string — YYYY
+      card_cvv,           // string
       parcelas,           // number — 1..12
-      // cupom:
-      cupom_codigo,       // string | null — código do cupom aplicado (para registro no pedido)
-      // fidelidade:
-      user_id,            // UUID do usuário autenticado (enviado pelo frontend)
-      fidelidade_desconto, // boolean — cliente alega ter direito ao desconto de R$100
-      // taxa de repasse (para validação cross-check — o servidor recalcula):
-      taxa_mp_percentual, // number — taxa enviada pelo frontend (ex: 0.0099)
-      valor_sem_taxa,     // number — valor base antes da taxa (enviado pelo frontend)
+      // cupom
+      cupom_codigo,
+      // fidelidade
+      user_id,
+      fidelidade_desconto,
     } = body;
 
-    // ── Validações e sanitização de entrada ────────────────
-    if (!tipo || !['pix', 'cartao'].includes(tipo)) {
+    // ── Validações de entrada ────────────────────────────────
+    if (!tipo || !['pix', 'cartao', 'debito'].includes(tipo)) {
       return json({ erro: 'Tipo de pagamento inválido.' }, 400);
     }
     if (!cliente?.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cliente.email)) {
       return json({ erro: 'E-mail inválido.' }, 400);
     }
-    // Sanitiza campos de texto contra XSS / injeção
+    if (!cliente?.cpf || String(cliente.cpf).replace(/\D/g, '').length !== 11) {
+      return json({ erro: 'CPF inválido.' }, 400);
+    }
+    if (itens && (itens as unknown[]).length > 50) {
+      return json({ erro: 'Número de itens excede o limite permitido.' }, 400);
+    }
+
+    // Sanitiza campos de texto
     if (cliente.nome)     cliente.nome     = sanitize(cliente.nome, 120);
-    if (cliente.telefone) cliente.telefone = sanitize(cliente.telefone, 20).replace(/\D/g, '');
+    if (cliente.telefone) cliente.telefone = String(cliente.telefone).replace(/\D/g, '').slice(0, 11);
     if (cliente.cpf)      cliente.cpf      = String(cliente.cpf).replace(/\D/g, '').slice(0, 11);
     if (endereco) {
       if (endereco.rua)         endereco.rua         = sanitize(endereco.rua, 200);
@@ -97,24 +216,19 @@ Deno.serve(async (req) => {
       if (endereco.cidade)      endereco.cidade      = sanitize(endereco.cidade, 100);
       if (endereco.cep)         endereco.cep         = String(endereco.cep).replace(/\D/g, '').slice(0, 8);
     }
-    // Limite de itens para evitar DoS via payload gigante
-    if (itens && (itens as unknown[]).length > 50) {
-      return json({ erro: 'Número de itens excede o limite permitido.' }, 400);
-    }
 
-    const MP_TOKEN = Deno.env.get('MP_ACCESS_TOKEN');
-    if (!MP_TOKEN) {
+    const ASAAS_KEY = Deno.env.get('ASAAS_API_KEY');
+    if (!ASAAS_KEY) {
       return json({ erro: 'Gateway não configurado.' }, 500);
     }
 
-    // ── Supabase client (service role) ─────────────────────
+    // ── Supabase service client ──────────────────────────────
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // ── Extrai usuário autenticado do JWT (se presente) ────
-    // Isso valida que user_id no payload é legítimo.
+    // ── Valida JWT → confirma user_id ────────────────────────
     let confirmedUserId: string | null = null;
     const authHeader = req.headers.get('Authorization') || '';
     const jwtToken   = authHeader.replace(/^Bearer\s+/i, '');
@@ -127,22 +241,17 @@ Deno.serve(async (req) => {
         const { data: { user: jwtUser } } = await anonClient.auth.getUser(jwtToken);
         if (jwtUser?.id) {
           confirmedUserId = jwtUser.id;
-          // Verificação extra: user_id do payload deve bater com JWT
           if (user_id && user_id !== confirmedUserId) {
-            console.warn('[processar-pagamento] user_id payload != JWT user — usando JWT');
+            console.warn('[processar-pagamento] user_id payload != JWT — usando JWT');
           }
         }
-      } catch {
-        // JWT inválido ou expirado — prossegue sem user_id
-      }
+      } catch { /* JWT inválido — prossegue sem user_id */ }
     }
 
-    // ── Recálculo server-side do total (anti-tampering) ────
+    // ── Recálculo server-side do subtotal (anti-tampering) ───
     let serverSubtotal = 0;
-
     if (itens?.length) {
       const productIds = (itens as any[]).map((i) => i.id).filter(Boolean);
-
       if (productIds.length > 0) {
         const { data: produtos } = await supabase
           .from('produtos')
@@ -153,28 +262,22 @@ Deno.serve(async (req) => {
         for (const p of produtos ?? []) {
           priceMap[p.id] = Number(p.preco_desconto ?? p.preco_original) || 0;
         }
-
         for (const item of itens as any[]) {
-          const serverPrice = priceMap[item.id];
-          if (serverPrice === undefined) continue;
-          serverSubtotal += serverPrice * (Number(item.qty) || 1);
+          const sp = priceMap[item.id];
+          if (sp !== undefined) serverSubtotal += sp * (Number(item.qty) || 1);
         }
       }
     }
-
     if (serverSubtotal === 0 && subtotal) {
-      console.warn('[processar-pagamento] Preços não encontrados — usando subtotal do cliente:', subtotal);
+      console.warn('[processar-pagamento] Preços não encontrados — usando subtotal cliente:', subtotal);
       serverSubtotal = Number(subtotal);
     }
 
     const freteNum    = Number(frete    ?? 0);
-    const descontoNum = Number(desconto ?? 0); // apenas cupom; fidelidade calculada abaixo
+    const descontoNum = Number(desconto ?? 0);
 
-    // ── Desconto de Fidelidade (10ª compra = R$100) ────────
-    // Validação server-side: cliente só recebe desconto se realmente
-    // estiver na posição certa (compras_pagas % 10 === 9).
+    // ── Desconto de Fidelidade (validação server-side) ───────
     let descontoFidelidade = 0;
-
     if (fidelidade_desconto && confirmedUserId) {
       const { data: perfil } = await supabase
         .from('clientes_perfil')
@@ -185,150 +288,178 @@ Deno.serve(async (req) => {
       const comprasAtuais = perfil?.compras_pagas ?? 0;
       if ((comprasAtuais + 1) % 10 === 0) {
         descontoFidelidade = 100;
-        console.log(`[processar-pagamento] Fidelidade validada: ${comprasAtuais + 1}ª compra → R$100 de desconto`);
+        console.log(`[Fidelidade] Validada: ${comprasAtuais + 1}ª compra → R$100`);
       } else {
-        console.warn(`[processar-pagamento] Fidelidade rejeitada: comprasAtuais=${comprasAtuais} — sem direito ao desconto`);
+        console.warn(`[Fidelidade] Rejeitada: comprasAtuais=${comprasAtuais}`);
       }
     }
 
-    // ── Total desconto consolidado (cupom + fidelidade) ────
-    const descontoCupomTotal = descontoNum; // cupom apenas — fidelidade somada abaixo
+    // ── Calcula taxa ASAAS (por dentro) ─────────────────────
+    const parcelasNum = Math.max(1, Math.min(Number(parcelas) || 1, 12));
+    let taxa = 0;
+    if (tipo === 'pix') {
+      taxa = ASAAS_TAXA_PIX;
+    } else if (tipo === 'debito') {
+      taxa = ASAAS_TAXA_DEBITO;
+    } else {
+      taxa = ASAAS_TAXAS_CREDITO[parcelasNum] ?? ASAAS_TAXAS_CREDITO[1];
+    }
 
-    // ── Taxas Mercado Pago — espelho exato de checkout.js ──
-    // Edite aqui sincronizado com MP_TAXAS no frontend.
-    // Cálculo "por dentro": valorFinal = valorBase / (1 - taxa)
-    const MP_TAXAS_CREDITO: Record<number, number> = {
-       1: 0.0499,  2: 0.0698,  3: 0.0798,  4: 0.0898,  5: 0.0998,  6: 0.1097,
-       7: 0.1197,  8: 0.1297,  9: 0.1397, 10: 0.1497, 11: 0.1597, 12: 0.1697,
-    };
-    const parcelasNum  = Math.max(1, Math.min(Number(parcelas) || 1, 12));
-    const taxaMP       = tipo === 'pix' ? 0 : (MP_TAXAS_CREDITO[parcelasNum] ?? 0.0499);
-
-    // Valor base que a Virtù vai receber (descontos aplicados, sem taxa)
-    const totalBase    = Math.max(0, serverSubtotal - descontoCupomTotal - descontoFidelidade) + freteNum;
-
-    // Valor final com repasse: arredondamento para CIMA em centavos
-    const serverTotalCents = Math.ceil((totalBase / (1 - taxaMP)) * 100);
+    const totalBase        = Math.max(0, serverSubtotal - descontoNum - descontoFidelidade) + freteNum;
+    const serverTotalCents = Math.ceil((totalBase / (1 - taxa)) * 100);
     const serverTotal      = serverTotalCents / 100;
 
     if (serverTotal <= 0) {
       return json({ erro: 'Valor do pedido inválido.' }, 400);
     }
 
-    // Cross-check: valida o total enviado pelo cliente (±2 centavos de tolerância)
+    // Cross-check ±2 centavos
     const totalCliente = Number(body.total ?? 0);
     if (totalCliente > 0 && Math.abs(totalCliente - serverTotal) > 0.02) {
       console.warn(
-        `[processar-pagamento] Divergência de total: cliente=${totalCliente}, servidor=${serverTotal} ` +
-        `(base=${totalBase}, taxa=${(taxaMP * 100).toFixed(2)}%, parcelas=${parcelasNum})`,
+        `[processar-pagamento] Divergência: cliente=${totalCliente} servidor=${serverTotal} ` +
+        `(base=${totalBase}, taxa=${(taxa * 100).toFixed(2)}%, parcelas=${parcelasNum})`,
       );
-      // Prosseguimos com o serverTotal — nunca confiar no cliente para o valor final
     }
 
-    // ── Monta pagamento para o Mercado Pago ────────────────
-    const [firstName, ...rest] = (cliente.nome || 'Cliente').split(' ');
-    const lastName = rest.join(' ') || firstName;
+    // ── Cria / recupera cliente no ASAAS ────────────────────
+    let asaasCustomerId: string;
+    try {
+      asaasCustomerId = await upsertAsaasCustomer({
+        nome:     cliente.nome || 'Cliente',
+        email:    cliente.email,
+        cpf:      cliente.cpf,
+        telefone: cliente.telefone,
+        supabase,
+        userId:   confirmedUserId,
+      });
+    } catch (custErr) {
+      console.error('[ASAAS Cliente]', custErr);
+      return json({ erro: 'Erro ao registrar cliente no gateway. Tente novamente.' }, 502);
+    }
 
-    const paymentBody: Record<string, unknown> = {
-      transaction_amount: serverTotal,
-      description: `Pedido Virtù — ${itens?.length ?? 0} item(s)`,
-      external_reference: crypto.randomUUID(),
-      payer: {
-        first_name:     firstName,
-        last_name:      lastName,
-        email:          cliente.email,
-        identification: {
-          type:   'CPF',
-          number: (cliente.cpf || '').replace(/\D/g, ''),
-        },
-      },
+    // ── Monta cobrança ASAAS ─────────────────────────────────
+    // Vencimento: hoje + 1 dia (PIX) ou hoje + 7 dias (cartão/débito)
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + (tipo === 'pix' ? 1 : 7));
+    const dueDateStr = dueDate.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    const externalRef = crypto.randomUUID();
+
+    const chargeBody: Record<string, unknown> = {
+      customer:          asaasCustomerId,
+      billingType:       tipo === 'pix' ? 'PIX' : tipo === 'debito' ? 'DEBIT_CARD' : 'CREDIT_CARD',
+      value:             serverTotal,
+      dueDate:           dueDateStr,
+      description:       `Pedido Virtù — ${(itens as any[])?.length ?? 0} item(s)`,
+      externalReference: externalRef,
     };
 
-    if (tipo === 'pix') {
-      paymentBody.payment_method_id = 'pix';
-      paymentBody.payment_type_id   = 'bank_transfer';
-
-    } else if (tipo === 'cartao') {
-      if (!token) return json({ erro: 'Token do cartão ausente. Recarregue a página.' }, 400);
-      paymentBody.token           = token;
-      paymentBody.payment_type_id = 'credit_card';
-      paymentBody.installments    = Number(parcelas) || 1;
-
-    } else {
-      return json({ erro: 'Tipo de pagamento inválido.' }, 400);
+    // Dados de cartão (ASAAS cuida da tokenização PCI v3)
+    if (tipo === 'cartao' || tipo === 'debito') {
+      if (!card_number || !card_holder_name || !card_expiry_month || !card_expiry_year || !card_cvv) {
+        return json({ erro: 'Dados do cartão incompletos.' }, 400);
+      }
+      chargeBody.creditCard = {
+        holderName:  sanitize(card_holder_name, 60),
+        number:      String(card_number).replace(/\D/g, ''),
+        expiryMonth: String(card_expiry_month).padStart(2, '0'),
+        expiryYear:  String(card_expiry_year),
+        ccv:         String(card_cvv).replace(/\D/g, ''),
+      };
+      chargeBody.creditCardHolderInfo = {
+        name:      sanitize(cliente.nome, 120),
+        email:     cliente.email,
+        cpfCnpj:   cliente.cpf.replace(/\D/g, ''),
+        phone:     cliente.telefone ? cliente.telefone.replace(/\D/g, '') : undefined,
+        postalCode: endereco?.cep ? String(endereco.cep).replace(/\D/g, '') : undefined,
+        addressNumber: endereco?.numero ? String(endereco.numero) : undefined,
+      };
+      if (tipo === 'cartao' && parcelasNum > 1) {
+        chargeBody.installmentCount = parcelasNum;
+        chargeBody.installmentValue = +(serverTotal / parcelasNum).toFixed(2);
+      }
+      chargeBody.remoteIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0';
     }
 
-    // ── Chama o Mercado Pago ────────────────────────────────
-    const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
-      method: 'POST',
-      headers: {
-        'Authorization':     `Bearer ${MP_TOKEN}`,
-        'Content-Type':      'application/json',
-        'X-Idempotency-Key': crypto.randomUUID(),
-      },
-      body: JSON.stringify(paymentBody),
+    // ── Chama ASAAS: cria cobrança ───────────────────────────
+    const chargeRes = await fetch(`${asaasBase()}/payments`, {
+      method:  'POST',
+      headers: asaasHeaders(),
+      body:    JSON.stringify(chargeBody),
     });
 
-    const mpData = await mpRes.json();
+    const chargeData = await chargeRes.json();
 
-    if (!mpRes.ok) {
-      // Loga apenas campos não-sensíveis (sem CPF, e-mail, nome do titular)
-      console.error('[MP Error]', JSON.stringify(redactMpError(mpData)));
+    if (!chargeRes.ok) {
+      console.error('[ASAAS Cobrança]', JSON.stringify({ errors: chargeData.errors, status: chargeRes.status }));
 
-      // Traduz erros comuns do MP para português
+      // Traduz erros comuns do ASAAS para português
+      const errDesc = chargeData.errors?.[0]?.description || chargeData.error || '';
       const errMap: Record<string, string> = {
-        'cc_rejected_bad_filled_card_number': 'Número do cartão inválido.',
-        'cc_rejected_bad_filled_date':        'Data de validade inválida.',
-        'cc_rejected_bad_filled_security_code':'CVV inválido.',
-        'cc_rejected_bad_filled_other':       'Dados do cartão incorretos.',
-        'cc_rejected_insufficient_amount':    'Saldo insuficiente.',
-        'cc_rejected_card_disabled':          'Cartão bloqueado. Entre em contato com seu banco.',
-        'cc_rejected_duplicated_payment':     'Pagamento duplicado detectado.',
-        'cc_rejected_high_risk':              'Pagamento recusado por segurança.',
-        'invalid_number':                     'Número do cartão inválido.',
-        'invalid_expiration_date':            'Data de validade inválida.',
-        'invalid_security_code':              'CVV inválido.',
-        'invalid_card_holder_name':           'Nome no cartão inválido.',
+        'invalid_creditCard':              'Dados do cartão inválidos.',
+        'creditCard_expiredDate':          'Cartão expirado.',
+        'creditCard_number_invalid':       'Número do cartão inválido.',
+        'creditCard_cvv_invalid':          'CVV inválido.',
+        'creditCard_holderName_invalid':   'Nome no cartão inválido.',
+        'creditCard_insufficientFunds':    'Saldo insuficiente.',
+        'creditCard_card_disabled':        'Cartão bloqueado. Entre em contato com seu banco.',
+        'creditCard_declined':             'Pagamento recusado pelo banco emissor.',
+        'creditCard_duplicatePayment':     'Pagamento duplicado detectado.',
       };
 
-      const statusDetail = mpData.cause?.[0]?.code || mpData.status_detail || '';
-      const errPt = errMap[statusDetail] || errMap[mpData.message as string] || null;
+      const errPt = errMap[chargeData.errors?.[0]?.code || '']
+        || (errDesc.length < 200 ? errDesc : null)
+        || 'Erro no gateway de pagamento.';
 
-      return json({
-        erro: errPt || mpData.message || 'Erro no gateway de pagamento.',
-        detalhes: { status_detail: statusDetail },
-      }, 502);
+      return json({ erro: errPt }, 502);
     }
 
-    // ── Monta descrição de status traduzida ────────────────
-    const statusDetailMap: Record<string, string> = {
-      'cc_rejected_bad_filled_card_number': 'Número do cartão inválido.',
-      'cc_rejected_bad_filled_date':        'Data de validade inválida.',
-      'cc_rejected_bad_filled_security_code':'CVV inválido.',
-      'cc_rejected_bad_filled_other':       'Dados do cartão incorretos.',
-      'cc_rejected_insufficient_amount':    'Saldo insuficiente no cartão.',
-      'cc_rejected_card_disabled':          'Cartão bloqueado. Contate seu banco.',
-      'cc_rejected_high_risk':              'Pagamento recusado por segurança.',
-      'cc_rejected_call_for_authorize':     'Autorização necessária. Contate seu banco.',
-      'pending_contingency':               'Processamento em andamento.',
-      'pending_review_manual':             'Pagamento em revisão — confirmaremos por e-mail.',
-    };
+    const asaasPaymentId: string = chargeData.id;
 
-    // ── Salva pedido no Supabase ────────────────────────────
+    // ── Para PIX: busca QR Code ──────────────────────────────
+    let pixQrCodeBase64: string | null = null;
+    let pixPayload:      string | null = null;
+    let pixExpiresAt:    string | null = null;
+
+    if (tipo === 'pix') {
+      try {
+        const qrRes = await fetch(
+          `${asaasBase()}/payments/${asaasPaymentId}/pixQrCode`,
+          { headers: asaasHeaders() },
+        );
+        if (qrRes.ok) {
+          const qrData = await qrRes.json();
+          pixQrCodeBase64 = qrData.encodedImage   || null;
+          pixPayload      = qrData.payload         || null;
+          pixExpiresAt    = qrData.expirationDate  || null;
+        }
+      } catch (qrErr) {
+        console.error('[ASAAS QR]', qrErr);
+        // Prossegue sem QR — pedido salvo normalmente
+      }
+    }
+
+    // ── Determina status do pedido ───────────────────────────
+    // ASAAS statuses: PENDING, CONFIRMED, RECEIVED, OVERDUE, REFUNDED, DECLINED
+    const asaasStatus  = chargeData.status || '';
     const statusPedido =
-      mpData.status === 'approved' ? 'pago' :
-      mpData.status === 'rejected' ? 'recusado' : 'pendente';
+      ['CONFIRMED', 'RECEIVED'].includes(asaasStatus) ? 'pago'     :
+      ['DECLINED',  'REFUND_REQUESTED', 'REFUNDED'].includes(asaasStatus) ? 'recusado' :
+      'pendente';
 
+    // ── Salva pedido no Supabase ─────────────────────────────
     const { data: pedido, error: dbError } = await supabase
       .from('pedidos')
       .insert({
         status:             statusPedido,
-        payment_id:         String(mpData.id),
+        payment_id:         asaasPaymentId,
+        asaas_payment_id:   asaasPaymentId,
         payment_method:     tipo,
-        payment_status:     mpData.status,
+        payment_status:     asaasStatus,
         subtotal:           serverSubtotal,
         frete:              freteNum,
-        desconto:           descontoCupomTotal + descontoFidelidade,
+        desconto:           descontoNum + descontoFidelidade,
         total:              serverTotal,
         user_id:            confirmedUserId || null,
         cep:                endereco?.cep,
@@ -347,18 +478,17 @@ Deno.serve(async (req) => {
         telefone:           cliente.telefone,
         itens:              itens ?? [],
         cupom_codigo:       cupom_codigo ? String(cupom_codigo).trim().toUpperCase().slice(0, 50) : null,
-        parcelas:           tipo === 'cartao' ? (Number(parcelas) || 1) : null,
-        pix_qr_code:        mpData.point_of_interaction?.transaction_data?.qr_code ?? null,
-        pix_qr_base64:      mpData.point_of_interaction?.transaction_data?.qr_code_base64 ?? null,
-        pix_expires_at:     mpData.date_of_expiration ?? null,
+        parcelas:           tipo === 'cartao' ? parcelasNum : null,
+        pix_qr_code:        pixPayload      || null,
+        pix_qr_base64:      pixQrCodeBase64 || null,
+        pix_expires_at:     pixExpiresAt    || null,
       })
       .select('id')
       .single();
 
     if (dbError) throw new Error('[DB Insert] ' + dbError.message);
 
-    // ── Decrementa estoque (só cartão aprovado) ─────────────
-    // PIX: estoque decrementado pelo trigger quando pago
+    // ── Decrementa estoque se pagamento aprovado imediatamente ──
     if (pedido?.id && itens?.length && statusPedido === 'pago') {
       const decrements = (itens as any[])
         .filter((i) => i.variacao_id)
@@ -369,30 +499,28 @@ Deno.serve(async (req) => {
       if (decrements.length > 0) await Promise.allSettled(decrements);
     }
 
-    // ── Programa de Fidelidade: incrementa compras_pagas ───
-    // Só incrementa se cartão aprovado (PIX será incrementado no pix-webhook)
+    // ── Fidelidade: incrementa contador se pagamento aprovado ──
+    // PIX pendente → incrementado no asaas-webhook quando RECEIVED
     if (confirmedUserId && statusPedido === 'pago') {
       supabase.rpc('registrar_compra_fidelidade', { p_user_id: confirmedUserId })
         .then(async ({ data: fidData, error: fidErr }) => {
           if (fidErr) {
-            console.error('[Fidelidade] Erro ao registrar compra:', fidErr.message);
+            console.error('[Fidelidade] Erro:', fidErr.message);
             return;
           }
           console.log('[Fidelidade] Compra registrada:', fidData?.compras_pagas);
 
-          // Se prêmio gerado → notifica a cliente (fire-and-forget)
           if (fidData?.desconto_100 === true && fidData?.codigo) {
-            const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-            const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
-            if (SUPABASE_URL && ANON_KEY) {
-              fetch(`${SUPABASE_URL}/functions/v1/notificar-premio-fidelidade`, {
+            const SB_URL  = Deno.env.get('SUPABASE_URL');
+            const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+            if (SB_URL && ANON_KEY) {
+              fetch(`${SB_URL}/functions/v1/notificar-premio-fidelidade`, {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
                 body: JSON.stringify({
                   user_id:  confirmedUserId,
                   codigo:   fidData.codigo,
                   validade: fidData.validade,
-                  // Passa dados já disponíveis para evitar roundtrip extra
                   nome:     cliente?.nome  || null,
                   email:    cliente?.email || null,
                 }),
@@ -404,10 +532,10 @@ Deno.serve(async (req) => {
 
     // ── Notificações por e-mail (Resend via send-order-email) ──
     try {
-      const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-      const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY');
-      if (SUPABASE_URL && ANON_KEY && pedido?.id) {
-        fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+      const SB_URL   = Deno.env.get('SUPABASE_URL');
+      const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+      if (SB_URL && ANON_KEY && pedido?.id) {
+        fetch(`${SB_URL}/functions/v1/send-order-email`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
           body: JSON.stringify({
@@ -418,42 +546,37 @@ Deno.serve(async (req) => {
             total:            serverTotal,
             subtotal:         serverSubtotal,
             frete:            freteNum,
-            desconto:         descontoCupomTotal + descontoFidelidade,
+            desconto:         descontoNum + descontoFidelidade,
             metodo_pagamento: tipo,
             parcelas,
             status:           statusPedido,
           }),
         }).catch(e => console.error('[Email dispatch]', e));
-
-        // WhatsApp removido — apenas e-mail ativo
       }
     } catch (emailErr) {
       console.error('[Email Error]', emailErr);
     }
 
-    // ── Resposta ao frontend ────────────────────────────────
+    // ── Resposta ao frontend ─────────────────────────────────
     const resposta: Record<string, unknown> = {
-      pedido_id:     pedido?.id ?? null,
-      payment_id:    mpData.id,
-      status:        mpData.status,
-      status_detail: mpData.status_detail,
+      pedido_id:  pedido?.id ?? null,
+      payment_id: asaasPaymentId,
+      status:     asaasStatus,
     };
 
     if (tipo === 'pix') {
-      const txData = mpData.point_of_interaction?.transaction_data;
-      resposta.qr_code        = txData?.qr_code;
-      resposta.qr_code_base64 = txData?.qr_code_base64;
-      resposta.expires_at     = mpData.date_of_expiration;
+      resposta.qr_code_base64 = pixQrCodeBase64;
+      resposta.qr_code        = pixPayload;
+      resposta.expires_at     = pixExpiresAt;
     }
 
-    if (tipo === 'cartao') {
-      const statusDetail = mpData.status_detail || '';
-      const statusPt     = statusDetailMap[statusDetail] || null;
-      resposta.mensagem = mpData.status === 'approved'
+    if (tipo === 'cartao' || tipo === 'debito') {
+      const aprovado = ['CONFIRMED', 'RECEIVED'].includes(asaasStatus);
+      resposta.mensagem = aprovado
         ? 'Pagamento aprovado! 🎉'
-        : mpData.status === 'rejected'
-          ? `Pagamento recusado: ${statusPt || statusDetail || 'Verifique os dados do cartão.'}`
-          : statusPt || 'Pagamento em análise.';
+        : asaasStatus === 'DECLINED'
+          ? 'Pagamento recusado. Verifique os dados do cartão e tente novamente.'
+          : 'Pagamento em análise. Confirmaremos por e-mail em breve.';
     }
 
     return json(resposta, 200);
@@ -463,14 +586,3 @@ Deno.serve(async (req) => {
     return json({ erro: 'Erro interno. Tente novamente.' }, 500);
   }
 });
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      ...corsHeaders,
-      ...securityHeaders,
-      'Content-Type': 'application/json',
-    },
-  });
-}
