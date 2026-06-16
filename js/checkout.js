@@ -864,19 +864,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── CARD PREVIEW ─────────────────────────────────────────
+  // ── CARD PREVIEW — Crédito ───────────────────────────────
+  function detectBrand(num) {
+    if (num.startsWith('4'))       return 'VISA';
+    if (/^5[1-5]/.test(num))      return 'MASTERCARD';
+    if (num.startsWith('3'))       return 'AMEX';
+    return 'CARTÃO';
+  }
+
   document.getElementById('cardNumber')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').slice(0, 16);
     v = v.replace(/(.{4})/g, '$1 ').trim();
     this.value = v;
-    const num = v.replace(/\s/g, '');
     document.getElementById('previewNumber').textContent = v || '•••• •••• •••• ••••';
     const brand = document.getElementById('previewBrand');
-    if (brand) {
-      if (num.startsWith('4'))        brand.textContent = 'VISA';
-      else if (/^5[1-5]/.test(num))  brand.textContent = 'MASTERCARD';
-      else if (num.startsWith('3'))   brand.textContent = 'AMEX';
-      else                            brand.textContent = 'CARTÃO';
-    }
+    if (brand) brand.textContent = detectBrand(v.replace(/\s/g, ''));
   });
 
   document.getElementById('cardName')?.addEventListener('input', function () {
@@ -888,6 +890,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
     this.value = v;
     document.getElementById('previewExpiry').textContent = v || 'MM/AA';
+  });
+
+  // ── CARD PREVIEW — Débito ────────────────────────────────
+  document.getElementById('debitoNumber')?.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').slice(0, 16);
+    v = v.replace(/(.{4})/g, '$1 ').trim();
+    this.value = v;
+    document.getElementById('previewNumberDebito').textContent = v || '•••• •••• •••• ••••';
+    const brand = document.getElementById('previewBrandDebito');
+    if (brand) brand.textContent = detectBrand(v.replace(/\s/g, ''));
+  });
+
+  document.getElementById('debitoName')?.addEventListener('input', function () {
+    document.getElementById('previewNameDebito').textContent = this.value.toUpperCase() || 'SEU NOME';
+  });
+
+  document.getElementById('debitoExpiry')?.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    this.value = v;
+    document.getElementById('previewExpiryDebito').textContent = v || 'MM/AA';
   });
 
   // Formata CPF e telefone
@@ -932,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Validação cartão
+    // Validação cartão crédito
     if (activeTab === 'cartao') {
       const num  = document.getElementById('cardNumber')?.value.trim();
       const name = document.getElementById('cardName')?.value.trim();
@@ -940,6 +963,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const cvv  = document.getElementById('cardCvv')?.value.trim();
       if (!num || !name || !exp || !cvv) {
         highlightEmptyFields(['cardNumber', 'cardName', 'cardExpiry', 'cardCvv']);
+        return;
+      }
+    }
+
+    // Validação cartão débito
+    if (activeTab === 'debito') {
+      const num  = document.getElementById('debitoNumber')?.value.trim();
+      const name = document.getElementById('debitoName')?.value.trim();
+      const exp  = document.getElementById('debitoExpiry')?.value.trim();
+      const cvv  = document.getElementById('debitoCvv')?.value.trim();
+      if (!num || !name || !exp || !cvv) {
+        highlightEmptyFields(['debitoNumber', 'debitoName', 'debitoExpiry', 'debitoCvv']);
         return;
       }
     }
@@ -1018,16 +1053,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Cartão / Débito: inclui dados no payload para tokenização ASAAS ──
     // O ASAAS cuida da tokenização PCI no lado do servidor.
     if (!isPix) {
-      const expiry   = (document.getElementById('cardExpiry')?.value || '').split('/');
+      // Lê os campos do painel correto (crédito ou débito)
+      const numId    = isDebito ? 'debitoNumber'  : 'cardNumber';
+      const nameId   = isDebito ? 'debitoName'    : 'cardName';
+      const expiryId = isDebito ? 'debitoExpiry'  : 'cardExpiry';
+      const cvvId    = isDebito ? 'debitoCvv'     : 'cardCvv';
+
+      const expiry   = (document.getElementById(expiryId)?.value || '').split('/');
       const expiryMM = (expiry[0] || '').trim().padStart(2, '0');
       const expiryYY = expiry[1] ? '20' + expiry[1].trim() : '';
 
-      payload.card_number       = document.getElementById('cardNumber')?.value.replace(/\D/g, '');
-      payload.card_holder_name  = document.getElementById('cardName')?.value.trim();
+      payload.card_number       = document.getElementById(numId)?.value.replace(/\D/g, '');
+      payload.card_holder_name  = document.getElementById(nameId)?.value.trim();
       payload.card_expiry_month = expiryMM;
       payload.card_expiry_year  = expiryYY;
-      payload.card_cvv          = document.getElementById('cardCvv')?.value.trim();
-      payload.parcelas          = parseInt(document.getElementById('installments')?.value || '1', 10);
+      payload.card_cvv          = document.getElementById(cvvId)?.value.trim();
+      payload.parcelas          = isDebito ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
       btn.innerHTML = 'Processando pagamento…';
     }
 
