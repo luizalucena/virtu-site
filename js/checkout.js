@@ -304,19 +304,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Comparativo de formas de pagamento ─────────────────
-    // PIX (−5%) | Crédito (+10%, até 12x) | Débito (+10%, à vista)
-    const compareEl      = document.getElementById('checkoutPaymentCompare');
-    const comparePixEl   = document.getElementById('comparePix');
-    const compareCardEl  = document.getElementById('compareCard');
+    // Mostra o subtotal base + nota do ajuste que será aplicado
+    const compareEl       = document.getElementById('checkoutPaymentCompare');
+    const comparePixEl    = document.getElementById('comparePix');
+    const compareCardEl   = document.getElementById('compareCard');
     const compareCardParc = document.getElementById('compareCardParc');
     const compareDebitoEl = document.getElementById('compareDebito');
     if (compareEl && subtotalLiquido > 0) {
-      const totalPix  = subtotalLiquido * 0.95 + freteReal;
-      const totalCard = subtotalLiquido * 1.10 + freteReal;
-      const parcela12 = totalCard / 12;
-      if (comparePixEl)   comparePixEl.textContent   = formatCurrency(totalPix);
-      if (compareCardEl)  compareCardEl.textContent  = formatCurrency(totalCard);
-      if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(totalCard);
+      const baseComFrete  = subtotalLiquido + freteReal;
+      const totalCard     = subtotalLiquido * 1.10 + freteReal;
+      const parcela12     = totalCard / 12;
+      if (comparePixEl)    comparePixEl.textContent    = formatCurrency(baseComFrete);
+      if (compareCardEl)   compareCardEl.textContent   = formatCurrency(baseComFrete);
+      if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(baseComFrete);
       if (compareCardParc) compareCardParc.textContent = `até 12x de ${formatCurrency(parcela12)}`;
       compareEl.style.display = '';
     } else if (compareEl) {

@@ -542,8 +542,6 @@
   padding: 0.15rem 0;
 }
 
-.checkout-payment-compare__icon { font-size: 0.85rem; line-height: 1; }
-
 .checkout-payment-compare__metodo {
   flex: 1;
   font-weight: 500;
@@ -565,8 +563,15 @@
   text-transform: uppercase;
 }
 
-.checkout-payment-compare__badge--pix  { background: #e8f5e9; color: #2e7d32; }
-.checkout-payment-compare__badge--card { background: #fff3e0; color: #c0824a; }
+.checkout-payment-compare__nota {
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.checkout-payment-compare__nota--pix  { color: #2e7d32; }
+.checkout-payment-compare__nota--card { color: #c0824a; }
 
 .checkout-payment-compare__parcelamento {
   display: block;

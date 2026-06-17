@@ -233,11 +233,6 @@
   color: var(--color-navy);
 }
 
-.produto-payment-strip__icon {
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
 .produto-payment-strip__metodo {
   flex: 1;
   font-weight: 500;
@@ -250,24 +245,15 @@
   font-family: var(--font-display);
 }
 
-.produto-payment-strip__badge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  padding: 2px 6px;
-  border-radius: 20px;
-  text-transform: uppercase;
+.produto-payment-strip__nota {
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.produto-payment-strip__badge--pix {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.produto-payment-strip__badge--card {
-  background: #fff3e0;
-  color: #c0824a;
-}
+.produto-payment-strip__nota--pix  { color: #2e7d32; }
+.produto-payment-strip__nota--card { color: #c0824a; }
 
 .produto-payment-strip__parcelamento {
   display: block;
