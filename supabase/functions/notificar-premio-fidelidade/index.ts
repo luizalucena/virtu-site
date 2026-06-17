@@ -242,7 +242,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const meta         = cfg?.meta_compras  ?? 10;
-    const valor        = Number(cfg?.valor_desconto ?? 100);
+    const valor        = Number(cfg?.valor_desconto ?? 150);
     const validadeFmt  = fmtData(validade);
     const primeiroN    = primeiroNome(nome);
     const errors: string[] = [];

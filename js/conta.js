@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const valorEl   = document.getElementById('fidelPremioValor');
             if (codigoEl)  codigoEl.textContent  = premioAtivo.codigo;
             if (expiraEl)  expiraEl.textContent  = fmtDataCurta(premioAtivo.expira_em);
-            if (valorEl)   valorEl.textContent   = Number(fid.valor_desconto ?? 100).toFixed(0);
+            if (valorEl)   valorEl.textContent   = Number(fid.valor_desconto ?? 150).toFixed(0);
 
             // Função global para copiar cupom (chamada pelo botão inline)
             window.copiarCupomFidelidade = async function () {

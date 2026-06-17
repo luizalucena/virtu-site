@@ -76,7 +76,7 @@ async function carregarMetricas() {
       .eq('id', 1)
       .maybeSingle();
 
-    const valorUnitario = Number(cfg?.valor_desconto ?? 100);
+    const valorUnitario = Number(cfg?.valor_desconto ?? 150);
     const valorTotal    = valorUnitario * totalPr;
 
     document.getElementById('statTotal').textContent    = totalClientes ?? 0;
