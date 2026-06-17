@@ -263,8 +263,44 @@ Deno.serve(async (req) => {
       serverSubtotal = Number(subtotal);
     }
 
-    const freteNum    = Number(frete    ?? 0);
-    const descontoNum = Number(desconto ?? 0);
+    const freteNum = Number(frete ?? 0);
+
+    // ── Valida cupom server-side (anti-tampering) ────────────
+    // O frontend envia desconto=X, mas só confiamos no valor que o banco diz.
+    let descontoNum = 0;
+    if (cupom_codigo && String(cupom_codigo).trim()) {
+      try {
+        const codigoCupom = String(cupom_codigo).trim().toUpperCase();
+        const emailCupom  = cliente?.email || null;
+        const { data: cupomData, error: cupomErr } = await supabase
+          .rpc('validar_cupom', { p_codigo: codigoCupom, p_email: emailCupom });
+
+        if (cupomErr) {
+          console.warn('[Cupom] Erro RPC:', cupomErr.message);
+          // Cupom inválido → desconto zero (não nega o pedido)
+        } else if (cupomData?.valido === true) {
+          // Calcula o desconto com base no tipo e valor do cupom
+          const tipoCupom  = cupomData.tipo;           // 'porcentagem' | 'fixo'
+          const valorCupom = Number(cupomData.valor ?? 0);
+          const baseDesc   = Number(subtotal ?? 0);    // aplica sobre subtotal bruto
+
+          descontoNum =
+            tipoCupom === 'percentual'
+              ? Math.round(baseDesc * (valorCupom / 100) * 100) / 100
+              : valorCupom;  // 'fixo'
+
+          console.log(`[Cupom] "${codigoCupom}" validado → desconto=R$${descontoNum}`);
+        } else {
+          console.warn(`[Cupom] "${codigoCupom}" inválido ou expirado (server): ${JSON.stringify(cupomData)}`);
+          // Desconto zero — cupom não se aplica
+        }
+      } catch (cupomEx) {
+        console.error('[Cupom] Exceção:', cupomEx);
+      }
+    } else {
+      // Sem cupom — usa desconto do client apenas para fidelidade (validado abaixo)
+      descontoNum = 0;
+    }
 
     // ── Desconto de Fidelidade (validação server-side) ───────
     let descontoFidelidade = 0;
@@ -472,16 +508,11 @@ Deno.serve(async (req) => {
 
     if (dbError) throw new Error('[DB Insert] ' + dbError.message);
 
-    // ── Decrementa estoque se pagamento aprovado imediatamente ──
-    if (pedido?.id && itens?.length && statusPedido === 'pago') {
-      const decrements = (itens as any[])
-        .filter((i) => i.variacao_id)
-        .map((i) => supabase.rpc('comprar_variacao', {
-          p_variacao_id: i.variacao_id,
-          p_quantidade:  i.qty || 1,
-        }));
-      if (decrements.length > 0) await Promise.allSettled(decrements);
-    }
+    // ── Estoque ──────────────────────────────────────────────────
+    // Delegado ao trigger trg_pedido_pago_baixa_estoque (AFTER INSERT OR UPDATE).
+    // O trigger agora cobre INSERT (cartão imediato) e UPDATE (PIX via webhook).
+    // NÃO chamar comprar_variacao aqui para evitar duplo débito.
+    console.log('[processar-pagamento] Estoque: delegado ao trigger DB (trg_pedido_pago_baixa_estoque)');
 
     // ── Fidelidade: incrementa contador se pagamento aprovado ──
     // PIX pendente → incrementado no asaas-webhook quando RECEIVED
