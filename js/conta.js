@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             label.textContent  = restam === 0
               ? 'Ciclo completo!'
-              : `Faltam ${restam} compra${restam !== 1 ? 's' : ''} para R$${(fid.valor_desconto ?? 100).toFixed(0)} de desconto`;
+              : `Faltam ${restam} compra${restam !== 1 ? 's' : ''} para R$${(fid.valor_desconto ?? 150).toFixed(0)} de desconto`;
             label.style.color  = '#2B3F54';
           }
         }

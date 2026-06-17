@@ -314,7 +314,7 @@
 
         // Atualiza o status em tempo real
         // Canal único por pedido para evitar conflito entre múltiplas abas
-        supabaseClient
+        const realtimeChannel = supabaseClient
           .channel(`rastreio-pedido-${pedidoId}`)
           .on('postgres_changes', {
             event:  'UPDATE',
@@ -323,6 +323,11 @@
             filter: `id=eq.${pedidoId}`,
           }, (payload) => renderPedido(payload.new))
           .subscribe();
+
+        // Limpa a subscrição ao sair para evitar vazamento de memória
+        window.addEventListener('beforeunload', () => {
+          supabaseClient.removeChannel(realtimeChannel);
+        }, { once: true });
 
       } catch (e) {
         renderError('Erro ao buscar pedido. Tente novamente em instantes.');

@@ -38,7 +38,7 @@ let freteCalculado        = false;          // flag: frete foi calculado com suc
 let cupomAplicado = null; // { codigo, tipo, valor } ou null
 
 // ── PROGRAMA DE FIDELIDADE ───────────────────────────────────
-let descontoFidelidade = 0;    // R$100 quando aplicável na 10ª compra
+let descontoFidelidade = 0;    // R$150 quando aplicável na 10ª compra
 let currentUserId      = null; // UUID do usuário autenticado
 
 // ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────

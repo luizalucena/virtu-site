@@ -6,7 +6,7 @@
  *   - Cartão: dados tokenizados via ASAAS (PCI-DSS) — nosso servidor repassa
  *             dados criptografados diretamente ao ASAAS, nunca os armazena
  *   - Preços: recalculados no servidor a partir do banco (anti-tampering)
- *   - Fidelidade: desconto de R$100 validado server-side
+ *   - Fidelidade: desconto de R$150 validado server-side
  *
  * Variáveis de ambiente necessárias (Supabase Secrets):
  *   ASAAS_API_KEY        — access_token do ASAAS (nunca vai ao frontend)

@@ -200,10 +200,10 @@ async function carregarProduto(produtoId) {
       precoOrigEl.style.display = 'none';
     }
 
-    // Parcelamento
-    const parcela = preco / 12;
+    // Parcelamento — usa preço do cartão (+10%) para evitar contradição com o strip
+    const parcela = (preco * 1.10) / 12;
     const parcelaEl = document.querySelector('.produto-parcelamento');
-    if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} sem juros`;
+    if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} no cartão`;
 
     // ── Strip de formas de pagamento e valores ─────────────
     // PIX = −5% no checkout | Crédito/Débito = +10% no checkout

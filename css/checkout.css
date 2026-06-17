@@ -582,6 +582,28 @@
   margin-top: 1px;
 }
 
+/* Responsivo — mobile estreito */
+@media (max-width: 420px) {
+  .checkout-payment-compare {
+    padding: var(--space-2);
+  }
+  .checkout-payment-compare__row {
+    gap: 0.3rem;
+  }
+  .checkout-payment-compare__nota {
+    white-space: normal;
+    text-align: right;
+    max-width: 80px;
+    font-size: 0.63rem;
+  }
+  .checkout-payment-compare__preco {
+    font-size: 0.75rem;
+  }
+  .checkout-payment-compare__metodo {
+    font-size: 0.7rem;
+  }
+}
+
 .checkout-order-summary__total {
   display: flex;
   justify-content: space-between;
