@@ -315,8 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalCard     = subtotalLiquido * 1.10 + freteReal;
       const parcela12     = totalCard / 12;
       if (comparePixEl)    comparePixEl.textContent    = formatCurrency(baseComFrete);
-      if (compareCardEl)   compareCardEl.textContent   = formatCurrency(baseComFrete);
-      if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(baseComFrete);
+      if (compareCardEl)   compareCardEl.textContent   = formatCurrency(totalCard);
+      if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(totalCard);
       if (compareCardParc) compareCardParc.textContent = `até 12x de ${formatCurrency(parcela12)}`;
       compareEl.style.display = '';
     } else if (compareEl) {

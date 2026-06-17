@@ -223,13 +223,11 @@ async function carregarProduto(produtoId) {
             Crédito
             <small class="produto-payment-strip__parcelamento">até 12x de ${fmtV(parcela12)}</small>
           </span>
-          <span class="produto-payment-strip__preco">${fmt(preco)}</span>
-          <span class="produto-payment-strip__nota produto-payment-strip__nota--card">+10% no checkout</span>
+          <span class="produto-payment-strip__preco">${fmtV(cardPrice)}</span>
         </div>
         <div class="produto-payment-strip__row produto-payment-strip__row--debito">
           <span class="produto-payment-strip__metodo">Débito</span>
-          <span class="produto-payment-strip__preco">${fmt(preco)}</span>
-          <span class="produto-payment-strip__nota produto-payment-strip__nota--card">+10% no checkout</span>
+          <span class="produto-payment-strip__preco">${fmtV(cardPrice)}</span>
         </div>`;
       payStrip.style.display = '';
     }
