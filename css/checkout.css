@@ -568,6 +568,15 @@
 .checkout-payment-compare__badge--pix  { background: #e8f5e9; color: #2e7d32; }
 .checkout-payment-compare__badge--card { background: #fff3e0; color: #c0824a; }
 
+.checkout-payment-compare__parcelamento {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--color-text-light);
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+}
+
 .checkout-order-summary__total {
   display: flex;
   justify-content: space-between;

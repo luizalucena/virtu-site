@@ -304,15 +304,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Comparativo de formas de pagamento ─────────────────
-    // Mostra o valor final para PIX e Crédito/Débito lado a lado
-    const compareEl   = document.getElementById('checkoutPaymentCompare');
-    const comparePixEl  = document.getElementById('comparePix');
-    const compareCardEl = document.getElementById('compareCard');
+    // PIX (−5%) | Crédito (+10%, até 12x) | Débito (+10%, à vista)
+    const compareEl      = document.getElementById('checkoutPaymentCompare');
+    const comparePixEl   = document.getElementById('comparePix');
+    const compareCardEl  = document.getElementById('compareCard');
+    const compareCardParc = document.getElementById('compareCardParc');
+    const compareDebitoEl = document.getElementById('compareDebito');
     if (compareEl && subtotalLiquido > 0) {
       const totalPix  = subtotalLiquido * 0.95 + freteReal;
       const totalCard = subtotalLiquido * 1.10 + freteReal;
-      if (comparePixEl)  comparePixEl.textContent  = formatCurrency(totalPix);
-      if (compareCardEl) compareCardEl.textContent = formatCurrency(totalCard);
+      const parcela12 = totalCard / 12;
+      if (comparePixEl)   comparePixEl.textContent   = formatCurrency(totalPix);
+      if (compareCardEl)  compareCardEl.textContent  = formatCurrency(totalCard);
+      if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(totalCard);
+      if (compareCardParc) compareCardParc.textContent = `até 12x de ${formatCurrency(parcela12)}`;
       compareEl.style.display = '';
     } else if (compareEl) {
       compareEl.style.display = 'none';

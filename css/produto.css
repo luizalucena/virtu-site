@@ -269,6 +269,15 @@
   color: #c0824a;
 }
 
+.produto-payment-strip__parcelamento {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--color-text-light);
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+}
+
 /* Opções */
 .produto-opcao__header {
   display: flex;

@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=20260617" />
-  <link rel="stylesheet" href="css/checkout.css?v=20260617" />
+  <link rel="stylesheet" href="css/style.css?v=20260617b" />
+  <link rel="stylesheet" href="css/checkout.css?v=20260617b" />
   <link rel="canonical" href="https://wearvirtu.com/checkout.html" />
   <link rel="icon" href="/favicon.ico" />
   <!-- Auth-gate anti-flash: body fica invisível até checkAuthGate() confirmar login -->
@@ -407,8 +407,17 @@
           </div>
           <div class="checkout-payment-compare__row checkout-payment-compare__row--card">
             <span class="checkout-payment-compare__icon">💳</span>
-            <span class="checkout-payment-compare__metodo">Crédito / Débito</span>
+            <span class="checkout-payment-compare__metodo">
+              Crédito
+              <small class="checkout-payment-compare__parcelamento" id="compareCardParc">—</small>
+            </span>
             <span class="checkout-payment-compare__preco" id="compareCard">—</span>
+            <span class="checkout-payment-compare__badge checkout-payment-compare__badge--card">+10%</span>
+          </div>
+          <div class="checkout-payment-compare__row checkout-payment-compare__row--debito">
+            <span class="checkout-payment-compare__icon">🏦</span>
+            <span class="checkout-payment-compare__metodo">Débito</span>
+            <span class="checkout-payment-compare__preco" id="compareDebito">—</span>
             <span class="checkout-payment-compare__badge checkout-payment-compare__badge--card">+10%</span>
           </div>
         </div>
@@ -467,13 +476,13 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js?v=20260617"></script>
-  <script src="js/auth-badge.js?v=20260617"></script>
-  <script src="js/cart-badge.js?v=20260617"></script>
-  <script src="js/announcement.js?v=20260617"></script>
-  <script src="js/checkout.js?v=20260617"></script>
-  <script src="js/endereco-salvo.js?v=20260617"></script>
-  <script src="js/whatsapp-btn.js?v=20260617"></script>
-  <script src="js/carrinho-abandonado.js?v=20260617"></script>
+  <script src="js/supabase-config.js?v=20260617b"></script>
+  <script src="js/auth-badge.js?v=20260617b"></script>
+  <script src="js/cart-badge.js?v=20260617b"></script>
+  <script src="js/announcement.js?v=20260617b"></script>
+  <script src="js/checkout.js?v=20260617b"></script>
+  <script src="js/endereco-salvo.js?v=20260617b"></script>
+  <script src="js/whatsapp-btn.js?v=20260617b"></script>
+  <script src="js/carrinho-abandonado.js?v=20260617b"></script>
 </body>
 </html>

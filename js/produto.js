@@ -206,11 +206,13 @@ async function carregarProduto(produtoId) {
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} sem juros`;
 
     // ── Strip de formas de pagamento e valores ─────────────
-    // PIX = −5% | Crédito/Débito = +10%
+    // PIX = −5% | Crédito = +10% em até 12x | Débito = +10% à vista
     const payStrip = document.getElementById('produtoPaymentStrip');
     if (payStrip && preco > 0) {
-      const pixPrice  = preco * 0.95;
-      const cardPrice = preco * 1.10;
+      const pixPrice      = preco * 0.95;
+      const cardPrice     = preco * 1.10;
+      const parcela12     = cardPrice / 12;
+      const fmtParc12 = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       payStrip.innerHTML = `
         <div class="produto-payment-strip__row produto-payment-strip__row--pix">
           <span class="produto-payment-strip__icon">⚡</span>
@@ -220,7 +222,16 @@ async function carregarProduto(produtoId) {
         </div>
         <div class="produto-payment-strip__row produto-payment-strip__row--card">
           <span class="produto-payment-strip__icon">💳</span>
-          <span class="produto-payment-strip__metodo">Crédito / Débito</span>
+          <span class="produto-payment-strip__metodo">
+            Crédito
+            <small class="produto-payment-strip__parcelamento">até 12x de ${fmtParc12(parcela12)}</small>
+          </span>
+          <span class="produto-payment-strip__preco">${fmt(cardPrice)}</span>
+          <span class="produto-payment-strip__badge produto-payment-strip__badge--card">+10%</span>
+        </div>
+        <div class="produto-payment-strip__row produto-payment-strip__row--debito">
+          <span class="produto-payment-strip__icon">🏦</span>
+          <span class="produto-payment-strip__metodo">Débito</span>
           <span class="produto-payment-strip__preco">${fmt(cardPrice)}</span>
           <span class="produto-payment-strip__badge produto-payment-strip__badge--card">+10%</span>
         </div>`;
