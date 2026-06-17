@@ -205,6 +205,28 @@ async function carregarProduto(produtoId) {
     const parcelaEl = document.querySelector('.produto-parcelamento');
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} sem juros`;
 
+    // ── Strip de formas de pagamento e valores ─────────────
+    // PIX = −5% | Crédito/Débito = +10%
+    const payStrip = document.getElementById('produtoPaymentStrip');
+    if (payStrip && preco > 0) {
+      const pixPrice  = preco * 0.95;
+      const cardPrice = preco * 1.10;
+      payStrip.innerHTML = `
+        <div class="produto-payment-strip__row produto-payment-strip__row--pix">
+          <span class="produto-payment-strip__icon">⚡</span>
+          <span class="produto-payment-strip__metodo">PIX</span>
+          <span class="produto-payment-strip__preco">${fmt(pixPrice)}</span>
+          <span class="produto-payment-strip__badge produto-payment-strip__badge--pix">−5%</span>
+        </div>
+        <div class="produto-payment-strip__row produto-payment-strip__row--card">
+          <span class="produto-payment-strip__icon">💳</span>
+          <span class="produto-payment-strip__metodo">Crédito / Débito</span>
+          <span class="produto-payment-strip__preco">${fmt(cardPrice)}</span>
+          <span class="produto-payment-strip__badge produto-payment-strip__badge--card">+10%</span>
+        </div>`;
+      payStrip.style.display = '';
+    }
+
     // Cores — renderiza p.cores imediatamente como base.
     // VirtuStock sobrescreve depois se houver variações configuradas.
     if (p.cores && p.cores.length > 0) {

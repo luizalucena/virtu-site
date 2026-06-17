@@ -396,6 +396,23 @@
           </div>
         </dl>
 
+        <!-- Comparativo de preços por forma de pagamento -->
+        <div class="checkout-payment-compare" id="checkoutPaymentCompare" style="display:none;" aria-label="Preços por forma de pagamento">
+          <p class="checkout-payment-compare__title">Valor final por pagamento:</p>
+          <div class="checkout-payment-compare__row checkout-payment-compare__row--pix">
+            <span class="checkout-payment-compare__icon">⚡</span>
+            <span class="checkout-payment-compare__metodo">PIX</span>
+            <span class="checkout-payment-compare__preco" id="comparePix">—</span>
+            <span class="checkout-payment-compare__badge checkout-payment-compare__badge--pix">−5%</span>
+          </div>
+          <div class="checkout-payment-compare__row checkout-payment-compare__row--card">
+            <span class="checkout-payment-compare__icon">💳</span>
+            <span class="checkout-payment-compare__metodo">Crédito / Débito</span>
+            <span class="checkout-payment-compare__preco" id="compareCard">—</span>
+            <span class="checkout-payment-compare__badge checkout-payment-compare__badge--card">+10%</span>
+          </div>
+        </div>
+
         <div class="checkout-order-summary__total">
           <span>Total</span>
           <strong id="checkoutTotal">R$ 0,00</strong>

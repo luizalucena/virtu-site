@@ -211,6 +211,64 @@
   letter-spacing: 0.5px;
 }
 
+/* ----------------------------
+   PAYMENT STRIP — formas de pagamento
+   ---------------------------- */
+.produto-payment-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface, #f8f6f3);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: var(--radius-sm);
+}
+
+.produto-payment-strip__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-navy);
+}
+
+.produto-payment-strip__icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.produto-payment-strip__metodo {
+  flex: 1;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.produto-payment-strip__preco {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  font-family: var(--font-display);
+}
+
+.produto-payment-strip__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 2px 6px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.produto-payment-strip__badge--pix {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.produto-payment-strip__badge--card {
+  background: #fff3e0;
+  color: #c0824a;
+}
+
 /* Opções */
 .produto-opcao__header {
   display: flex;
