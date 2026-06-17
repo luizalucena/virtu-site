@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       })
       .eq('asaas_payment_id', asaasPaymentId)
       .eq('status', 'pendente')  // condição atômica
-      .select('id, user_id, itens')
+      .select('id, user_id, itens, subtotal')
       .maybeSingle();
 
     if (updateErr) {
@@ -113,9 +113,10 @@ Deno.serve(async (req) => {
       return json({ ok: true, msg: 'Pedido já processado ou não encontrado' });
     }
 
-    const pedidoId = pedidoAtualizado.id as string;
-    const userId   = pedidoAtualizado.user_id as string | null;
-    const itens    = (pedidoAtualizado.itens as any[]) || [];
+    const pedidoId      = pedidoAtualizado.id       as string;
+    const userId        = pedidoAtualizado.user_id  as string | null;
+    const itens         = (pedidoAtualizado.itens   as any[]) || [];
+    const pedidoSubtotal = Number(pedidoAtualizado.subtotal ?? 0);
 
     console.log(`[asaas-webhook] ${evento}: pedido ${pedidoId} → pago`);
 
@@ -129,7 +130,7 @@ Deno.serve(async (req) => {
     if (userId) {
       try {
         const { data: fidData, error: fidErr } = await supabase
-          .rpc('registrar_compra_fidelidade', { p_user_id: userId });
+          .rpc('registrar_compra_fidelidade', { p_user_id: userId, p_total: pedidoSubtotal });
 
         if (fidErr) {
           console.error('[asaas-webhook] Fidelidade erro:', fidErr.message);

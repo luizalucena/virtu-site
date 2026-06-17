@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
         teaser.style.display = 'flex';
         if (teaserMsg) {
           teaserMsg.textContent = progresso === meta - 1
-            ? '🎁 Próxima compra = R$100 de desconto!'
+            ? '🎁 Próxima compra = R$150 de desconto! (pedido mín. R$499)'
             : `${progresso} de ${meta} compras concluídas`;
         }
         if (teaserBar) teaserBar.style.width = `${pct}%`;

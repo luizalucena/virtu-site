@@ -457,37 +457,59 @@ document.addEventListener('DOMContentLoaded', () => {
                               document.querySelector('.checkout-order-summary') ||
                               document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
 
+            // Valores do programa (usa os do DB se disponíveis, senão fallback)
+            const FIDVAL = Number(fid.valor_desconto      ?? 150);
+            const FIDMIN = Number(fid.valor_minimo_premio ?? 499);
+
             if (summaryEl && restam > 0) {
-              const pct     = Math.min(100, ((compras % 10) / 10) * 100);
-              const msg     = restam === 1
-                ? '🎁 Esta é sua <strong>10ª compra</strong>! R$100 de desconto aplicado automaticamente!'
-                : `🏅 Programa Fidelidade — <strong>${compras % 10}/10 compras</strong>. Faltam <strong>${restam}</strong> para R$100 de desconto!`;
+              const pct = Math.min(100, ((compras % 10) / 10) * 100);
+
+              // Monta mensagem diferenciada para 10ª compra (com verificação de mínimo)
+              let msg;
+              let bannerBg    = '#EFF6FF';
+              let bannerBdr   = '#BFDBFE';
+              let bannerTxt   = '#1E40AF';
+              let barColor    = '#3B82F6';
+
+              if (restam === 1 && compras % 10 === 9) {
+                if (baseTotal >= FIDMIN) {
+                  // Qualificada: aplica desconto
+                  msg      = `🎁 Esta é sua <strong>10ª compra</strong>! <strong>R$${FIDVAL} de desconto</strong> aplicado automaticamente!`;
+                  bannerBg  = '#D1FAE5'; bannerBdr = '#6EE7B7';
+                  bannerTxt = '#065F46'; barColor  = '#059669';
+                } else {
+                  // Pedido mínimo não atingido
+                  const falta = (FIDMIN - baseTotal).toFixed(2).replace('.', ',');
+                  msg      = `🎁 Esta é sua <strong>10ª compra</strong>! Adicione mais <strong>R$ ${falta}</strong> em produtos para ganhar <strong>R$${FIDVAL} de desconto de fidelidade</strong> (mín. R$${FIDMIN}).`;
+                  bannerBg  = '#FEF3C7'; bannerBdr = '#FDE68A';
+                  bannerTxt = '#92400E'; barColor  = '#F59E0B';
+                }
+              } else {
+                msg = `🏅 Programa Fidelidade — <strong>${compras % 10}/10 compras</strong>. Faltam <strong>${restam}</strong> para R$${FIDVAL} de desconto! (mín. R$${FIDMIN})`;
+              }
 
               const banner = document.createElement('div');
               banner.id = 'fidelidadeBanner';
               banner.style.cssText = `
-                background:${restam === 1 ? '#D1FAE5' : '#EFF6FF'};
-                border:1px solid ${restam === 1 ? '#6EE7B7' : '#BFDBFE'};
+                background:${bannerBg};border:1px solid ${bannerBdr};
                 border-radius:4px;padding:10px 14px;font-size:0.82rem;
-                color:${restam === 1 ? '#065F46' : '#1E40AF'};
-                margin-bottom:12px;line-height:1.5;
+                color:${bannerTxt};margin-bottom:12px;line-height:1.5;
               `;
               banner.innerHTML = `<div>${msg}</div>
                 <div style="background:#E5E7EB;border-radius:100px;height:4px;margin-top:8px;overflow:hidden">
-                  <div style="background:${restam === 1 ? '#059669' : '#3B82F6'};height:100%;width:${pct}%;transition:width 0.4s"></div>
+                  <div style="background:${barColor};height:100%;width:${pct}%;transition:width 0.4s"></div>
                 </div>`;
               summaryEl.insertAdjacentElement('beforebegin', banner);
             }
 
-            // Esta é a 10ª compra → aplica R$100
-            if (restam === 1 && compras > 0) {
-              // Próxima compra é múltipla de 10 → desconto ativo
-              // (restam = 1 significa que 1 compra a mais = chega em múltiplo de 10)
-              // Verifica exatamente: (compras % 10 === 9) = próxima é múltipla de 10
-              if (compras % 10 === 9) {
-                descontoFidelidade = 100;
+            // Esta é a 10ª compra → aplica R$150 (somente se mínimo R$499 atingido)
+            if (restam === 1 && compras > 0 && compras % 10 === 9) {
+              if (baseTotal >= FIDMIN) {
+                descontoFidelidade = FIDVAL;
                 updateTotalWithFrete(freteValorSelecionado);
               }
+              // Se não atingir mínimo: desconto não aplicado; DB também reverterá
+              // o contador quando processar-pagamento chamar registrar_compra_fidelidade
             }
           }
         }

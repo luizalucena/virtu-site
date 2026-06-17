@@ -130,6 +130,7 @@ Deno.serve(async (req) => {
     const metodoPagto =
       metodo_pagamento === 'pix'    ? 'PIX' :
       metodo_pagamento === 'cartao' ? `Cartão de crédito${Number(parcelas) > 1 ? ` (${parcelas}x)` : ''}` :
+      metodo_pagamento === 'debito' ? 'Cartão de débito' :
       metodo_pagamento || '—';
 
     const primeiroNome = (cliente?.nome || 'Cliente').split(' ')[0];
@@ -302,6 +303,7 @@ Deno.serve(async (req) => {
       <tr>
         <td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:13px;color:#333">${it.nome || it.name || 'Produto'}</td>
         <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:#555">${it.tamanho || '—'}</td>
+        <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:#555">${it.cor_nome || it.cor || '—'}</td>
         <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:#555">${it.qty || it.quantidade || 1}</td>
         <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-size:13px;font-weight:600;color:#1A2744">${fmtBRL(Number(it.preco || 0))}</td>
       </tr>`).join('');
@@ -346,6 +348,7 @@ Deno.serve(async (req) => {
           <tr style="background:#f9f6f2">
             <th style="padding:7px 8px;text-align:left;font-size:11px;color:#888;font-weight:600">Produto</th>
             <th style="padding:7px 8px;text-align:center;font-size:11px;color:#888;font-weight:600">Tam.</th>
+            <th style="padding:7px 8px;text-align:center;font-size:11px;color:#888;font-weight:600">Cor</th>
             <th style="padding:7px 8px;text-align:center;font-size:11px;color:#888;font-weight:600">Qtd.</th>
             <th style="padding:7px 8px;text-align:right;font-size:11px;color:#888;font-weight:600">Preço</th>
           </tr>

@@ -303,6 +303,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Desconto de Fidelidade (validação server-side) ───────
+    // R$150 com pedido mínimo de R$499 (serverSubtotal, sem frete)
     let descontoFidelidade = 0;
     if (fidelidade_desconto && confirmedUserId) {
       const { data: perfil } = await supabase
@@ -313,8 +314,12 @@ Deno.serve(async (req) => {
 
       const comprasAtuais = perfil?.compras_pagas ?? 0;
       if ((comprasAtuais + 1) % 10 === 0) {
-        descontoFidelidade = 100;
-        console.log(`[Fidelidade] Validada: ${comprasAtuais + 1}ª compra → R$100`);
+        if (serverSubtotal >= 499) {
+          descontoFidelidade = 150;
+          console.log(`[Fidelidade] Validada: ${comprasAtuais + 1}ª compra, subtotal=R$${serverSubtotal} → R$150`);
+        } else {
+          console.warn(`[Fidelidade] Mínimo não atingido: subtotal=R$${serverSubtotal} < R$499 — desconto não aplicado`);
+        }
       } else {
         console.warn(`[Fidelidade] Rejeitada: comprasAtuais=${comprasAtuais}`);
       }
@@ -517,7 +522,7 @@ Deno.serve(async (req) => {
     // ── Fidelidade: incrementa contador se pagamento aprovado ──
     // PIX pendente → incrementado no asaas-webhook quando RECEIVED
     if (confirmedUserId && statusPedido === 'pago') {
-      supabase.rpc('registrar_compra_fidelidade', { p_user_id: confirmedUserId })
+      supabase.rpc('registrar_compra_fidelidade', { p_user_id: confirmedUserId, p_total: serverSubtotal })
         .then(async ({ data: fidData, error: fidErr }) => {
           if (fidErr) {
             console.error('[Fidelidade] Erro:', fidErr.message);
