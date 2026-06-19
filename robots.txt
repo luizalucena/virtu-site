@@ -1,11 +1,12 @@
 User-agent: *
 Allow: /
 
-# Páginas privadas/transacionais
+# Páginas privadas/transacionais (noindex)
 Disallow: /admin/
 Disallow: /checkout.html
 Disallow: /conta.html
 Disallow: /carrinho.html
+Disallow: /rastreio.html
 
 # Sitemap
 Sitemap: https://wearvirtu.com/sitemap.xml

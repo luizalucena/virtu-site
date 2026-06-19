@@ -1,0 +1,33 @@
+# ============================================================
+# VIRTÙ — Security Headers
+# Pilar 5 — Cabeçalhos de Segurança HTTP
+#
+# NOTA: Este arquivo é aplicado automaticamente por:
+#   • Netlify  → suportado nativamente
+#   • Cloudflare Pages → suportado nativamente
+#   • GitHub Pages → NÃO suportado (use meta tags no HTML)
+#
+# Para GitHub Pages, os headers equivalentes estão como
+# <meta http-equiv> em cada página HTML do site.
+# ============================================================
+
+/*
+  # Política de referência — limita informação enviada ao abrir links
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Impede MIME-type sniffing (ataques de tipo de conteúdo)
+  X-Content-Type-Options: nosniff
+
+  # Impede o site de ser embutido em iframes de outros domínios (clickjacking)
+  X-Frame-Options: DENY
+
+  # HSTS — força HTTPS por 1 ano, inclui subdomínios, elegível para preload
+  # ATENÇÃO: só ativar quando HTTPS estiver 100% funcional em produção
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+  # Restringe APIs modernas de rastreio/hardware desnecessárias
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=()
+
+  # Content Security Policy (CSP) — controla origens permitidas
+  # Atualizar se novas CDNs ou serviços forem adicionados
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://oxivtnuxnghpddwawfdr.supabase.co https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://oxivtnuxnghpddwawfdr.supabase.co wss://oxivtnuxnghpddwawfdr.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';

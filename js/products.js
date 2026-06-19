@@ -116,7 +116,7 @@ const VirtuProducts = (() => {
     // Usa <img> real com onerror fallback para o placeholder CSS
     const imgHtml = imgUrl
       ? `<img src="${imgUrl}" alt="${nome}" class="product-card__img"
-           onerror="this.style.display='none';this.parentElement.style.background='${placeholderBg}'" loading="lazy" / loading="lazy">`
+           onerror="this.style.display='none';this.parentElement.style.background='${placeholderBg}'" loading="lazy">`
       : '';
     const wrapStyle = imgUrl ? '' : `style="background:${placeholderBg}"`;
 
