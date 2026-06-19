@@ -1,0 +1,502 @@
+/* ============================================================
+   VIRTÙ — UI/UX Refinements
+   Designer: Claude — Especialista UI/UX Moda de Luxo
+   Abordagem: Não-destrutiva. Refinamentos puramente estéticos
+   sobre o design system existente. Zero alterações funcionais.
+   ============================================================ */
+
+/* ──────────────────────────────────────────────────────────────
+   1. TIPOGRAFIA GLOBAL — Rendering & Legibilidade
+   ────────────────────────────────────────────────────────────── */
+
+html {
+  /* Renderização de texto premium — equivalente ao antialiasing do macOS */
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+}
+
+body {
+  /* Kerning e ligatures ativados — faz a fonte parecer "mais cara" */
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  /* Linha base levemente mais aérea que o padrão (1.65 → 1.72) */
+  line-height: 1.72;
+}
+
+/* Títulos — apertar o kerning em tamanhos grandes (padrão luxury) */
+h1, h2, .h1, .h2,
+.hero__title,
+.section-title {
+  letter-spacing: -0.01em;
+  text-wrap: balance; /* quebra de linha equilibrada — Safari 17+, Chrome 114+ */
+  font-optical-sizing: auto;
+}
+
+h3, h4, .h3, .h4 {
+  text-wrap: balance;
+}
+
+/* Tipografia numérica tabulada para preços — os zeros ficam alinhados */
+.product-card__price-current,
+.product-card__price-old,
+[class*="price"],
+[class*="valor"],
+[class*="total"] {
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Fonte display: ativar swash, ligatures opcionais e optical sizing */
+.font-display,
+[class*="__title"],
+[class*="__heading"],
+.hero__title,
+.section-title,
+.navbar__logo-text,
+.footer__logo-text {
+  font-optical-sizing: auto;
+  font-feature-settings: 'swsh' 0, 'liga' 1, 'dlig' 1;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   2. SELEÇÃO DE TEXTO — Identidade da Marca
+   ────────────────────────────────────────────────────────────── */
+
+::selection {
+  background: rgba(196, 147, 74, 0.22); /* gold com 22% opacidade */
+  color: #1E2E3E;
+}
+
+::-moz-selection {
+  background: rgba(196, 147, 74, 0.22);
+  color: #1E2E3E;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   3. SCROLLBAR PERSONALIZADA (WebKit)
+   Scrollbar fina e elegante — padrão de sites de moda premium
+   ────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F2EE; /* cream */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4BA9E; /* nude médio */
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2B3F54; /* navy no hover */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   4. FOCO ACESSÍVEL — Ring de foco elegante
+   Replace do outline padrão do browser (feio) por algo da marca
+   ────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid rgba(196, 147, 74, 0.65);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Remover foco visual para clique com mouse (mantém para teclado) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   5. MOTION SAFETY — Respeitar preferência do sistema
+   ────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hero__scroll-line {
+    animation: none;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   6. ANNOUNCEMENT BAR — Mais respiro e elegância
+   ────────────────────────────────────────────────────────────── */
+
+.announcement-bar {
+  /* Altura levemente maior para mais presença */
+  height: 40px;
+}
+
+.announcement-bar__item {
+  /* Espaçamento entre letras levemente maior = mais premium */
+  letter-spacing: 2.5px;
+  font-size: 10px; /* de 11px → 10px: mais delicado */
+  font-weight: 400;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   7. NAVBAR — Refinamentos de sombra e hover
+   ────────────────────────────────────────────────────────────── */
+
+.navbar.scrolled {
+  /* Sombra mais suave e difusa — menos "pesada" */
+  box-shadow: 0 2px 24px rgba(43, 63, 84, 0.09);
+}
+
+/* Links da navbar: underline mais elegante (1px → 0.5px) */
+.navbar__link::after {
+  height: 0.5px; /* linha hairline = mais luxury que 1px */
+  background: var(--color-gold);
+}
+
+/* Ícones de ação (lupa, coração, carrinho): hover mais suave */
+.navbar__action-btn:hover {
+  background: rgba(43, 63, 84, 0.06); /* 06% ao invés de qualquer cor sólida */
+  color: var(--color-gold);
+}
+
+/* Dropdown de categorias: glassmorphism sutil */
+.navbar__cats-dropdown {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(249, 247, 244, 0.97);
+  /* Sombra mais suave e espalhada */
+  box-shadow: 0 12px 48px rgba(43, 63, 84, 0.1), 0 2px 8px rgba(43, 63, 84, 0.06);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   8. BOTÕES — Transições com easing luxury e micro-detalhes
+   ────────────────────────────────────────────────────────────── */
+
+.btn {
+  /* Usar cubic-bezier em vez de 'ease' — curva mais sofisticada */
+  transition:
+    background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    color            0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color     0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow       0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform        0.18s cubic-bezier(0.34, 1.56, 0.64, 1); /* spring suave no hover */
+
+  /* letter-spacing em 'em' = escalável com font-size */
+  letter-spacing: 0.16em;
+
+  /* Prevenir text-decoration acidental */
+  text-decoration: none;
+}
+
+.btn--primary:hover,
+.btn--gold:hover {
+  transform: translateY(-1.5px); /* +0.5px a mais que o original */
+  box-shadow: 0 6px 20px rgba(43, 63, 84, 0.18);
+}
+
+.btn--ghost:hover {
+  /* Sem transform: ghost buttons devem ser mais estáticos */
+  transform: none;
+}
+
+/* Active state: leve "press" */
+.btn:active {
+  transform: translateY(0.5px) !important;
+  box-shadow: none !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   9. PRODUCT CARDS — Zoom refinado e sombra sutil
+   ────────────────────────────────────────────────────────────── */
+
+.product-card__image-wrap {
+  /* Sombra quase invisível que aparece no hover */
+  box-shadow: 0 0 0 rgba(43, 63, 84, 0);
+  transition: box-shadow 0.35s ease;
+}
+
+.product-card:hover .product-card__image-wrap {
+  box-shadow: 0 8px 28px rgba(43, 63, 84, 0.1);
+}
+
+/* Zoom: 1.04 → 1.035 (mais elegante, menos agressivo) */
+.product-card:hover .product-card__image-wrap img {
+  transform: scale(1.035);
+}
+
+/* Badge: letter-spacing levemente maior */
+.product-card__badge {
+  letter-spacing: 2px;
+  font-size: 8.5px; /* 9px → 8.5px: mais delicado */
+}
+
+/* Nome do produto: melhor kerning */
+.product-card__name {
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  letter-spacing: 0.005em; /* imperceptível mas melhora leitura */
+}
+
+/* Categoria: tracking aumentado para mais status */
+.product-card__category {
+  letter-spacing: 2px; /* 1.5px → 2px */
+}
+
+/* Preço com shimmer no hover (sutilíssimo) */
+.product-card__price-current {
+  transition: color 0.2s ease;
+}
+
+.product-card:hover .product-card__price-current {
+  color: #b0833e; /* gold levemente mais escuro = mais contrastante */
+}
+
+/* Quick-add button: easing mais natural */
+.product-card__quick-add {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.product-card:hover .product-card__quick-add {
+  transform: translateY(0);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   10. INPUTS & FORMULÁRIOS — Focus ring aprimorado
+   ────────────────────────────────────────────────────────────── */
+
+.input {
+  /* Transição de border e sombra com easing suave */
+  transition:
+    border-color 0.2s ease,
+    box-shadow   0.2s ease;
+}
+
+.input:focus {
+  border-color: var(--color-gold);
+  /* Focus ring mais suave: 2px ao invés de 3px */
+  box-shadow: 0 0 0 2px rgba(196, 147, 74, 0.14);
+  outline: none;
+}
+
+/* Placeholder: leve italic = mais elegante */
+.input::placeholder {
+  font-style: italic;
+  color: var(--color-gray-400);
+  opacity: 0.8;
+}
+
+/* Select styled como input */
+select.input:focus {
+  box-shadow: 0 0 0 2px rgba(196, 147, 74, 0.14);
+}
+
+/* Labels: espaçamento levemente maior */
+.input-label {
+  letter-spacing: 2px; /* 1.5px → 2px */
+  font-size: 10px;     /* 11px → 10px: mais delicado */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   11. HERO SLIDER — Transição de slide com overlay mais suave
+   ────────────────────────────────────────────────────────────── */
+
+.hero__slide {
+  /* Fade ligeiramente mais lento e suave */
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Overline do hero: tracking premium */
+.hero__overline {
+  letter-spacing: 4px; /* ou seja, bem espaçado */
+  font-size: 10px;
+}
+
+/* Descrição do hero: line-height levemente menor (1.9 → 1.8) */
+.hero__desc {
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.75); /* 72% → 75%: mais legível */
+}
+
+/* Scroll hint: animação mais suave */
+.hero__scroll-line {
+  animation: scrollPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Dots do slider: transição mais suave */
+.hero__dot {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+}
+
+/* Seta do slider: hover mais refinado */
+.hero__arrow {
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.hero__arrow:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-50%); /* manter centrado */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   12. DIVIDERS — Refinamento dos separadores
+   ────────────────────────────────────────────────────────────── */
+
+.divider--gold {
+  /* Gradiente mais pronunciado nas pontas */
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(196, 147, 74, 0.3) 20%,
+    var(--color-gold) 50%,
+    rgba(196, 147, 74, 0.3) 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   13. NEWSLETTER SECTION — Overlay mais profundo
+   ────────────────────────────────────────────────────────────── */
+
+.newsletter__input-wrap .input-inline {
+  /* Borda mais suave no input da newsletter */
+  border-color: rgba(43, 63, 84, 0.15);
+  box-shadow: 0 2px 8px rgba(43, 63, 84, 0.05);
+}
+
+.newsletter__privacy {
+  /* Levemente mais opaco = mais legível sem perder delicadeza */
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   14. TAGS / BADGES — Refinamento dos badges do sistema
+   ────────────────────────────────────────────────────────────── */
+
+.tag {
+  letter-spacing: 1.8px; /* 1.5px → 1.8px */
+  font-size: 10px;        /* mais delicado */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   15. FOOTER — Respiro e refinamento
+   ────────────────────────────────────────────────────────────── */
+
+.footer {
+  /* Footer levemente mais espaçado acima */
+  padding-top: 80px; /* var(--space-20) */
+}
+
+.footer__logo-text {
+  font-optical-sizing: auto;
+  letter-spacing: 6px;
+}
+
+.footer a {
+  /* Underline sutil no hover (vs sem nada atualmente) */
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.footer a:hover {
+  opacity: 0.75;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   16. IMAGEM LOADING — Shimmer enquanto carrega
+   Aparece automaticamente antes do src das imagens resolverem
+   ────────────────────────────────────────────────────────────── */
+
+@keyframes shimmerSlide {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+.product-card__image-wrap:not(.img-loaded) {
+  background: linear-gradient(
+    105deg,
+    #F2EFE9 0%,
+    #F2EFE9 35%,
+    #EDE7DE 50%,
+    #F2EFE9 65%,
+    #F2EFE9 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerSlide 1.6s ease-in-out infinite;
+}
+
+/* Quando a imagem carrega (classe adicionada via JS ao onload), para o shimmer */
+.product-card__image-wrap.img-loaded {
+  animation: none;
+  background: none;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   17. BREADCRUMBS — Separador refinado
+   ────────────────────────────────────────────────────────────── */
+
+.breadcrumb__sep {
+  color: var(--color-gold);
+  opacity: 0.5;
+}
+
+.breadcrumb__link {
+  letter-spacing: 1.5px;
+  transition: color 0.18s ease;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   18. SEARCH OVERLAY — Placeholder mais elegante
+   ────────────────────────────────────────────────────────────── */
+
+.search-overlay__input::placeholder {
+  font-style: italic;
+  color: rgba(43, 63, 84, 0.25);
+}
+
+.search-overlay {
+  /* Blur mais intenso = mais sensação de profundidade */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   19. ANNOUNCEMENT BAR — Espaçamento entre items
+   ────────────────────────────────────────────────────────────── */
+
+.announcement-bar__item .sep {
+  /* Separador dourado com respiro lateral maior */
+  margin-inline: 20px; /* ao invés de qualquer valor menor */
+  color: var(--color-gold);
+  opacity: 0.7;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   20. PERFORMANCE — will-change para animações pesadas
+   Hint para o browser promover esses elementos para GPU layer
+   ────────────────────────────────────────────────────────────── */
+
+.hero__slide {
+  will-change: opacity;
+}
+
+.navbar {
+  will-change: box-shadow;
+}
+
+.product-card__image-wrap img {
+  will-change: transform;
+}
+
+.product-card__quick-add {
+  will-change: opacity, transform;
+}
