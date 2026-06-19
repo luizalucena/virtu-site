@@ -348,12 +348,10 @@ async function loadSuggestions() {
     }, { threshold: 0.08 });
 
     if (!document.getElementById('vt-reveal-style')) {
-      if (!document.getElementById('vt-reveal-style')) {
       const style = document.createElement('style');
       style.id = 'vt-reveal-style';
       style.textContent = '.revealed{opacity:1!important;transform:translateY(0)!important}';
       document.head.appendChild(style);
-    }
     }
 
     grid.querySelectorAll('.product-card').forEach((el, i) => {
@@ -387,6 +385,7 @@ window.VirtuCart = {
         preco:               product.preco_desconto ?? product.preco_original,
         imagem_url:          product.imagem_url         || '',
         imagem_placeholder:  product.imagem_placeholder || '',
+        variacao_id:         variacaoId || null,
         qty: 1
       });
     }

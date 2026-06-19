@@ -321,7 +321,7 @@
           const filtroStatus = document.getElementById('pedidosFiltroStatus')?.value || '';
           let query = supabaseClient
             .from('pedidos')
-            .select('id,nome_cliente,email_cliente,telefone,total,status,pagamento,rastreio,criado_em,itens')
+            .select('id,nome_cliente,email_cliente,telefone,total,status,payment_method,codigo_rastreio,criado_em,itens')
             .order('criado_em', { ascending: false });
           if (filtroStatus) query = query.eq('status', filtroStatus);
 
@@ -341,8 +341,8 @@
             p.telefone || '',
             Number(p.total || 0).toFixed(2).replace('.',','),
             p.status || '',
-            p.pagamento || '',
-            p.rastreio || '',
+            p.payment_method || '',
+            p.codigo_rastreio || '',
             p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
           ].map(escape).join(','));
 

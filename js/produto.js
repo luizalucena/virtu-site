@@ -441,29 +441,16 @@ async function renderPecasRelacionadas(currentId, categoria) {
     grid.innerHTML = rel.map(cardHTML).join('');
 
     // wishlist.js gerencia os corações via event delegation global
-    // Quick-add:
+    // Quick-add: redireciona para a página do produto para seleção de tamanho/cor
+    // (produtos de moda sempre exigem escolha de variação antes de ir ao carrinho)
     grid.querySelectorAll('.product-card__quick-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
-        // Salva no localStorage
-        const card = btn.closest('[data-id]') || btn.closest('.product-card');
-        const prodId    = card?.dataset?.id || '';
-        const prodNome  = card?.querySelector('.product-card__name')?.textContent?.trim() || 'Produto';
-        const prodPreco = parseFloat(card?.querySelector('.product-card__price')?.textContent?.replace(/\D/g, '').replace(',', '.') || '0') / 100;
-        const CART_KEY = 'virtu_cart';
-        try {
-          const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-          const idx = cart.findIndex(i => i.id === prodId);
-          if (idx >= 0) { cart[idx].qty = (cart[idx].qty || 1) + 1; }
-          else { cart.push({ id: prodId, nome: prodNome, preco: prodPreco, qty: 1 }); }
-          localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        } catch {}
-        const orig = btn.innerHTML;
-        btn.innerHTML = '✓ Adicionado!';
-        btn.style.cssText = 'background:var(--color-navy);color:white;';
-        const badge = document.getElementById('cartBadge');
-        if (badge) { badge.textContent = (parseInt(badge.textContent) || 0) + 1; badge.hidden = false; }
-        setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1400);
+        const card   = btn.closest('[data-id]') || btn.closest('.product-card');
+        const prodId = card?.dataset?.id || '';
+        if (prodId) {
+          window.location.href = `produto.html?id=${prodId}`;
+        }
       });
     });
 
@@ -764,14 +751,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     return true;
   }
 
-  // Quando VirtuStock está ativo com stock configurado ele trata o btnComprar.
+  // Quando VirtuStock está ativo com stock configurado ele trata os botões de compra.
   // Nesses casos produto.js não adiciona listener extra para evitar duplicação.
+  const _stockAtivo = () => typeof VirtuStock !== 'undefined' && VirtuStock.getVariacoes().size > 0;
+
   addToCartBtn?.addEventListener('click', () => {
-    if (typeof VirtuStock !== 'undefined' && VirtuStock.getVariacoes().size > 0) return;
+    if (_stockAtivo()) return;
     validateAndAdd(false);
   });
-  buyNowBtn?.addEventListener('click', () => validateAndAdd(true));
-  stickyAddBtn?.addEventListener('click', () => validateAndAdd(true));
+  buyNowBtn?.addEventListener('click', () => {
+    if (_stockAtivo()) return;
+    validateAndAdd(true);
+  });
+  stickyAddBtn?.addEventListener('click', () => {
+    if (_stockAtivo()) return;
+    validateAndAdd(true);
+  });
 
   // wishlist.js gerencia o coração via event delegation global
 
