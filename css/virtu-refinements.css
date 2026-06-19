@@ -500,3 +500,1317 @@ select.input:focus {
 .product-card__quick-add {
   will-change: opacity, transform;
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   VIRTÙ — Premium Overhaul v2
+   Designer: Claude — Deep Polish Layer
+   Objetivo: transformar o site num look & feel boutique de alto
+   padrão (Net-a-Porter / Mytheresa / Totême). Todos os seletores
+   abaixo são aditivos — zero quebras de funcionalidade.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────
+   21. SECTION HEADERS — Hierarquia editorial em toda a loja
+   Aplica-se a todas as páginas: home, catálogo, produto
+   ────────────────────────────────────────────────────────────── */
+
+/* Overline (etiqueta de seção): NOVAS CHEGADAS, EM DESTAQUE… */
+.section-overline,
+.secao-overline,
+[class*="__overline"] {
+  font-size: 9.5px;
+  letter-spacing: 3.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  display: block;
+  margin-bottom: 14px;
+}
+
+/* Título principal de seção */
+.section-title {
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--color-navy);
+}
+
+/* Subtítulo de seção: legenda descritiva fina */
+.section-subtitle,
+.secao-subtitulo,
+[class*="__subtitle"] {
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+  font-weight: 300;
+  line-height: 1.7;
+  max-width: 46ch;
+  margin-top: 10px;
+}
+
+/* Linha divisória dourada que segue o título em algumas seções */
+.section-divider,
+.divider-gold-sm {
+  width: 36px;
+  height: 1px;
+  background: var(--color-gold);
+  margin-block: 20px;
+  opacity: 0.55;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   22. DIFERENCIAIS — Strip de "por que comprar" mais elegante
+   ────────────────────────────────────────────────────────────── */
+
+.diferenciais {
+  /* Remove as bordas top/bottom pesadas, substitui por sombra */
+  border-top: none;
+  border-bottom: none;
+  box-shadow: 0 1px 0 var(--color-gray-200), 0 -1px 0 var(--color-gray-200);
+}
+
+.diferenciais__grid {
+  /* Mais padding vertical por item */
+  gap: 0;
+}
+
+.diferencial {
+  /* Separador vertical entre itens, via ::after */
+  position: relative;
+  padding: 28px var(--space-6);
+  justify-content: center;
+  text-align: left;
+}
+
+.diferencial + .diferencial::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 50%;
+  width: 1px;
+  background: var(--color-gray-200);
+}
+
+.diferencial__icon {
+  /* Ícone levemente menor e mais aéreo */
+  width: 36px;
+  height: 36px;
+}
+
+.diferencial__icon svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.3;
+}
+
+.diferencial__info h3 {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+
+.diferencial__info p {
+  font-size: 10.5px;
+  color: var(--color-gray-400);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   23. CATEGORIA CARDS — Tratamento editorial: sem border-radius,
+       overlay mais leve, tipografia com mais respiro
+   ────────────────────────────────────────────────────────────── */
+
+.categorias__grid {
+  gap: var(--space-2); /* 12px → 8px: mais compacto = editorial */
+}
+
+.categoria-card {
+  /* Eliminar radius: bordas retas = look editorial/boutique */
+  border-radius: 0;
+  padding: var(--space-8); /* mais generoso nas bordas internas */
+}
+
+/* Overlay mais suave — vemos mais da imagem */
+.categoria-card__overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0.08) 55%,
+    transparent 100%
+  );
+}
+
+/* Zoom mais gentil no hover */
+.categoria-card:hover .categoria-card__bg {
+  transform: scale(1.025); /* 1.04 → 1.025 */
+}
+
+.categoria-card__content h3 {
+  font-size: var(--text-xl); /* uniforme entre cards */
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.categoria-card--large .categoria-card__content h3 {
+  font-size: clamp(2rem, 3vw, var(--text-3xl));
+}
+
+/* "Ver coleção" link nos cards de categoria */
+.categoria-card__content .categoria-card__link,
+.categoria-card__content .btn--ghost-white {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  padding: 10px 22px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.55);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.categoria-card__content .categoria-card__link:hover,
+.categoria-card__content .btn--ghost-white:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   24. PRODUCTS CAROUSEL — Setas quadradas elegantes
+   ────────────────────────────────────────────────────────────── */
+
+.carousel-arrow {
+  /* Quadrado em vez de círculo = mais editorial */
+  border-radius: 0;
+  width: 38px;
+  height: 38px;
+  /* Transição completa */
+  transition:
+    border-color 0.2s ease,
+    color        0.2s ease,
+    box-shadow   0.2s ease,
+    transform    0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.carousel-arrow:hover {
+  transform: scale(1.08);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   25. EDITORIAL BANNER (Home) — Tipografia e espaçamento
+   ────────────────────────────────────────────────────────────── */
+
+.editorial-banner__content {
+  padding-block: 88px; /* var(--space-16) = 64px → 88px: mais aéreo */
+}
+
+/* Círculos decorativos: mais visíveis e refined */
+.ed-deco {
+  border-color: rgba(196, 147, 74, 0.12);
+  transition: opacity 0.6s ease;
+}
+
+.ed-deco--1 { border-color: rgba(196, 147, 74, 0.10); }
+.ed-deco--2 { border-color: rgba(196, 147, 74, 0.06); }
+
+/* ──────────────────────────────────────────────────────────────
+   26. INSTAGRAM FEED — Grid mais apertado = impacto visual
+   ────────────────────────────────────────────────────────────── */
+
+.instagram-grid {
+  gap: 3px; /* var(--space-2) = 8px → 3px: mosaic effect */
+}
+
+.insta-item {
+  border-radius: 0; /* retangular = mais editorial */
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.insta-item:hover {
+  opacity: 0.88;
+}
+
+/* Overlay mais sutil */
+.insta-overlay {
+  background: rgba(43, 63, 84, 0.35); /* 0.45 → 0.35 */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   27. CATALOG — CAT PILLS → EDITORIAL TABS
+   Transforms the round filter pills into flat editorial tabs
+   ────────────────────────────────────────────────────────────── */
+
+.cat-pills {
+  gap: var(--space-1); /* menor gap = mais compacto */
+  padding-block: 4px;
+}
+
+.cat-pill {
+  /* De pill (border-radius: 999px) para tab editorial (plano) */
+  border-radius: 0 !important;
+  padding: 9px 18px;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-gray-600);
+  transition:
+    color       0.18s ease,
+    border-color 0.18s ease,
+    background  0.18s ease;
+}
+
+.cat-pill:hover {
+  color: var(--color-navy);
+  border-color: var(--color-gray-200);
+  background: transparent;
+}
+
+.cat-pill--active,
+.cat-pill.active {
+  background: var(--color-navy) !important;
+  color: var(--color-white) !important;
+  border-color: var(--color-navy) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   28. CATALOG SIDEBAR — Divisores mais leves e espaçamento
+   ────────────────────────────────────────────────────────────── */
+
+.sidebar__block {
+  /* Remover border-bottom pesada; usar padding como separador */
+  border-bottom: none;
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-2);
+  position: relative;
+}
+
+/* Linha fina sutilíssima no final de cada bloco */
+.sidebar__block::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, var(--color-gray-200) 0%, transparent 100%);
+}
+
+.sidebar__block:last-child::after { display: none; }
+
+.sidebar__label {
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
+  font-weight: 600;
+  color: var(--color-navy);
+  margin-bottom: var(--space-4);
+}
+
+/* Opções de filtro: mais aéreas */
+.filter-option {
+  padding-block: 6px; /* 4px → 6px */
+}
+
+.filter-option__label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-600);
+  transition: color 0.15s ease;
+}
+
+.filter-option__checkbox:checked + .filter-option__label {
+  color: var(--color-navy);
+  font-weight: 500;
+}
+
+/* Size grid: tamanhos retangulares */
+.size-grid__btn {
+  border-radius: 0 !important; /* var(--radius-sm) → 0 */
+  height: 36px;
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.size-grid__btn:hover {
+  border-color: var(--color-navy);
+}
+
+.size-grid__btn.active,
+.size-grid__btn--active {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: var(--color-white);
+}
+
+/* Color swatches: circulares com anel no hover */
+.color-swatch {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.12);
+}
+
+.color-swatch.active,
+.color-swatch--active {
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 3px var(--color-navy);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   29. CATALOG SORT BAR — Refinamento elegante
+   ────────────────────────────────────────────────────────────── */
+
+.sort-bar {
+  border-bottom-color: rgba(232, 227, 220, 0.7); /* mais suave */
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-8); /* mais espaço antes do grid */
+}
+
+.sort-bar__count {
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  color: var(--color-gray-400);
+}
+
+/* Botão de filtro mobile: quadrado */
+.sort-bar__filter-btn {
+  border-radius: 0;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 9px 16px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.sort-bar__filter-btn:hover {
+  background: var(--color-gray-100);
+}
+
+/* Select de ordenação */
+.sort-select-wrap {
+  border-radius: 0;
+  padding: 8px 14px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  transition: border-color 0.18s ease;
+}
+
+.sort-select-wrap:hover {
+  border-color: var(--color-navy);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   30. CATALOG PRODUCTS GRID — Gap e proporções
+   ────────────────────────────────────────────────────────────── */
+
+.products-grid {
+  /* Gap vertical maior = mais respiro entre rows */
+  gap: var(--space-10) var(--space-5); /* 24px/20px → 40px/20px */
+}
+
+.products-grid--4 {
+  gap: var(--space-10) var(--space-4);
+}
+
+.products-grid--2 {
+  gap: var(--space-12) var(--space-10); /* mais aéreo em 2-cols */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   31. PRODUCT CARD INFO — Mais respiro e hierarquia
+   ────────────────────────────────────────────────────────────── */
+
+.product-card__info {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-2);
+}
+
+.product-card__name {
+  font-size: 13.5px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  margin-bottom: 5px;
+}
+
+/* Wishlist: coração mais sutil */
+.product-card__wishlist-btn {
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background 0.2s ease, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.product-card__wishlist-btn:hover {
+  transform: scale(1.12);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   32. PRODUTO PAGE — Gallery: thumbnails elegantes
+   ────────────────────────────────────────────────────────────── */
+
+.produto-thumbs {
+  gap: var(--space-2); /* espaço mínimo entre thumbnails */
+}
+
+.produto-thumb {
+  /* Borda hairline sutil ao invés de 2px */
+  border: 1px solid var(--color-gray-200);
+  border-radius: 0; /* flat look */
+  transition: border-color 0.18s ease, opacity 0.18s ease;
+  opacity: 0.72;
+}
+
+.produto-thumb:hover {
+  opacity: 1;
+  border-color: var(--color-gray-400);
+}
+
+.produto-thumb--active,
+.produto-thumb.active {
+  border: 1.5px solid var(--color-navy) !important;
+  opacity: 1;
+}
+
+/* Imagem principal: sem radius */
+.produto-main-img-wrap,
+.produto-galeria__main {
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Hint de zoom: mais sutil */
+.zoom-hint {
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.produto-galeria:hover .zoom-hint {
+  opacity: 0.75;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   33. PRODUTO PAGE — Info section: hierarquia e respiro
+   ────────────────────────────────────────────────────────────── */
+
+/* Layout principal: gap mais generoso */
+.produto-layout {
+  gap: var(--space-16); /* var(--space-12) = 48px → 64px */
+}
+
+/* Brand name acima do título */
+.produto-brand {
+  font-size: 10px;
+  letter-spacing: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+/* Nome do produto */
+.produto-info__nome,
+.produto-nome {
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-3);
+}
+
+/* Categoria / slug */
+.produto-info__categoria,
+.produto-categoria {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-5);
+  display: block;
+}
+
+/* Preço: mais proeminente */
+.produto-preco-atual {
+  font-size: var(--text-2xl); /* 42px — já era grande */
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--color-navy);
+}
+
+.produto-preco-antigo {
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+  text-decoration: line-through;
+  margin-left: var(--space-3);
+}
+
+/* Payment strip: mais clean */
+.produto-pagamento {
+  background: var(--color-gray-100);
+  border-radius: 0; /* flat */
+  border: none;
+  padding: var(--space-4) var(--space-5);
+  margin-block: var(--space-5);
+}
+
+.produto-pix-badge {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   34. PRODUTO PAGE — Size buttons premium
+   ────────────────────────────────────────────────────────────── */
+
+/* Label "Tamanho" + link "Guia" */
+.produto-tamanhos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.produto-tamanho-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+/* Botão de tamanho */
+.produto-tamanho {
+  border-radius: 0; /* var(--radius-sm) = 2px → 0 */
+  height: 44px;
+  min-width: 52px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--color-gray-200);
+  transition:
+    border-color 0.15s ease,
+    background   0.15s ease,
+    color        0.15s ease;
+}
+
+.produto-tamanho:hover {
+  border-color: var(--color-navy);
+  color: var(--color-navy);
+}
+
+.produto-tamanho--selected {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: var(--color-white);
+  font-weight: 500;
+}
+
+/* Stock info badge: flat e minimalista */
+.stock-info {
+  border-radius: 0; /* 20px → 0 */
+  font-size: 9.5px;
+  letter-spacing: 2px;
+  padding: 5px 12px;
+  font-weight: 600;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   35. PRODUTO PAGE — Botões de ação (Comprar / Favorito)
+   ────────────────────────────────────────────────────────────── */
+
+.produto-acoes {
+  gap: var(--space-3);
+  margin-top: var(--space-8); /* mais espaço acima */
+}
+
+/* Botão principal: mais imponente */
+.produto-acoes .btn--primary,
+.produto-acoes .btn--gold,
+.btn-comprar {
+  height: 52px;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  border-radius: 0;
+  transition:
+    background-color 0.22s ease,
+    transform        0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow       0.22s ease;
+}
+
+.produto-acoes .btn--primary:hover,
+.produto-acoes .btn--gold:hover,
+.btn-comprar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(43, 63, 84, 0.2);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   36. PRODUTO PAGE — Diferenciais strip e accordion
+   ────────────────────────────────────────────────────────────── */
+
+.produto-diferenciais {
+  background: var(--color-off-white); /* cinza → mais neutro */
+  border-radius: 0; /* var(--radius-md) → 0 */
+  border: 1px solid var(--color-gray-200);
+  padding: var(--space-5) var(--space-6);
+  gap: var(--space-4);
+}
+
+.produto-diferencial {
+  font-size: 12px;
+  color: var(--color-gray-600);
+  gap: var(--space-4);
+}
+
+/* Accordion: mais aéreo */
+.accordion-item {
+  border-top: 1px solid rgba(232, 227, 220, 0.8); /* mais suave */
+}
+
+.accordion-header {
+  padding: var(--space-5) 0; /* 16px → 20px */
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.accordion-content {
+  font-size: 12.5px;
+  color: var(--color-gray-600);
+  line-height: 1.9;
+  padding-bottom: var(--space-6);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   37. MODAIS — Tratamento mais refinado
+   ────────────────────────────────────────────────────────────── */
+
+.guia-modal__content {
+  border-radius: 0; /* var(--radius-lg) → 0 */
+  padding: var(--space-10) var(--space-10);
+  box-shadow: 0 24px 64px rgba(43, 63, 84, 0.18);
+}
+
+.guia-modal__overlay {
+  background: rgba(43, 63, 84, 0.5); /* 0.55 → 0.5 */
+}
+
+/* Tabela do guia: mais clean */
+.guia-table th {
+  background: var(--color-navy);
+  letter-spacing: 2px;
+  font-size: 9.5px;
+  padding: var(--space-3) var(--space-5);
+}
+
+.guia-table td {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  border-bottom-color: rgba(232, 227, 220, 0.7);
+}
+
+/* Fechar modal: refinado */
+.guia-modal__close {
+  border-radius: 0;
+  width: 32px;
+  height: 32px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   38. PRICE RANGE SLIDER — Refinado
+   ────────────────────────────────────────────────────────────── */
+
+.price-range__track {
+  height: 2px; /* 4px → 2px: mais delicado */
+  background: var(--color-gray-200);
+}
+
+.price-range__fill {
+  background: var(--color-navy);
+}
+
+.price-range__input::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border-width: 1.5px;
+  transition: transform 0.15s ease;
+}
+
+.price-range__input::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.price-range__labels {
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   39. FOOTER — Breathing room e hierarquia
+   ────────────────────────────────────────────────────────────── */
+
+/* Já tem padding-top: 80px do bloco 15 — adiciona refinamentos */
+
+.footer__grid {
+  /* Separação maior entre colunas */
+  gap: var(--space-12); /* se existir como var: 48px */
+  column-gap: 72px;
+}
+
+.footer__col-title {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  font-weight: 600;
+  margin-bottom: var(--space-5);
+  color: var(--color-navy);
+}
+
+.footer__links {
+  gap: 10px; /* se for flex/grid: espaço entre links */
+  display: flex;
+  flex-direction: column;
+}
+
+.footer__link {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--color-gray-600);
+  letter-spacing: 0.2px;
+  line-height: 1.6;
+  transition: color 0.18s ease;
+}
+
+.footer__link:hover {
+  color: var(--color-gold);
+}
+
+/* Bottom bar: mais aérea */
+.footer__bottom {
+  border-top: 1px solid var(--color-gray-200);
+  padding-top: var(--space-6);
+  margin-top: var(--space-12);
+}
+
+.footer__copyright {
+  font-size: 10.5px;
+  color: var(--color-gray-400);
+  letter-spacing: 0.5px;
+}
+
+/* Newsletter input inline no footer */
+.footer__newsletter .input-inline {
+  border-radius: 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0.5px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   40. NEWSLETTER SECTION — Layout premium
+   ────────────────────────────────────────────────────────────── */
+
+.newsletter {
+  /* Padding vertical mais generoso */
+  padding-block: 88px;
+}
+
+/* Título da newsletter */
+.newsletter__title {
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.newsletter__sub {
+  font-size: var(--text-sm);
+  font-weight: 300;
+  opacity: 0.65;
+  max-width: 38ch;
+  margin: 10px auto 0;
+  line-height: 1.7;
+}
+
+/* Input do formulário */
+.newsletter__input-wrap {
+  margin-top: var(--space-8);
+}
+
+.newsletter .input-inline {
+  height: 50px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  border-radius: 0;
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.newsletter .input-inline:focus {
+  border-color: rgba(196, 147, 74, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.newsletter .input-inline::placeholder {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 12px;
+}
+
+/* Botão submit da newsletter */
+.newsletter .btn-newsletter,
+.newsletter .btn--newsletter {
+  height: 50px;
+  border-radius: 0;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  padding-inline: var(--space-6);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   41. MOBILE MENU — Tratamento editorial
+   ────────────────────────────────────────────────────────────── */
+
+.mobile-menu {
+  /* Se existir: padding mais generoso */
+  padding-inline: var(--space-6);
+}
+
+/* Links de navegação mobile: mais aéreos e hierárquicos */
+.mobile-menu__link {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid rgba(232, 227, 220, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: color 0.18s ease, padding-left 0.18s ease;
+}
+
+.mobile-menu__link:hover {
+  color: var(--color-gold);
+  padding-left: 4px;
+}
+
+/* Links de sub-nível */
+.mobile-menu__sublink {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  letter-spacing: 1px;
+  color: var(--color-gray-600);
+  padding-block: var(--space-2);
+  transition: color 0.15s ease;
+}
+
+.mobile-menu__sublink:hover {
+  color: var(--color-navy);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   42. CARRINHO (SIDEBAR / PAGE) — Refinamentos
+   ────────────────────────────────────────────────────────────── */
+
+/* Item do carrinho */
+.cart-item,
+.carrinho-item {
+  padding-block: var(--space-5);
+  border-bottom: 1px solid rgba(232, 227, 220, 0.7);
+}
+
+/* Imagem do produto no cart: flat */
+.cart-item__img,
+.carrinho-item__img {
+  border-radius: 0;
+  border: 1px solid var(--color-gray-200);
+}
+
+/* Nome do produto no cart */
+.cart-item__name,
+.carrinho-item__nome {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+/* Subtotal / total */
+.cart-total__label,
+.carrinho-total__label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-gray-400);
+}
+
+.cart-total__value,
+.carrinho-total__valor {
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+/* Botão checkout: quadrado */
+.btn-checkout,
+.carrinho__btn-checkout,
+.cart__btn-checkout {
+  border-radius: 0;
+  height: 52px;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   43. CHECKOUT — Indicadores de etapa elegantes
+   ────────────────────────────────────────────────────────────── */
+
+/* Breadcrumb de etapas */
+.checkout-steps,
+.steps-bar {
+  margin-bottom: var(--space-10);
+}
+
+.checkout-step,
+.step-item {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  position: relative;
+}
+
+/* Etapa ativa */
+.checkout-step--active,
+.step-item--active {
+  color: var(--color-navy);
+}
+
+/* Etapa anterior (completa) */
+.checkout-step--done,
+.step-item--done {
+  color: var(--color-gold);
+}
+
+/* Separador: linha em vez de ícone */
+.checkout-step + .checkout-step::before,
+.step-item + .step-item::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--color-gray-200);
+  margin-inline: var(--space-3);
+  vertical-align: middle;
+}
+
+/* Caixas de seção do checkout */
+.checkout-section,
+.checkout-bloco {
+  border: 1px solid var(--color-gray-200);
+  border-radius: 0;
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+
+/* Título de seção */
+.checkout-section__title,
+.checkout-bloco__titulo {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-navy);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid rgba(232, 227, 220, 0.6);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   44. CONTA / PERFIL — Tratamento elegante
+   ────────────────────────────────────────────────────────────── */
+
+/* Header da página conta */
+.conta-header,
+.perfil-header {
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-gray-200);
+  margin-bottom: var(--space-10);
+}
+
+.conta-header h1,
+.perfil-header h1 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Avatar / ícone de usuário */
+.conta-avatar,
+.perfil-avatar {
+  border-radius: 0; /* circular → quadrado */
+  border: 1px solid var(--color-gray-200);
+}
+
+/* Tabs da conta (pedidos / dados / fidelidade) */
+.conta-tab,
+.perfil-tab {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid transparent;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.conta-tab:hover,
+.perfil-tab:hover {
+  color: var(--color-navy);
+}
+
+.conta-tab--active,
+.conta-tab.active,
+.perfil-tab--active,
+.perfil-tab.active {
+  color: var(--color-navy);
+  border-bottom-color: var(--color-gold);
+}
+
+/* Pedidos: cada item */
+.pedido-card,
+.order-card {
+  border: 1px solid var(--color-gray-200);
+  border-radius: 0;
+  padding: var(--space-6);
+  transition: box-shadow 0.2s ease;
+}
+
+.pedido-card:hover,
+.order-card:hover {
+  box-shadow: 0 4px 16px rgba(43, 63, 84, 0.08);
+}
+
+/* Status badge: flat */
+.pedido-status,
+.order-status {
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 0;
+  padding: 4px 10px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   45. SOBRE / CONTATO — Páginas institucionais
+   ────────────────────────────────────────────────────────────── */
+
+/* Hero das páginas internas */
+.page-hero,
+.inner-hero {
+  padding-block: var(--space-16) var(--space-12);
+  text-align: center;
+}
+
+.page-hero h1,
+.inner-hero h1 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Corpo de texto nas páginas institucionais */
+.page-content p,
+.sobre-content p,
+.politicas-content p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--color-gray-600);
+  max-width: 65ch;
+}
+
+/* Formulário de contato: inputs quadrados */
+.contato-form .input {
+  border-radius: 0;
+  font-size: var(--text-sm);
+}
+
+.contato-form textarea.input {
+  border-radius: 0;
+  resize: vertical;
+  min-height: 140px;
+}
+
+/* Botão de envio: quadrado e com spring */
+.contato-form .btn {
+  border-radius: 0;
+  height: 50px;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   46. RASTREIO — Página de status de pedido
+   ────────────────────────────────────────────────────────────── */
+
+/* Timeline de rastreio */
+.rastreio-timeline,
+.tracking-timeline {
+  position: relative;
+  padding-left: var(--space-8);
+}
+
+.rastreio-step,
+.tracking-step {
+  position: relative;
+  padding-bottom: var(--space-6);
+}
+
+/* Linha vertical: mais fina */
+.rastreio-step::before,
+.tracking-step::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-8) + 7px);
+  top: 14px;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-gray-200);
+}
+
+/* Ponto do step */
+.rastreio-step__dot,
+.tracking-step__dot {
+  position: absolute;
+  left: calc(-1 * var(--space-8));
+  top: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-gray-200);
+  border: 2px solid var(--color-white);
+}
+
+.rastreio-step--active .rastreio-step__dot,
+.tracking-step--active .tracking-step__dot {
+  background: var(--color-gold);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   47. WHITESPACE — Padding extra em todas as seções principais
+   Aumenta o "ar" entre as seções da home e catálogo
+   ────────────────────────────────────────────────────────────── */
+
+/* Seções com padding padrão: aumentar ligeiramente */
+.section--padded,
+.section-padded {
+  padding-block: 96px; /* 64px → 96px */
+}
+
+/* Home page sections: mais espaço entre elas */
+.home-section + .home-section {
+  margin-top: 0; /* gap definido pelo padding do elemento */
+}
+
+/* Catálogo: mais espaço no topo da área de produtos */
+.catalogo-layout,
+.catalog-layout {
+  padding-top: var(--space-8);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   48. PREFERS-REDUCED-MOTION — Extensão do bloco 5
+   Garante que os novos keyframes também respeitam a preferência
+   ────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .categoria-card__bg,
+  .carousel-arrow,
+  .cat-pill,
+  .produto-thumb,
+  .produto-tamanho,
+  .btn-comprar,
+  .color-swatch {
+    transition: none !important;
+  }
+
+  .categoria-card:hover .categoria-card__bg {
+    transform: none !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   49. RESPONSIVE — Mobile refinements (≤ 768px)
+   ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Categoria cards: radius 0 no mobile também */
+  .categoria-card { border-radius: 0; }
+
+  /* Carousel arrows no mobile: escondidas (scroll nativo) */
+  .carousel-arrow--prev,
+  .carousel-arrow--next { display: none; }
+
+  /* Diferenciais: vertical no mobile */
+  .diferenciais__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .diferencial + .diferencial::before {
+    display: none;
+  }
+
+  .diferencial {
+    border-bottom: 1px solid var(--color-gray-200);
+    padding: var(--space-4) var(--space-4);
+  }
+
+  /* Section titles: menores */
+  .section-title {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+  }
+
+  /* Newsletter: padding reduzido */
+  .newsletter {
+    padding-block: var(--space-12);
+  }
+
+  /* Produto: stack vertical já existe, apenas ajustes */
+  .produto-tamanho {
+    height: 42px;
+    font-size: 11px;
+  }
+
+  /* Footer: mais espaço no mobile */
+  .footer {
+    padding-top: var(--space-12);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Diferenciais: 1 coluna no celular menor */
+  .diferenciais__grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Cat pills: scroll horizontal — não mudar tamanho */
+  .cat-pill {
+    padding: 8px 14px;
+    font-size: 9.5px;
+  }
+}
