@@ -1258,3 +1258,415 @@ body {
 .dash-table tbody tr:last-child td { border-bottom: none; }
 
 .dash-table tbody tr:hover td { background: #faf9f7; }
+
+/* ============================================================
+   VIRTÙ ADMIN — Luxury BI Dashboard Layer
+   Estética: Intelligence Tool de Alta Moda
+   Linhas ultra-finas · Tipografia nítida · Dados em destaque
+   ============================================================ */
+
+/* ── TOKENS ADMIN LUXURY ─────────────────────────────── */
+:root {
+  --adm-bg:        #F4F2EF;   /* fundo geral: off-white quente */
+  --adm-surface:   #FFFFFF;   /* cards, tabelas */
+  --adm-border:    #E8E3DC;   /* bordas 1px */
+  --adm-border-xs: #F0EDE9;   /* bordas ultra-finas */
+  --adm-navy:      #1A2D3D;   /* petróleo profundo */
+  --adm-navy-mid:  #243547;   /* hover sidebar */
+  --adm-gold:      #B8864A;   /* acento dourado */
+  --adm-text:      #1A2D3D;
+  --adm-text-mid:  #4A5568;
+  --adm-text-dim:  #9CA3AF;
+  --adm-shadow:    0 1px 4px rgba(26,45,61,.06);
+  --adm-shadow-md: 0 4px 16px rgba(26,45,61,.08);
+  --adm-ease:      cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ── SIDEBAR BI ──────────────────────────────────────── */
+.admin-sidebar {
+  background: var(--adm-navy);
+  border-right: none;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.15);
+}
+
+.admin-sidebar__logo {
+  padding: 1.75rem 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.admin-sidebar__virtu {
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  font-style: italic;
+}
+
+.admin-nav-btn {
+  padding: 0.65rem 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 0;
+  border-left: 2px solid transparent;
+  transition: background 0.2s var(--adm-ease),
+              color 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.admin-nav-btn:hover {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.9);
+  border-left-color: rgba(255,255,255,0.2);
+}
+
+.admin-nav-btn--active {
+  background: rgba(184,134,74,0.12);
+  color: var(--adm-gold);
+  border-left-color: var(--adm-gold);
+  font-weight: 600;
+}
+
+/* ── TOPBAR ──────────────────────────────────────────── */
+.admin-topbar {
+  background: var(--adm-surface);
+  border-bottom: 1px solid var(--adm-border);
+  box-shadow: none;
+}
+
+/* ── MAIN CONTENT ────────────────────────────────────── */
+.admin-content {
+  background: var(--adm-bg);
+  padding: 2rem 2.5rem;
+}
+
+/* ── KPI CARDS ────────────────────────────────────────
+   Cartões de métricas: clean, elegantes, com métrica em destaque */
+.admin-kpi,
+.kpi-card,
+[class*="stat-card"] {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 0;
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--adm-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.25s var(--adm-ease),
+              transform 0.25s var(--adm-ease);
+}
+
+.admin-kpi:hover,
+.kpi-card:hover {
+  box-shadow: var(--adm-shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Linha dourada no topo do card de KPI */
+.admin-kpi::before,
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--adm-gold);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.admin-kpi:hover::before,
+.kpi-card:hover::before {
+  opacity: 1;
+}
+
+/* Label da métrica: ultra-pequeno, uppercase */
+.kpi-label,
+[class*="kpi-label"],
+[class*="stat-label"] {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--adm-text-dim);
+  margin-bottom: 8px;
+}
+
+/* Valor da métrica: grande e impactante */
+.kpi-value,
+[class*="kpi-value"],
+[class*="stat-value"] {
+  font-family: var(--font-disp, 'Cormorant Garamond', serif);
+  font-size: 2.2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--adm-navy);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+/* Variação da métrica (vs período anterior) */
+.kpi-change,
+[class*="kpi-change"] {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--adm-text-dim);
+}
+
+.kpi-change--up   { color: #2D6A2D; }
+.kpi-change--down { color: #8C2020; }
+
+/* ── TABELAS ADMIN ────────────────────────────────────
+   A espinha dorsal do BI: linhas finas, dados claros */
+.admin-table,
+table,
+.dash-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--adm-surface);
+  font-size: 0.82rem;
+}
+
+.admin-table thead,
+table thead,
+.dash-table thead {
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.admin-table th,
+table th,
+.dash-table th {
+  font-family: var(--font, 'Jost', sans-serif);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--adm-text-dim);
+  padding: 12px 16px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.admin-table td,
+table td,
+.dash-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--adm-border-xs);
+  color: var(--adm-text);
+  vertical-align: middle;
+  font-weight: 300;
+  transition: background 0.15s ease;
+}
+
+.admin-table tbody tr:hover td,
+table tbody tr:hover td,
+.dash-table tbody tr:hover td {
+  background: #FAFAF8;
+}
+
+.admin-table tbody tr:last-child td,
+table tbody tr:last-child td { border-bottom: none; }
+
+/* Coluna de ID: mono, discreta */
+.admin-table td:first-child,
+table td.col-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: var(--adm-text-dim);
+  letter-spacing: 0.05em;
+}
+
+/* ── INPUTS & FILTROS ADMIN ─────────────────────────── */
+.admin-input,
+.admin-filter input,
+.admin-filter select,
+[class*="admin-search"] input {
+  border: 1px solid var(--adm-border);
+  border-radius: 0;
+  background: var(--adm-surface);
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: var(--adm-text);
+  padding: 8px 12px;
+  transition: border-color 0.2s ease;
+  font-family: var(--font);
+}
+
+.admin-input:focus,
+.admin-filter input:focus,
+.admin-filter select:focus {
+  border-color: var(--adm-navy);
+  outline: none;
+  box-shadow: none;
+}
+
+/* ── BOTÕES ADMIN ────────────────────────────────────── */
+.btn-admin,
+.admin-btn,
+[class*="admin-action"] {
+  font-family: var(--font);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 0;
+  padding: 8px 18px;
+  cursor: pointer;
+  border: 1px solid var(--adm-navy);
+  background: var(--adm-navy);
+  color: #fff;
+  transition: background 0.2s var(--adm-ease),
+              color 0.2s ease;
+}
+
+.btn-admin:hover,
+.admin-btn:hover {
+  background: var(--adm-navy-mid);
+}
+
+.btn-admin--ghost {
+  background: transparent;
+  color: var(--adm-navy);
+}
+
+.btn-admin--ghost:hover {
+  background: var(--adm-navy);
+  color: #fff;
+}
+
+.btn-admin--gold {
+  border-color: var(--adm-gold);
+  background: var(--adm-gold);
+  color: #fff;
+}
+
+.btn-admin--gold:hover {
+  background: #A07340;
+  border-color: #A07340;
+}
+
+.btn-admin--danger {
+  border-color: #8C2020;
+  background: transparent;
+  color: #8C2020;
+}
+
+.btn-admin--danger:hover {
+  background: #8C2020;
+  color: #fff;
+}
+
+/* ── STATUS BADGES ADMIN ─────────────────────────────── */
+.admin-badge,
+[class*="status-badge"],
+[class*="pedido-status"] {
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 0;
+  display: inline-block;
+}
+
+.admin-badge--pago     { background: #EBF5EB; color: #1A5C1A; }
+.admin-badge--pendente { background: #FEF8EC; color: #7A5500; }
+.admin-badge--cancelado{ background: #FDECEA; color: #7A1A1A; }
+.admin-badge--enviado  { background: #EBF0FB; color: #1A2E7A; }
+.admin-badge--producao { background: #F3F0FB; color: #3A1A7A; }
+
+/* ── SECTION HEADERS ADMIN ───────────────────────────── */
+.admin-section-title,
+[class*="admin-title"],
+.admin-content h2,
+.admin-content h3 {
+  font-family: var(--font-disp, 'Cormorant Garamond', serif);
+  font-weight: 400;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  color: var(--adm-navy);
+  margin-bottom: 4px;
+}
+
+.admin-section-sub,
+[class*="admin-subtitle"] {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--adm-text-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+}
+
+/* ── CARDS DE CONTEÚDO ─────────────────────────────────
+   Envolve tabelas e formulários */
+.admin-card,
+[class*="admin-panel"],
+[class*="admin-box"] {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 0;
+  box-shadow: var(--adm-shadow);
+  overflow: hidden;
+}
+
+.admin-card-header,
+[class*="admin-card-head"] {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--adm-border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--adm-text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── PAGINAÇÃO ADMIN ──────────────────────────────────── */
+.admin-pagination,
+[class*="pagination"] {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+}
+
+.pagination-btn,
+[class*="page-btn"] {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--adm-border);
+  background: transparent;
+  color: var(--adm-text-mid);
+  cursor: pointer;
+  font-size: 0.75rem;
+  border-radius: 0;
+  transition: background 0.15s ease,
+              color 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.pagination-btn:hover,
+[class*="page-btn"]:hover {
+  border-color: var(--adm-navy);
+  color: var(--adm-navy);
+}
+
+.pagination-btn--active,
+[class*="page-btn--active"] {
+  background: var(--adm-navy);
+  border-color: var(--adm-navy);
+  color: #fff;
+}
+
+/* ── RESPONSIVE ADMIN ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .admin-content { padding: 1.25rem 1rem; }
+
+  .kpi-value { font-size: 1.75rem; }
+
+  .admin-table th,
+  .admin-table td { padding: 10px 10px; }
+}

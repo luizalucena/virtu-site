@@ -145,6 +145,19 @@ const VirtuProducts = (() => {
     const imgHtml    = _buildImgTag(imgUrl);
     const wrapStyle  = imgUrl ? '' : `style="background:${placeholderBg}"`;
 
+    // ── SEGUNDA IMAGEM: crossfade no hover ────────────────────
+    // imagens[] é a galeria completa; imagens[0] é a principal,
+    // imagens[1] (se existir) aparece ao passar o mouse — efeito crossfade via CSS.
+    const _segundaImg = Array.isArray(produto.imagens) && produto.imagens.length > 1
+      ? produto.imagens[1] : null;
+    const hoverImgUrl = _segundaImg ? _cvDrive(_segundaImg) : null;
+    const hoverImgHtml = hoverImgUrl
+      ? `<img src="${hoverImgUrl}" alt="${nome} — vista alternativa"
+           class="product-card__img product-card__img--hover"
+           loading="lazy" decoding="async"
+           aria-hidden="true">`
+      : '';
+
     // Badge
     let badgeHtml = '';
     if (produto._esgotado) {
@@ -155,14 +168,19 @@ const VirtuProducts = (() => {
       badgeHtml = `<span class="product-card__badge">${badge}</span>`;
     }
 
-    // Swatches de cor
+    // Swatches de cor (mantidos no DOM para filtros, ocultos via CSS luxury)
     const swatchesHtml = (cores || []).map((c, i) =>
       `<span class="product-card__swatch${i === 0 ? ' active' : ''}"
              style="background:${c.hex}${c.nome === 'Off-White' ? ';border:1px solid #ccc' : ''}"
              title="${c.nome}"></span>`
     ).join('');
 
-    // Preço
+    // Preço + nota PIX discreta
+    const pixDesconto = Math.round((1 - 0.95) * 100); // 5%
+    const pixNoteHtml = !produto._esgotado
+      ? `<span class="product-card__pix-note">PIX −${pixDesconto}%</span>`
+      : '';
+
     const precoHtml = temDesconto
       ? `<span class="product-card__price-current">${formatCurrency(precoFinal)}</span>
          <span class="product-card__price-old">${formatCurrency(preco_original)}</span>`
@@ -180,6 +198,7 @@ const VirtuProducts = (() => {
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
           <div class="product-card__image-wrap" ${wrapStyle}>
             ${imgHtml}
+            ${hoverImgHtml}
             ${badgeHtml}
             <button class="product-card__wishlist" data-wishlist-id="${id}" aria-label="Adicionar aos favoritos" aria-pressed="false">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -195,6 +214,7 @@ const VirtuProducts = (() => {
           <p class="product-card__category">${(categoria || '').charAt(0).toUpperCase() + (categoria || '').slice(1)}</p>
           <h3 class="product-card__name"><a href="${link}">${nome}</a></h3>
           <div class="product-card__price">${precoHtml}</div>
+          ${pixNoteHtml}
           ${swatchesHtml ? `<div class="product-card__swatches">${swatchesHtml}</div>` : ''}
         </div>
       </article>`;

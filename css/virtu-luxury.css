@@ -1,0 +1,1018 @@
+/* ============================================================
+   VIRTÙ — Luxury Layer v3
+   Diretor de Arte: Claude — Alta Moda & E-commerce de Luxo
+   Estratégia: Elevação não-destrutiva sobre virtu-refinements.css.
+   Cada seção sobrescreve apenas o que precisa ser elevado.
+   Funcionalidades Supabase/ASAAS: intactas.
+   ============================================================ */
+
+/* ──────────────────────────────────────────────────────────────
+   L1. TOKENS DE LUXO — Paleta Profunda e Espaçamento Editorial
+   Petróleo profundo · Gelo ártico · Espaço negativo abundante
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Azul petróleo — mais frio e profundo que o navy padrão */
+  --lux-petrol:         #1A2D3D;  /* base text / navbar */
+  --lux-petrol-mid:     #243547;  /* hover states */
+  --lux-petrol-light:   #2E4158;  /* secundário */
+
+  /* Cinza Gelo — fundo absolutamente limpo */
+  --lux-ice:            #F7F6F4;  /* fundo page */
+  --lux-ice-mid:        #EFEDE9;  /* cards, inputs */
+  --lux-ice-border:     #E2DDD7;  /* bordas finas 1px */
+  --lux-ice-deep:       #D6D1CA;  /* hover bordas */
+
+  /* Branco puro para áreas de destaque */
+  --lux-white:          #FFFFFF;
+
+  /* Ouro editorial — menos saturado, mais sofisticado */
+  --lux-gold:           #B8864A;  /* acento principal */
+  --lux-gold-pale:      #F2EBE0;  /* fundo destaque suave */
+  --lux-gold-text:      #8C6333;  /* ouro em texto pequeno */
+
+  /* Tipografia — medidas editoriais */
+  --lux-tracking-tight: -0.02em;  /* títulos grandes */
+  --lux-tracking-normal: 0.01em;  /* corpo */
+  --lux-tracking-wide:   0.12em;  /* labels, botões, caps */
+  --lux-tracking-ultra:  0.22em;  /* announcement, badges */
+
+  /* Sombras quase imperceptíveis */
+  --lux-shadow-xs:  0 1px 3px rgba(26,45,61,.05);
+  --lux-shadow-sm:  0 2px 8px rgba(26,45,61,.06);
+  --lux-shadow-md:  0 4px 20px rgba(26,45,61,.08);
+  --lux-shadow-hover: 0 12px 36px rgba(26,45,61,.10);
+
+  /* Transição padrão de luxo — ease-out suave e longa */
+  --lux-ease:       cubic-bezier(0.22, 0.61, 0.36, 1);
+  --lux-ease-fast:  cubic-bezier(0.4, 0, 0.2, 1);
+  --lux-duration:   0.38s;
+  --lux-dur-fast:   0.22s;
+
+  /* Aspect ratio editorial dos produtos — proporção 4:5 retrato */
+  --lux-card-ratio: 4 / 5;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L2. FUNDO GLOBAL — Ice Gray com White Space generoso
+   ────────────────────────────────────────────────────────────── */
+
+body {
+  background: var(--lux-ice);
+  color: var(--lux-petrol);
+}
+
+/* Seções com fundo branco: sombra imperceptível de separação */
+.section--white,
+.checkout-section,
+.conta-section,
+.carrinho-sidebar {
+  background: var(--lux-white);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L3. TIPOGRAFIA EDITORIAL — Cormorant como protagonista
+   Filosofia: serif majestoso nos títulos, sans limpo no corpo.
+   Letter-spacing cirúrgico para comunicar luxo sem esforço.
+   ────────────────────────────────────────────────────────────── */
+
+/* Nomes de produto: font-display é a Cormorant Garamond */
+.product-card__name,
+.product-card__name a,
+.produto-nome,
+.produto-title,
+h1.produto__nome,
+[class*="product-name"],
+[class*="produto-nome"] {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  color: var(--lux-petrol);
+}
+
+/* Títulos de seção: arejados e comandantes */
+.section-title,
+.hero__title,
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--lux-tracking-tight);
+  line-height: 1.15;
+}
+
+/* Labels, botões, categorias: sans minúsculas com tracking generoso */
+.product-card__category,
+.cat-pill,
+.btn,
+button,
+.badge,
+[class*="label"],
+.checkout-label,
+.conta-nav__label {
+  font-family: var(--font-body);
+  letter-spacing: var(--lux-tracking-wide);
+  font-weight: 500;
+}
+
+/* Texto do corpo: leve e limpo */
+p, li, td, th, label,
+.text-body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: var(--lux-tracking-normal);
+  color: var(--lux-petrol);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L4. PRODUCT CARDS — Minimalismo Absoluto + Proporção 4:5
+   Regra de ouro: a foto é o produto. Tudo mais é suporte.
+   ────────────────────────────────────────────────────────────── */
+
+/* Proporção 4:5 consistente — retrato editorial */
+.product-card__image-wrap {
+  aspect-ratio: var(--lux-card-ratio);
+  overflow: hidden;
+  background: var(--lux-ice-mid);
+  position: relative;
+  border-radius: 0;          /* marcas de luxo não usam border-radius em fotos */
+  box-shadow: none;
+  transition: box-shadow var(--lux-duration) var(--lux-ease);
+}
+
+.product-card:hover .product-card__image-wrap {
+  box-shadow: var(--lux-shadow-hover);
+}
+
+/* Imagem principal */
+.product-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top; /* topo = rosto/detalhe da peça em destaque */
+  transition: opacity var(--lux-duration) var(--lux-ease),
+              transform var(--lux-duration) var(--lux-ease);
+  z-index: 1;
+}
+
+/* Zoom ultra-suave — 1.04 (menos = mais sofisticado) */
+.product-card:hover .product-card__img:first-of-type {
+  opacity: 0;
+  transform: scale(1.04);
+}
+
+/* ── Segunda imagem: crossfade no hover ── */
+.product-card__img--hover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0;
+  z-index: 2;
+  transition: opacity var(--lux-duration) var(--lux-ease);
+  pointer-events: none;
+}
+
+.product-card:hover .product-card__img--hover {
+  opacity: 1;
+}
+
+/* Se não há segunda imagem: apenas zoom suave sem fade-out */
+.product-card:not(:has(.product-card__img--hover)):hover .product-card__img {
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+/* ── Info area do card — espaçamento editorial ── */
+.product-card__info {
+  padding: 14px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Categoria: quase invisível, apenas orientação */
+.product-card__category {
+  display: none; /* limpar — o nome já comunica a categoria */
+}
+
+/* Nome em serif: peso visual principal */
+.product-card__name {
+  margin: 0;
+  font-size: clamp(0.88rem, 1.5vw, 1.02rem);
+}
+
+.product-card__name a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--lux-dur-fast) ease;
+}
+
+.product-card:hover .product-card__name a {
+  color: var(--lux-gold-text);
+}
+
+/* Preço: discreto, alinhado à esquerda */
+.product-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.product-card__price-current {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.88rem;
+  color: var(--lux-petrol);
+  letter-spacing: 0.03em;
+}
+
+.product-card__price-old {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.76rem;
+  color: var(--lux-ice-deep);
+  text-decoration: line-through;
+}
+
+/* PIX badge: nota discreta abaixo do preço */
+.product-card__pix-note {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lux-gold-text);
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+/* Swatches: escondidos no card — simplicidade máxima */
+.product-card__swatches {
+  display: none;
+}
+
+/* Card sem padding lateral extra — deixa grade respirar */
+.product-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L5. BADGES — Ultra-minimalistas, sem border-radius
+   ────────────────────────────────────────────────────────────── */
+
+.product-card__badge {
+  font-family: var(--font-body);
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: var(--lux-tracking-ultra);
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 0;
+  border: 1px solid transparent;
+}
+
+.product-card__badge--sale {
+  background: var(--lux-petrol);
+  color: var(--lux-white);
+  border-color: var(--lux-petrol);
+}
+
+.product-card__badge--esgotado {
+  background: transparent;
+  color: var(--lux-ice-deep);
+  border-color: var(--lux-ice-border);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L6. BOTÕES — Ghost, Ghost Filled, Outline Editorial
+   Filosofia: fronteiras finas, transições lentas, sem rounding.
+   ────────────────────────────────────────────────────────────── */
+
+/* Botão primário — Ghost filled ao hover */
+.btn-primary,
+.btn--primary,
+[class*="btn-comprar"],
+.add-to-cart-btn,
+.btn-buy {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: var(--lux-tracking-wide);
+  text-transform: uppercase;
+  padding: 14px 32px;
+  border: 1px solid var(--lux-petrol);
+  background: var(--lux-petrol);
+  color: var(--lux-white);
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    background var(--lux-duration) var(--lux-ease),
+    color var(--lux-duration) var(--lux-ease),
+    border-color var(--lux-duration) var(--lux-ease);
+}
+
+.btn-primary:hover,
+.btn--primary:hover,
+[class*="btn-comprar"]:hover {
+  background: var(--lux-white);
+  color: var(--lux-petrol);
+  border-color: var(--lux-petrol);
+}
+
+/* Ghost button — inversão elegante */
+.btn-ghost,
+.btn--ghost,
+.btn-outline,
+.btn--outline {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: var(--lux-tracking-wide);
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border: 1px solid var(--lux-petrol);
+  background: transparent;
+  color: var(--lux-petrol);
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    background var(--lux-duration) var(--lux-ease),
+    color var(--lux-duration) var(--lux-ease);
+}
+
+.btn-ghost:hover,
+.btn--ghost:hover {
+  background: var(--lux-petrol);
+  color: var(--lux-white);
+}
+
+/* Quick-add button no card */
+.product-card__quick-btn {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--lux-tracking-wide);
+  text-transform: uppercase;
+  border-radius: 0;
+  border: 1px solid rgba(255,255,255,0.8);
+  background: rgba(26,45,61,0.88);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  padding: 10px 16px;
+  transition:
+    background var(--lux-dur-fast) ease,
+    color var(--lux-dur-fast) ease;
+}
+
+.product-card__quick-btn:hover {
+  background: rgba(26,45,61,1);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L7. NAVBAR — Refinamento Petróleo + Logo Editorial
+   ────────────────────────────────────────────────────────────── */
+
+.navbar {
+  background: var(--lux-petrol);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Logo text em Cormorant Garamond Italic — máxima elegância */
+.navbar__logo-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  font-size: 1.45rem;
+  color: var(--lux-white);
+}
+
+/* Navbar links: tracking generoso */
+.navbar__link {
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  transition: color var(--lux-dur-fast) ease;
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--lux-white);
+}
+
+/* Announcement bar: petróleo mais escuro com texto dourado */
+.announcement-bar,
+[class*="announce"] {
+  background: var(--lux-petrol);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.67rem;
+  letter-spacing: var(--lux-tracking-ultra);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L8. HERO — Overlay mais profundo, tipografia maximizada
+   ────────────────────────────────────────────────────────────── */
+
+.hero__overlay,
+[class*="hero-overlay"],
+[class*="hero__overlay"] {
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 45, 61, 0.25) 0%,
+    rgba(26, 45, 61, 0.05) 40%,
+    rgba(26, 45, 61, 0.35) 100%
+  );
+}
+
+.hero__title {
+  font-size: clamp(2.6rem, 6vw, 5.5rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.2);
+}
+
+.hero__subtitle {
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  font-size: clamp(0.65rem, 1.2vw, 0.78rem);
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L9. CHECKOUT — Area mais limpa do site
+   "Cada elemento que retiramos é luxo que adicionamos."
+   ────────────────────────────────────────────────────────────── */
+
+/* Container principal: branco absoluto */
+.checkout-main,
+.checkout-content,
+[class*="checkout-wrap"] {
+  background: var(--lux-white);
+}
+
+/* Steps indicator: minimalista ao extremo */
+.checkout-steps,
+[class*="checkout-step"],
+.step-indicator {
+  border-bottom: 1px solid var(--lux-ice-border);
+  padding-bottom: 20px;
+}
+
+/* Step número: font-body leve */
+.step-number,
+[class*="step-num"],
+.checkout-step__number {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--lux-ice-deep);
+}
+
+.step-number--active,
+[class*="step--active"] .step-number {
+  color: var(--lux-petrol);
+  font-weight: 500;
+}
+
+/* Labels dos campos: muito pequenas e leves */
+.checkout-label,
+.form-label,
+label.label,
+[class*="checkout"] label {
+  font-family: var(--font-body);
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lux-ice-deep);
+}
+
+/* Inputs do checkout: borda fina, sem border-radius */
+.checkout-input,
+.form-input,
+[class*="checkout"] input,
+[class*="checkout"] select {
+  border: 1px solid var(--lux-ice-border);
+  border-radius: 0;
+  background: var(--lux-white);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.88rem;
+  color: var(--lux-petrol);
+  padding: 12px 14px;
+  transition: border-color var(--lux-dur-fast) ease;
+}
+
+[class*="checkout"] input:focus,
+[class*="checkout"] select:focus {
+  border-color: var(--lux-petrol);
+  outline: none;
+  box-shadow: none;
+}
+
+/* Resumo do pedido: tipografia ultra-leve */
+.checkout-item-name,
+[class*="cart-item-name"],
+[class*="order-item-name"] {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 400;
+  color: var(--lux-petrol);
+}
+
+.checkout-item-detail,
+[class*="cart-item-detail"],
+[class*="order-item-qty"] {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: var(--lux-ice-deep);
+  letter-spacing: 0.05em;
+}
+
+/* Total linha: hierarquia clara mas discreta */
+.checkout-total-row,
+[class*="total-row"],
+[class*="order-total"] {
+  border-top: 1px solid var(--lux-ice-border);
+  padding-top: 16px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--lux-petrol);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L10. INPUTS GLOBAIS — Bordas finas, zero border-radius
+   ────────────────────────────────────────────────────────────── */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+select,
+textarea {
+  border-radius: 0 !important;
+  border: 1px solid var(--lux-ice-border);
+  background: var(--lux-white);
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--lux-petrol);
+  transition: border-color var(--lux-dur-fast) ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--lux-petrol) !important;
+  outline: none;
+  box-shadow: none !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L11. CATALOG — Grade e proporções premium
+   ────────────────────────────────────────────────────────────── */
+
+/* Gap entre cards: espaço generoso */
+.products-grid,
+[class*="products-grid"],
+#productsGrid {
+  gap: clamp(20px, 2.5vw, 36px);
+}
+
+/* Cat pills / filtros: estilo editorial tabs */
+.cat-pill {
+  font-size: 0.67rem;
+  letter-spacing: var(--lux-tracking-wide);
+  text-transform: uppercase;
+  font-weight: 500;
+  border-radius: 0;
+  border: 1px solid transparent;
+  padding: 8px 18px;
+  color: var(--lux-petrol);
+  background: transparent;
+  transition:
+    color var(--lux-dur-fast) ease,
+    border-color var(--lux-dur-fast) ease;
+}
+
+.cat-pill--active,
+.cat-pill:hover {
+  border-color: var(--lux-petrol);
+  color: var(--lux-petrol);
+  background: transparent;
+}
+
+.cat-pill--active {
+  background: var(--lux-petrol);
+  color: var(--lux-white);
+}
+
+/* Sort bar: linha fina no topo */
+.catalog-sort-bar,
+[class*="sort-bar"] {
+  border-top: 1px solid var(--lux-ice-border);
+  border-bottom: 1px solid var(--lux-ice-border);
+  background: var(--lux-white);
+  padding: 12px 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L12. PÁGINA DO PRODUTO — Hierarquia editorial máxima
+   ────────────────────────────────────────────────────────────── */
+
+/* Galeria: sem border-radius, fundo gelo */
+.galeria-main,
+[class*="produto-gallery"],
+[class*="product-gallery"] {
+  background: var(--lux-ice-mid);
+  border-radius: 0;
+}
+
+/* Thumbnails: bordas finas e elegantes */
+.galeria-thumb,
+[class*="gallery-thumb"],
+.produto-thumb {
+  border-radius: 0;
+  border: 1px solid transparent;
+  transition: border-color var(--lux-dur-fast) ease;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.galeria-thumb--active,
+.galeria-thumb:hover {
+  border-color: var(--lux-petrol);
+}
+
+/* Nome do produto na página: grande, Cormorant, leve */
+.produto-nome,
+[class*="produto__nome"],
+[class*="product__name"] {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.7rem, 3.5vw, 2.8rem);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  color: var(--lux-petrol);
+}
+
+/* Preço na página do produto */
+.produto-preco,
+.preco-atual,
+[class*="produto__preco"] {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 1.35rem;
+  letter-spacing: 0.03em;
+  color: var(--lux-petrol);
+}
+
+/* Size buttons: quadrados, bordas finas */
+.produto-tamanho,
+[class*="size-btn"],
+[class*="tamanho-btn"] {
+  border-radius: 0;
+  border: 1px solid var(--lux-ice-border);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  min-width: 44px;
+  height: 44px;
+  background: var(--lux-white);
+  color: var(--lux-petrol);
+  transition:
+    border-color var(--lux-dur-fast) ease,
+    background var(--lux-dur-fast) ease,
+    color var(--lux-dur-fast) ease;
+}
+
+.produto-tamanho:hover,
+[class*="size-btn"]:hover:not(:disabled) {
+  border-color: var(--lux-petrol);
+}
+
+.produto-tamanho--selected,
+.produto-tamanho.selected,
+[class*="size-btn--active"],
+[class*="size-btn"].active {
+  background: var(--lux-petrol);
+  border-color: var(--lux-petrol);
+  color: var(--lux-white);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L13. FOOTER — Petróleo profundo, tipografia mais leve
+   ────────────────────────────────────────────────────────────── */
+
+.footer,
+footer {
+  background: var(--lux-petrol);
+  color: rgba(255,255,255,0.55);
+  border-top: none;
+}
+
+.footer__logo-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.18em;
+}
+
+.footer a,
+.footer__link {
+  color: rgba(255,255,255,0.5);
+  transition: color var(--lux-dur-fast) ease;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+}
+
+.footer a:hover,
+.footer__link:hover {
+  color: rgba(255,255,255,0.9);
+}
+
+.footer__title,
+.footer__heading {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 16px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L14. MODAIS & DRAWERS — Entrada suave, fundo translúcido
+   ────────────────────────────────────────────────────────────── */
+
+/* Overlay de fundo: menos opaco = mais elegante */
+.modal-overlay,
+[class*="overlay"],
+[class*="backdrop"] {
+  background: rgba(26,45,61,0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Modal container: sem border-radius */
+.modal,
+[class*="modal-content"],
+[class*="drawer-content"] {
+  border-radius: 0;
+  border: none;
+  box-shadow: var(--lux-shadow-hover);
+}
+
+/* Mobile menu drawer */
+.mobile-menu,
+[class*="mobile-nav"],
+[class*="menu-drawer"] {
+  background: var(--lux-petrol);
+  border-radius: 0;
+  box-shadow: 4px 0 40px rgba(0,0,0,0.3);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L15. CART SIDEBAR — Limpo, espaçoso, funcional
+   ────────────────────────────────────────────────────────────── */
+
+.cart-sidebar,
+.carrinho-sidebar,
+[class*="cart-drawer"] {
+  background: var(--lux-white);
+  border-left: 1px solid var(--lux-ice-border);
+  border-radius: 0;
+  box-shadow: -8px 0 40px rgba(26,45,61,0.12);
+}
+
+.cart-item,
+.carrinho-item,
+[class*="cart-item"] {
+  border-bottom: 1px solid var(--lux-ice-border);
+  padding: 16px 0;
+}
+
+/* Imagem no carrinho: aspect ratio 1:1 limpo */
+.cart-item__img,
+.carrinho-item__img,
+[class*="cart-item-img"] {
+  border-radius: 0;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L16. DIVIDERS — 1px absoluto, quase invisível
+   ────────────────────────────────────────────────────────────── */
+
+hr,
+.divider,
+[class*="divider"],
+[class*="separator"] {
+  border: none;
+  border-top: 1px solid var(--lux-ice-border);
+  margin: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L17. RESPONSIVIDADE MÓVEL — Drawer + Touch targets
+   ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Cards em grid 2 colunas com gap generoso */
+  .products-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  /* Hero title: menor mas ainda impactante */
+  .hero__title {
+    font-size: clamp(2rem, 8vw, 3rem);
+    letter-spacing: -0.015em;
+  }
+
+  /* Checkout: padding reduzido mas mantém respiro */
+  [class*="checkout-step"],
+  [class*="checkout-section"] {
+    padding: 24px 16px;
+  }
+
+  /* Botões: altura mínima para toque (44px Apple HIG) */
+  button,
+  .btn,
+  .cat-pill,
+  .produto-tamanho {
+    min-height: 44px;
+  }
+
+  /* Cart sidebar ocupa tela toda no mobile */
+  .cart-sidebar,
+  .carrinho-sidebar {
+    width: 100vw !important;
+    max-width: 100vw;
+  }
+
+  /* Mobile menu: entra pela esquerda com ease luxury */
+  .mobile-menu {
+    transform: translateX(-100%);
+    transition: transform 0.35s var(--lux-ease);
+  }
+
+  .mobile-menu--open {
+    transform: translateX(0);
+  }
+
+  /* Product card name: ligeiramente menor */
+  .product-card__name {
+    font-size: 0.82rem;
+  }
+
+  /* Product info padding reduzido no mobile */
+  .product-card__info {
+    padding: 10px 0 16px;
+    gap: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Preço: font-size ajustado */
+  .product-card__price-current {
+    font-size: 0.82rem;
+  }
+
+  .product-card__pix-note {
+    font-size: 0.62rem;
+  }
+
+  /* Section titles: escala fluida */
+  .section-title {
+    font-size: clamp(1.3rem, 6vw, 1.8rem);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L18. CONTA / PERFIL — Interface pessoal premium
+   ────────────────────────────────────────────────────────────── */
+
+.conta-nav__item {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 0;
+  border-left: 2px solid transparent;
+  transition:
+    color var(--lux-dur-fast) ease,
+    border-color var(--lux-dur-fast) ease;
+}
+
+.conta-nav__item--active {
+  border-left-color: var(--lux-petrol);
+  color: var(--lux-petrol);
+  font-weight: 500;
+}
+
+/* Tabela de pedidos: linhas super-finas */
+.pedidos-table,
+[class*="pedidos-list"],
+[class*="orders-table"] {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pedidos-table th {
+  font-family: var(--font-body);
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--lux-ice-deep);
+  border-bottom: 1px solid var(--lux-ice-border);
+  padding: 10px 12px;
+}
+
+.pedidos-table td {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 300;
+  border-bottom: 1px solid var(--lux-ice-mid);
+  padding: 14px 12px;
+  vertical-align: middle;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L19. STATUS BADGES — Pastéis discretos
+   ────────────────────────────────────────────────────────────── */
+
+.badge-pago, [class*="status-pago"],   [class*="status--paid"]   { background: #EBF5EB; color: #2D6A2D; border-radius: 0; font-size: 0.67rem; letter-spacing: 0.08em; }
+.badge-pendente, [class*="status-pendente"]                       { background: #FEF8EC; color: #8C6200; border-radius: 0; font-size: 0.67rem; letter-spacing: 0.08em; }
+.badge-cancelado, [class*="status-cancelado"]                     { background: #FDECEA; color: #8C2020; border-radius: 0; font-size: 0.67rem; letter-spacing: 0.08em; }
+.badge-enviado, [class*="status-enviado"]                         { background: #EBF0FB; color: #1A3A7A; border-radius: 0; font-size: 0.67rem; letter-spacing: 0.08em; }
+
+/* ──────────────────────────────────────────────────────────────
+   L20. ACCESSIBILITY — Foco ring elegante e visível
+   ────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--lux-petrol);
+  outline-offset: 3px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L21. SKELETON LOADER — Shimmer mais suave
+   ────────────────────────────────────────────────────────────── */
+
+@keyframes lux-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton,
+[class*="skeleton"],
+.product-card--skeleton .product-card__image-wrap {
+  background: linear-gradient(
+    90deg,
+    var(--lux-ice-mid) 25%,
+    var(--lux-ice-border) 50%,
+    var(--lux-ice-mid) 75%
+  );
+  background-size: 800px 100%;
+  animation: lux-shimmer 1.6s ease-in-out infinite;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L22. PRINT — Ocultar nav/UI, focar no conteúdo
+   ────────────────────────────────────────────────────────────── */
+
+@media print {
+  .navbar, .announcement-bar, .footer,
+  .cart-sidebar, .mobile-menu,
+  .product-card__quick-add { display: none !important; }
+
+  body { background: white; color: black; }
+  a { color: black; text-decoration: none; }
+}
