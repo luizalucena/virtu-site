@@ -117,13 +117,15 @@ button,
   font-weight: 500;
 }
 
-/* Texto do corpo: leve e limpo */
+/* Texto do corpo: leve e limpo
+   NOTA: color NÃO definida aqui para evitar sobrescrever texto branco
+   em seções com fundo escuro (hero, footer, navbar, announcement bar).
+   A cor base já vem de body { color: var(--lux-petrol) } em L2. */
 p, li, td, th, label,
 .text-body {
   font-family: var(--font-body);
   font-weight: 300;
   letter-spacing: var(--lux-tracking-normal);
-  color: var(--lux-petrol);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -443,6 +445,7 @@ p, li, td, th, label,
   letter-spacing: -0.02em;
   line-height: 1.08;
   text-shadow: 0 2px 24px rgba(0,0,0,0.2);
+  color: var(--lux-white); /* reforço: garantir branco sobre fundo escuro do hero */
 }
 
 .hero__subtitle {
@@ -452,6 +455,19 @@ p, li, td, th, label,
   font-size: clamp(0.65rem, 1.2vw, 0.78rem);
   text-transform: uppercase;
   opacity: 0.85;
+}
+
+/* Conteúdo dentro do hero: sempre branco — fundo é sempre escuro.
+   Especificidade elevada (0,2,0) para bater qualquer regra de body/p. */
+.hero__slide .hero__desc,
+.hero__slide .hero__overline,
+.hero__slide p {
+  color: rgba(255,255,255,0.80);
+}
+
+/* O overline do hero usa dourado — mantém a cor do home.css */
+.hero__slide .hero__overline {
+  color: var(--lux-gold);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -769,10 +785,14 @@ footer {
    L14. MODAIS & DRAWERS — Entrada suave, fundo translúcido
    ────────────────────────────────────────────────────────────── */
 
-/* Overlay de fundo: menos opaco = mais elegante */
+/* Overlay de fundo: menos opaco = mais elegante
+   ATENÇÃO: NÃO usar [class*="overlay"] — é demasiado amplo e captura
+   .search-overlay (tela cheia), .categoria-card__overlay, .insta-overlay,
+   causando que toda a página fique coberta por um fundo escuro.
+   Alvejar apenas overlays de modal/drawer explicitamente. */
 .modal-overlay,
-[class*="overlay"],
-[class*="backdrop"] {
+.modal-backdrop,
+.drawer-overlay {
   background: rgba(26,45,61,0.55);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
