@@ -12,10 +12,10 @@
    ────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Azul petróleo — mais frio e profundo que o navy padrão */
-  --lux-petrol:         #1A2D3D;  /* base text / navbar */
-  --lux-petrol-mid:     #243547;  /* hover states */
-  --lux-petrol-light:   #2E4158;  /* secundário */
+  /* Azul Noturno Profundo — editorial, magnético, autoridade máxima */
+  --lux-petrol:         #0B132B;  /* base text / navbar / botões */
+  --lux-petrol-mid:     #162040;  /* hover states */
+  --lux-petrol-light:   #1E2E4E;  /* secundário */
 
   /* Cinza Gelo — fundo absolutamente limpo */
   --lux-ice:            #F7F6F4;  /* fundo page */
@@ -1016,3 +1016,100 @@ hr,
   body { background: white; color: black; }
   a { color: black; text-decoration: none; }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   L23. INPUTS UNDERLINE — Campos sem caixa, com linha inferior
+   Estética de boutique: o input "respira" na página, sem moldura.
+   ────────────────────────────────────────────────────────────── */
+
+/* Remove borda de todos os lados; mantém apenas bottom */
+[class*="checkout"] input[type="text"],
+[class*="checkout"] input[type="email"],
+[class*="checkout"] input[type="tel"],
+[class*="checkout"] input[type="number"],
+[class*="checkout"] select,
+.checkout-input,
+.form-input--underline {
+  border: none !important;
+  border-bottom: 1px solid var(--lux-ice-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 10px 0 10px 0 !important;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.92rem;
+  color: var(--lux-petrol);
+  box-shadow: none !important;
+  outline: none !important;
+  transition: border-color 0.25s ease !important;
+}
+
+[class*="checkout"] input:focus,
+[class*="checkout"] select:focus,
+.checkout-input:focus {
+  border-bottom-color: var(--lux-petrol) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Placeholder: muito discreto */
+[class*="checkout"] input::placeholder {
+  color: var(--lux-ice-deep);
+  font-weight: 300;
+  font-size: 0.85rem;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L24. FADE DE PREÇO — Comparativo de pagamento com transição
+   Quando o cliente troca PIX ↔ Cartão, os valores fazem fade.
+   O JS do checkout adiciona .payment-updating durante a troca.
+   ────────────────────────────────────────────────────────────── */
+
+/* Keyframe do fade */
+@keyframes lux-price-fade {
+  0%   { opacity: 0; transform: translateY(3px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Aplica fade ao container de preço sempre que o valor muda */
+#checkoutPaymentCompare,
+.checkout-payment-compare,
+[id*="comparePix"],
+[id*="compareCard"],
+[id*="compareDebito"],
+[class*="compare-price"] {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+/* Classe adicionada pelo JS durante a troca de aba */
+.payment-updating #checkoutPaymentCompare,
+.payment-updating .checkout-payment-compare,
+#checkoutPaymentCompare.price-updating,
+.compare-price--updating {
+  animation: lux-price-fade 0.28s ease forwards;
+}
+
+/* Valores individuais do compare: fade ao aparecer */
+#comparePix,
+#compareCard,
+#compareDebito,
+#compareCardParc {
+  display: inline-block;
+  transition: opacity 0.2s ease;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   L25. ADMIN — Tokens atualizados para Azul Noturno
+   ────────────────────────────────────────────────────────────── */
+
+/* Admin sidebar recebe o mesmo Azul Noturno profundo */
+.admin-sidebar {
+  background: #0B132B !important;
+}
+
+.admin-nav-btn--active {
+  background: rgba(184,134,74,0.15) !important;
+  border-left-color: #B8864A !important;
+  color: #B8864A !important;
+}
+

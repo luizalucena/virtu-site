@@ -875,6 +875,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Atualiza método ativo e recalcula taxa + total
       metodoAtivo = tab.dataset.tab || 'cartao';
+
+      // ── Animação fade no comparativo de preço (luxury UX) ──
+      const compareEl = document.getElementById('checkoutPaymentCompare');
+      if (compareEl) {
+        compareEl.classList.add('price-updating');
+        setTimeout(() => compareEl.classList.remove('price-updating'), 320);
+      }
+
       atualizarTaxaETotal();
     });
   });
