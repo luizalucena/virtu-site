@@ -1,6 +1,6 @@
 # ============================================================
-# VIRTÙ — Security Headers
-# Pilar 5 — Cabeçalhos de Segurança HTTP
+# VIRTÙ — Security & Performance Headers
+# Pilar 1 — Cache | Pilar 5 — Segurança HTTP
 #
 # NOTA: Este arquivo é aplicado automaticamente por:
 #   • Netlify  → suportado nativamente
@@ -11,6 +11,42 @@
 # <meta http-equiv> em cada página HTML do site.
 # ============================================================
 
+# ── PILAR 1: CACHE DE ASSETS ESTÁTICOS ───────────────────────
+# JavaScript — cache por 1 ano (imutável pois versão muda por hash de conteúdo)
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS — cache por 1 ano
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Imagens locais — cache por 7 dias (podem mudar em atualizações de produto)
+/images/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# Fontes — cache por 1 ano (imutáveis)
+*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+# Arquivos HTML — sem cache (sempre busca versão atual)
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Raiz do site
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# sitemap e robots — cache de 1 dia
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+# ── PILAR 5: SEGURANÇA (todas as rotas) ──────────────────────
 /*
   # Política de referência — limita informação enviada ao abrir links
   Referrer-Policy: strict-origin-when-cross-origin
