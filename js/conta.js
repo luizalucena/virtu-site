@@ -591,7 +591,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const progresso  = fid.progresso      ?? (compras % meta);
         const restam     = fid.restam_para_100 ?? (meta - progresso);
         const pct        = meta > 0 ? (progresso / meta) * 100 : 0;
-        const premioAtivo= fid.premio_ativo   ?? null;
+        // fidelidade_status retorna campos planos: tem_premio_ativo, premio_codigo, premio_expira
+        const premioAtivo= fid.tem_premio_ativo
+          ? { codigo: fid.premio_codigo, expira_em: fid.premio_expira }
+          : null;
 
         // Atualiza card de progresso
         const bar    = document.getElementById('fidelBar');

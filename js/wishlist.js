@@ -35,19 +35,23 @@
   // ── SUPABASE: adicionar ───────────────────────────────────
   async function adicionarNoSupabase(produtoId) {
     if (!window.supabaseClient || !_user) return;
-    await window.supabaseClient
-      .from('favoritos')
-      .upsert({ user_id: _user.id, produto_id: produtoId }, { onConflict: 'user_id,produto_id' });
+    try {
+      await window.supabaseClient
+        .from('favoritos')
+        .upsert({ user_id: _user.id, produto_id: produtoId }, { onConflict: 'user_id,produto_id' });
+    } catch (e) { console.warn('[Wishlist] Erro ao adicionar:', e); }
   }
 
   // ── SUPABASE: remover ─────────────────────────────────────
   async function removerDoSupabase(produtoId) {
     if (!window.supabaseClient || !_user) return;
-    await window.supabaseClient
-      .from('favoritos')
-      .delete()
-      .eq('user_id', _user.id)
-      .eq('produto_id', produtoId);
+    try {
+      await window.supabaseClient
+        .from('favoritos')
+        .delete()
+        .eq('user_id', _user.id)
+        .eq('produto_id', produtoId);
+    } catch (e) { console.warn('[Wishlist] Erro ao remover:', e); }
   }
 
   // ── TOGGLE ────────────────────────────────────────────────
@@ -102,33 +106,37 @@
 
     // Aguarda sessão do Supabase
     if (window.supabaseClient) {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (session?.user) {
-        _user = session.user;
-        await carregarDoSupabase(session.user.id);
-        atualizarBotoes();
-      }
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session?.user) {
+          _user = session.user;
+          await carregarDoSupabase(session.user.id);
+          atualizarBotoes();
+        }
+      } catch (e) { console.warn('[Wishlist] Erro ao obter sessão:', e); }
 
       // Reage a login/logout
       window.supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        if (session?.user) {
-          _user = session.user;
-          // Salva favoritos locais no Supabase antes de sobrescrever com dados do servidor
-          const localFavs = lsGet();
-          await carregarDoSupabase(session.user.id);
-          // Sincroniza localStorage → Supabase (itens favoritos antes de fazer login)
-          for (const id of localFavs) {
-            if (!_favoritos.has(id)) {
-              _favoritos.add(id);
-              adicionarNoSupabase(id);
+        try {
+          if (session?.user) {
+            _user = session.user;
+            // Salva favoritos locais no Supabase antes de sobrescrever com dados do servidor
+            const localFavs = lsGet();
+            await carregarDoSupabase(session.user.id);
+            // Sincroniza localStorage → Supabase (itens favoritos antes de fazer login)
+            for (const id of localFavs) {
+              if (!_favoritos.has(id)) {
+                _favoritos.add(id);
+                adicionarNoSupabase(id);
+              }
             }
+            lsSet(_favoritos);
+          } else {
+            _user = null;
+            _favoritos = lsGet();
           }
-          lsSet(_favoritos);
-        } else {
-          _user = null;
-          _favoritos = lsGet();
-        }
-        atualizarBotoes();
+          atualizarBotoes();
+        } catch (e) { console.warn('[Wishlist] Erro em onAuthStateChange:', e); }
       });
     }
 
