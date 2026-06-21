@@ -659,13 +659,60 @@ textarea:focus {
   color: var(--lux-white);
 }
 
-/* Sort bar: linha fina no topo */
-.catalog-sort-bar,
-[class*="sort-bar"] {
+/* Sort bar: apenas o container principal — NÃO usar [class*="sort-bar"]
+   pois captura .sort-bar__count, .sort-bar__right etc. e aplica bordas erradas */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   border-top: 1px solid var(--lux-ice-border);
   border-bottom: 1px solid var(--lux-ice-border);
   background: var(--lux-white);
-  padding: 12px 0;
+  padding: 10px 0;
+  margin-bottom: var(--space-6);
+}
+
+/* Contagem de produtos: discreto */
+.sort-bar__count {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--lux-ice-deep);
+}
+
+/* Select wrapper: sem border-radius, borda fina */
+.sort-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--lux-ice-border);
+  border-radius: 0;
+  padding: 8px 12px;
+  background: transparent;
+  transition: border-color var(--lux-dur-fast) ease;
+}
+
+.sort-select-wrap:hover {
+  border-color: var(--lux-petrol);
+}
+
+/* Select: ocultar seta nativa do browser (já tem SVG próprio) */
+.sort-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lux-petrol);
+  cursor: pointer;
+  outline: none;
+  padding-right: 0;
 }
 
 /* ──────────────────────────────────────────────────────────────
