@@ -382,37 +382,52 @@ p, li, td, th, label,
 }
 
 /* ──────────────────────────────────────────────────────────────
-   L7. NAVBAR — Refinamento Petróleo + Logo Editorial
+   L7. NAVBAR — Fundo Off-White + Logo Reto Editorial
    ────────────────────────────────────────────────────────────── */
 
 .navbar {
-  background: var(--lux-petrol);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: var(--lux-ice);
+  border-bottom: 1px solid var(--lux-ice-border);
 }
 
-/* Logo text em Cormorant Garamond Italic — máxima elegância */
+/* Logo text: Cormorant Garamond RETO (não itálico), petróleo profundo */
 .navbar__logo-text {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  font-size: 1.45rem;
-  color: var(--lux-white);
+  font-style: normal;          /* reto — sem itálico */
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  font-size: 1.1rem;
+  color: var(--lux-petrol);
 }
 
-/* Navbar links: tracking generoso */
+/* Navbar links: tracking generoso, cor escura sobre fundo claro */
 .navbar__link {
   letter-spacing: 0.1em;
   font-size: 0.72rem;
   font-weight: 400;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.75);
+  color: var(--lux-petrol);
   transition: color var(--lux-dur-fast) ease;
 }
 
 .navbar__link:hover,
 .navbar__link--active {
-  color: var(--lux-white);
+  color: var(--lux-gold-text);
+}
+
+/* Ícones de ação (busca, conta, carrinho): cor petróleo */
+.navbar__action-btn,
+.navbar__action-btn svg,
+.navbar__search-mobile svg,
+.navbar__cart-btn svg,
+.navbar__user-btn svg {
+  color: var(--lux-petrol);
+  stroke: var(--lux-petrol);
+}
+
+.navbar__action-btn:hover svg {
+  color: var(--lux-gold-text);
+  stroke: var(--lux-gold-text);
 }
 
 /* Announcement bar: petróleo mais escuro com texto dourado */
