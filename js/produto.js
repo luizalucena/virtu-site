@@ -698,7 +698,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cor   = document.querySelector('#coresContainer .produto-cor--active')
                     ?.getAttribute('aria-label') || selectedColor || '';
     const imgBg  = document.getElementById('mainPlaceholder')?.style?.background || '';
-    const imgUrl = document.querySelector('#mainImg img')?.src || '';
+    // #mainImg é um <div> com background-image — lemos a URL do dataset.currentUrl
+    const imgUrl = mainImg?.dataset?.currentUrl
+                || (mainImg?.style?.backgroundImage || '').replace(/^url\(['"]?|['"]?\)$/g, '')
+                || document.querySelector('#mainImg img')?.src || '';
 
     let cart = [];
     try { cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch {}

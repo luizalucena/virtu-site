@@ -1341,10 +1341,9 @@
   100% { background-position:  600px 0; }
 }
 
-#mainImg[src=""] ,
-#mainImg:not([src]) {
-  visibility: hidden;
-}
+/* NOTE: #mainImg é um <div> com background-image — não usa atributo src.
+   A regra :not([src]) não deve existir aqui; a visibilidade é controlada
+   via opacity na função _showImage() em produto.js. */
 
 .galeria-main::before {
   content: '';
