@@ -291,33 +291,29 @@ async function carregarProduto(produtoId) {
       const mainImg         = document.getElementById('mainImg');
 
       // ── Função local que troca a imagem principal ──
-      // Pré-carrega a imagem antes de exibir, evitando flash do conteúdo anterior
+      // USA background-image (mesma abordagem das thumbnails — garantidamente funciona)
+      // Evita o problema de height:100% não resolver em filhos position:absolute
+      // quando o pai tem altura derivada de aspect-ratio.
       function _showImage(url) {
         if (!mainImg) return;
-        // Fade out
         mainImg.style.transition = 'opacity 0.15s ease';
         mainImg.style.opacity    = '0';
-        // Pré-carrega
         const preload = new Image();
         preload.onload = () => {
-          const existing = mainImg.querySelector('img.galeria-main__real-img');
-          if (existing) {
-            existing.src = url;
-          } else {
-            mainImg.innerHTML = `<img class="galeria-main__real-img"
-              src="${url}" alt="Foto do produto" loading="lazy" />`;
-          }
-          // Só revela quando a imagem está pronta
+          mainImg.style.backgroundImage    = `url('${url}')`;
+          mainImg.style.backgroundSize     = 'cover';
+          mainImg.style.backgroundPosition = 'center';
+          mainImg.style.backgroundRepeat   = 'no-repeat';
+          // Esconde o placeholder estático (texto "foto do produto")
+          const ph = mainImg.querySelector('.galeria-main__placeholder');
+          if (ph) ph.style.visibility = 'hidden';
           mainImg.style.opacity = '1';
-          // Dismiss skeleton shimmer
-          const galeriaMain = mainImg.closest('.galeria-main');
-          if (galeriaMain) galeriaMain.classList.add('img-loaded');
+          mainImg.closest('.galeria-main')?.classList.add('img-loaded');
+          mainImg.dataset.currentUrl = url; // usado pelo lightbox
         };
         preload.onerror = () => {
-          // Mesmo com erro, restaura opacidade e remove skeleton
           mainImg.style.opacity = '1';
-          const galeriaMain = mainImg.closest('.galeria-main');
-          if (galeriaMain) galeriaMain.classList.add('img-loaded');
+          mainImg.closest('.galeria-main')?.classList.add('img-loaded');
         };
         preload.src = url;
       }

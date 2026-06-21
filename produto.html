@@ -11,7 +11,7 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css?v=20260617e" />
-  <link rel="stylesheet" href="css/produto.css?v=20260617e" />
+  <link rel="stylesheet" href="css/produto.css?v=20260620a" />
     <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="product" />
   <meta property="og:site_name" content="Virtù" />
@@ -399,8 +399,9 @@
         <!-- Formulário de nova avaliação -->
         <div class="avaliacao-form-wrap">
           <h3>Avalie esta peça</h3>
+          <p class="avaliacao-form__nota-aviso">Avaliações são publicadas após aprovação da equipe Virtù</p>
           <div id="avaliacaoSucesso" class="avaliacao-form__sucesso">
-            ✓ Obrigada pela avaliação! Ela será publicada após revisão.
+            ✓ Obrigada! Sua avaliação será publicada após revisão da nossa equipe.
           </div>
           <form id="formAvaliacao" novalidate>
             <div class="avaliacao-estrelas-input" id="estrelasBtns" role="group" aria-label="Selecione a nota">
@@ -631,9 +632,10 @@
           var ativos = [...thumbs].findIndex(t => t.classList.contains('galeria-thumb--active'));
           openLb(ativos >= 0 ? ativos : 0);
         } else {
-          // Fallback: pega src da <img> atual
-          var realImg = mainImg.querySelector('img.galeria-main__real-img');
-          if (realImg && realImg.src) { _imgs = [realImg.src]; openLb(0); }
+          // Fallback: usa a URL gravada pelo _showImage ou background-image
+          var currentUrl = mainImg.dataset.currentUrl
+            || (mainImg.style.backgroundImage || '').replace(/^url\(['"]?|['"]?\)$/g, '');
+          if (currentUrl) { _imgs = [currentUrl]; openLb(0); }
         }
       });
     }
