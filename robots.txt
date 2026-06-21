@@ -8,5 +8,8 @@ Disallow: /conta.html
 Disallow: /carrinho.html
 Disallow: /rastreio.html
 
-# Sitemap
+# Sitemap estático (páginas principais)
 Sitemap: https://wearvirtu.com/sitemap.xml
+
+# Sitemap dinâmico com TODOS os produtos — atualizado em tempo real
+Sitemap: https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/sitemap

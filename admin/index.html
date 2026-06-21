@@ -45,6 +45,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         Avaliações
       </button>
+      <button class="admin-nav-btn" data-view="logs">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Logs
+      </button>
       <button class="admin-nav-btn" data-view="funcionalidades">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Funcionalidades
@@ -625,6 +629,56 @@
             <button class="admin-btn" id="btnFecharModalAv">Cancelar</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         VIEW: LOGS DO SISTEMA (Pilar 3)
+    ══════════════════════════════════════ -->
+    <div class="admin-view admin-view--hidden" id="viewLogs">
+      <div class="admin-card">
+        <div class="admin-card__header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem">
+          <h2 class="admin-card__title" style="margin:0">Logs de Erros — Monitoramento em Produção</h2>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <select id="filtroLogsTipo" class="admin-input" style="width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">
+              <option value="">Todos os tipos</option>
+              <option value="js_error">JS Error</option>
+              <option value="promise_rejection">Promise Rejection</option>
+            </select>
+            <select id="filtroLogsPagina" class="admin-input" style="width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">
+              <option value="">Todas as páginas</option>
+              <option value="/checkout.html">Checkout</option>
+              <option value="/carrinho.html">Carrinho</option>
+              <option value="/produto.html">Produto</option>
+              <option value="/conta.html">Conta</option>
+            </select>
+            <button class="admin-btn admin-btn--primary" id="btnRecarregarLogs" style="padding:0.35rem 0.75rem;font-size:0.78rem">↺ Atualizar</button>
+            <button class="admin-btn" id="btnLimparLogs" style="padding:0.35rem 0.75rem;font-size:0.78rem;background:#fef2f2;color:#b91c1c;border-color:#fecaca">Limpar logs</button>
+          </div>
+        </div>
+
+        <!-- Resumo rápido -->
+        <div id="logsResumo" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem"></div>
+
+        <!-- Tabela de logs -->
+        <div style="overflow-x:auto">
+          <table id="logsTabela" style="width:100%;border-collapse:collapse;font-size:0.8rem">
+            <thead>
+              <tr style="background:#f5f2ee;text-align:left">
+                <th style="padding:0.5rem 0.75rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068;font-weight:500;white-space:nowrap">Data/Hora</th>
+                <th style="padding:0.5rem 0.75rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068;font-weight:500">Tipo</th>
+                <th style="padding:0.5rem 0.75rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068;font-weight:500">Página</th>
+                <th style="padding:0.5rem 0.75rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068;font-weight:500">Mensagem</th>
+                <th style="padding:0.5rem 0.75rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068;font-weight:500">User</th>
+                <th style="padding:0.5rem 0.75rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068;font-weight:500">Stack</th>
+              </tr>
+            </thead>
+            <tbody id="logsTbody">
+              <tr><td colspan="6" style="padding:1.5rem;text-align:center;color:#aaa;font-size:0.82rem">Carregando logs…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="logsVazio" style="display:none;color:#aaa;font-size:0.85rem;padding:1rem 0;text-align:center">Nenhum log encontrado para os filtros selecionados.</p>
       </div>
     </div>
 

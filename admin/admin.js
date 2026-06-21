@@ -259,6 +259,7 @@ function bindEvents() {
       if (view === 'configuracoes') populateConfig();
       if (view === 'sobre')        populateSobre();
       if (view === 'avaliacoes')   carregarAvaliacoesAdmin();
+      if (view === 'logs')         carregarLogsAdmin();
       if (view === 'pedidos') { if (typeof window.pedidosInit === 'function') window.pedidosInit(); }
       if (view === 'dashboard')    carregarDashboard();
     });
@@ -1437,3 +1438,117 @@ async function carregarDashboard() {
     console.error('[Dashboard]', e);
   }
 }
+
+/* ============================================================
+   LOGS DO SISTEMA — Pilar 3 (Monitoramento em Produção)
+   ============================================================ */
+async function carregarLogsAdmin() {
+  const tbody   = document.getElementById('logsTbody');
+  const resumoEl= document.getElementById('logsResumo');
+  const vazioEl = document.getElementById('logsVazio');
+  if (!tbody || typeof supabaseClient === 'undefined') return;
+
+  const tipo   = document.getElementById('filtroLogsTipo')?.value || '';
+  const pagina = document.getElementById('filtroLogsPagina')?.value || '';
+
+  tbody.innerHTML = '<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:#aaa">Carregando…</td></tr>';
+
+  try {
+    let query = supabaseClient
+      .from('logs_erros')
+      .select('*')
+      .order('criado_em', { ascending: false })
+      .limit(200);
+
+    if (tipo)   query = query.eq('tipo', tipo);
+    if (pagina) query = query.like('pagina', `%${pagina}%`);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    // Resumo rápido (últimas 24h)
+    const ontem = new Date(Date.now() - 86400000).toISOString();
+    const recentes = (data || []).filter(l => l.criado_em >= ontem);
+    const jsErros  = recentes.filter(l => l.tipo === 'js_error').length;
+    const promErros= recentes.filter(l => l.tipo === 'promise_rejection').length;
+    const checkoutErros = recentes.filter(l => (l.pagina || '').includes('checkout')).length;
+
+    if (resumoEl) {
+      const chip = (label, val, cor) =>
+        `<div style="background:${cor};padding:0.75rem 1rem;border-radius:4px">
+          <div style="font-size:1.5rem;font-weight:700;color:#1c2e3e">${val}</div>
+          <div style="font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#7a7068">${label}</div>
+        </div>`;
+      resumoEl.innerHTML =
+        chip('Total últimas 24h', recentes.length, '#f5f2ee') +
+        chip('JS Errors', jsErros, jsErros > 0 ? '#fef2f2' : '#f0fdf4') +
+        chip('Promise Rejections', promErros, promErros > 0 ? '#fff7ed' : '#f0fdf4') +
+        chip('Erros no Checkout', checkoutErros, checkoutErros > 0 ? '#fef2f2' : '#f0fdf4');
+    }
+
+    if (!data?.length) {
+      tbody.innerHTML = '';
+      if (vazioEl) vazioEl.style.display = 'block';
+      return;
+    }
+    if (vazioEl) vazioEl.style.display = 'none';
+
+    const fmtDt = iso => {
+      const d = new Date(iso);
+      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    };
+
+    const tipoBadge = t => {
+      const cor = t === 'js_error' ? '#fef2f2;color:#b91c1c' : '#fff7ed;color:#c2410c';
+      return `<span style="background:${cor};padding:0.15rem 0.4rem;font-size:0.65rem;letter-spacing:0.06em;text-transform:uppercase;border-radius:2px">${t}</span>`;
+    };
+
+    tbody.innerHTML = data.map(l => {
+      const msg   = (l.mensagem || '').slice(0, 120);
+      const stack = l.stack ? l.stack.split('\n')[0].slice(0, 80) : '—';
+      const pag   = (l.pagina || '—').replace('https://wearvirtu.com', '');
+      const user  = l.user_id ? l.user_id.slice(0, 8) + '…' : '<span style="color:#ccc">anon</span>';
+      return `<tr style="border-bottom:1px solid #f0ebe4">
+        <td style="padding:0.5rem 0.75rem;white-space:nowrap;color:#7a7068;font-size:0.75rem">${fmtDt(l.criado_em)}</td>
+        <td style="padding:0.5rem 0.75rem">${tipoBadge(l.tipo)}</td>
+        <td style="padding:0.5rem 0.75rem;font-size:0.75rem;color:#1c2e3e;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.pagina || ''}">${pag}</td>
+        <td style="padding:0.5rem 0.75rem;font-size:0.78rem;max-width:280px;word-break:break-word">${msg}</td>
+        <td style="padding:0.5rem 0.75rem;font-size:0.72rem;color:#888">${user}</td>
+        <td style="padding:0.5rem 0.75rem;font-size:0.68rem;color:#aaa;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.stack || ''}">${stack}</td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:1rem;color:#b91c1c;font-size:0.82rem">Erro ao carregar logs: ${e.message}</td></tr>`;
+  }
+}
+
+// Limpar todos os logs (mantém apenas últimos 7 dias)
+async function limparLogsAntigos() {
+  if (!confirm('Apagar todos os logs com mais de 7 dias?')) return;
+  try {
+    const limite = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { error } = await supabaseClient
+      .from('logs_erros')
+      .delete()
+      .lt('criado_em', limite);
+    if (error) throw error;
+    alert('Logs antigos removidos.');
+    carregarLogsAdmin();
+  } catch (e) {
+    alert('Erro: ' + e.message);
+  }
+}
+
+/* ── Eventos: Logs view ─────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Filtros disparam reload
+  ['filtroLogsTipo','filtroLogsPagina'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', () => {
+      if (document.getElementById('viewLogs')?.classList.contains('admin-view--hidden') === false) {
+        carregarLogsAdmin();
+      }
+    });
+  });
+  document.getElementById('btnRecarregarLogs')?.addEventListener('click', carregarLogsAdmin);
+  document.getElementById('btnLimparLogs')?.addEventListener('click', limparLogsAntigos);
+});
