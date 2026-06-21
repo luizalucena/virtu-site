@@ -807,13 +807,35 @@ footer {
   box-shadow: var(--lux-shadow-hover);
 }
 
-/* Mobile menu drawer */
-.mobile-menu,
-[class*="mobile-nav"],
-[class*="menu-drawer"] {
+/* Mobile menu drawer — apenas o painel deslizante, NÃO o wrapper transparent
+   ATENÇÃO: .mobile-menu é um wrapper fixed 100% de tela com pointer-events:none.
+   Nunca aplicar background nele — tornaria um véu escuro cobrindo toda a página.
+   O background vai somente no __drawer (o painel que desliza pela esquerda). */
+.mobile-menu__drawer {
   background: var(--lux-petrol);
   border-radius: 0;
   box-shadow: 4px 0 40px rgba(0,0,0,0.3);
+}
+
+/* Texto do drawer em branco — fundo é escuro */
+.mobile-menu__link {
+  color: rgba(255,255,255,0.80);
+  border-bottom-color: rgba(255,255,255,0.08);
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+.mobile-menu__link:hover {
+  color: var(--lux-gold);
+}
+
+.mobile-menu__close svg {
+  stroke: rgba(255,255,255,0.7);
+}
+
+.mobile-menu__close:hover svg {
+  stroke: var(--lux-white);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -896,14 +918,10 @@ hr,
     max-width: 100vw;
   }
 
-  /* Mobile menu: entra pela esquerda com ease luxury */
-  .mobile-menu {
-    transform: translateX(-100%);
+  /* Mobile menu drawer: transição de entrada com ease luxury
+     (o wrapper .mobile-menu é transparent e não recebe transform — o __drawer já tem o seu) */
+  .mobile-menu__drawer {
     transition: transform 0.35s var(--lux-ease);
-  }
-
-  .mobile-menu--open {
-    transform: translateX(0);
   }
 
   /* Product card name: ligeiramente menor */
