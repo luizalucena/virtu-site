@@ -390,14 +390,22 @@ p, li, td, th, label,
   border-bottom: 1px solid var(--lux-ice-border);
 }
 
-/* Logo text: Cormorant Garamond RETO (não itálico), petróleo profundo */
-.navbar__logo-text {
+/* Logo text: Cormorant Garamond RETO (não itálico), petróleo profundo
+   !important necessário para bater qualquer herança de display-italic / font-style */
+.navbar__logo-text,
+.mobile-menu__header .navbar__logo-text {
   font-family: var(--font-display);
-  font-style: normal;          /* reto — sem itálico */
+  font-style: normal !important;   /* reto — sem itálico em nenhum contexto */
   font-weight: 400;
   letter-spacing: 0.22em;
   font-size: 1.1rem;
   color: var(--lux-petrol);
+}
+
+/* No drawer escuro o texto precisa ser branco */
+.mobile-menu__header .navbar__logo-text {
+  color: var(--lux-white);
+  font-size: 1.2rem;
 }
 
 /* Navbar links: tracking generoso, cor escura sobre fundo claro */
