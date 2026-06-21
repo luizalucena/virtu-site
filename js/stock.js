@@ -180,11 +180,21 @@ const VirtuStock = (() => {
 
   function selecionarTamanho(tamanho) {
     _tamSelecionado = tamanho;
-    _corSelecionada = null;  // reset da cor ao trocar de tamanho
+    // NÃO reseta _corSelecionada — a cor permanece ativa ao trocar de tamanho.
+    // Se o tamanho selecionado estiver esgotado para a cor atual, atualizarUI()
+    // mostra a tarja de esgotado e o botão fica inativo (sem precisar resetar a cor).
   }
 
   function selecionarCor(corNome) {
     _corSelecionada = corNome;
+    // Se o tamanho previamente selecionado não está disponível para a nova cor,
+    // limpa a seleção para evitar estado "selecionado + esgotado" confuso.
+    if (_tamSelecionado) {
+      const tamDisponivelNaCor = [..._variacoes.values()].some(
+        v => v.tamanho === _tamSelecionado && v.cor_nome === corNome && v.estoque > 0
+      );
+      if (!tamDisponivelNaCor) _tamSelecionado = null;
+    }
   }
 
   /* ── 5. COMPRA ATÓMICA ──────────────────────────────────── */
