@@ -89,6 +89,9 @@ const VirtuProducts = (() => {
 
   /* ── RENDERIZA UM CARD ───────────────────── */
   function renderCard(produto, opts = {}) {
+    // opts.index: posição na lista (0-based) — primeiros 4 items carregam eager
+    // para melhorar o LCP (Largest Contentful Paint) no Google PageSpeed.
+    const eagerLoad = typeof opts.index === 'number' && opts.index < 4;
     const { preco_original, preco_desconto, badge, nome, categoria,
             imagem_url, imagem_placeholder, id, cores } = produto;
 
@@ -118,31 +121,33 @@ const VirtuProducts = (() => {
     // Para imagens no Supabase Storage → usa o endpoint render/image que
     // converte automaticamente para WebP e serve no tamanho certo.
     // Para Google Drive (lh3.googleusercontent.com) → URL normal com lazy.
-    function _buildImgTag(url) {
+    function _buildImgTag(url, eager) {
       if (!url) return '';
-      const errFallback = `this.style.display='none';this.parentElement.style.background='${placeholderBg}'`;
+      const loadAttr     = eager ? 'eager'  : 'lazy';
+      const priorityAttr = eager ? ' fetchpriority="high"' : '';
+      const errFallback  = `this.style.display='none';this.parentElement.style.background='${placeholderBg}'`;
       // Detecta Supabase Storage: .../storage/v1/object/public/...
       const supaMatch = url.match(/^(https:\/\/[^/]+\.supabase\.co)\/storage\/v1\/object\/public\/(.+)$/);
       if (supaMatch) {
         const [, origin, path] = supaMatch;
         const base = `${origin}/storage/v1/render/image/public/${path}`;
         // Gera srcset em 3 breakpoints com WebP + qualidade otimizada
-        const s400 = `${base}?width=400&quality=75&format=webp`;
-        const s800 = `${base}?width=800&quality=80&format=webp`;
+        const s400  = `${base}?width=400&quality=75&format=webp`;
+        const s800  = `${base}?width=800&quality=80&format=webp`;
         const s1200 = `${base}?width=1200&quality=85&format=webp`;
         return `<img src="${url}" srcset="${s400} 400w, ${s800} 800w, ${s1200} 1200w"
           sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, (max-width: 1280px) 22vw, 18vw"
           alt="${nome}" class="product-card__img"
-          loading="lazy" decoding="async"
+          loading="${loadAttr}" decoding="async"${priorityAttr}
           onerror="${errFallback}">`;
       }
-      // URL externa (Google Drive, lh3, etc.) — lazy loading simples
+      // URL externa (Google Drive, lh3, etc.)
       return `<img src="${url}" alt="${nome}" class="product-card__img"
-        loading="lazy" decoding="async"
+        loading="${loadAttr}" decoding="async"${priorityAttr}
         onerror="${errFallback}">`;
     }
 
-    const imgHtml    = _buildImgTag(imgUrl);
+    const imgHtml    = _buildImgTag(imgUrl, eagerLoad);
     const wrapStyle  = imgUrl ? '' : `style="background:${placeholderBg}"`;
 
     // ── SEGUNDA IMAGEM: crossfade no hover ────────────────────
@@ -262,7 +267,7 @@ const VirtuProducts = (() => {
       return;
     }
 
-    container.innerHTML = lista.map(p => renderCard(p)).join('');
+    container.innerHTML = lista.map((p, i) => renderCard(p, { index: i })).join('');
     initCardEvents(container);
     return lista;
   }
@@ -280,7 +285,7 @@ const VirtuProducts = (() => {
     if (filtros.destaque) lista = lista.filter(p => p.destaque);
     if (filtros.limite)   lista = lista.slice(0, filtros.limite);
 
-    container.innerHTML = lista.map(p => renderCard(p)).join('');
+    container.innerHTML = lista.map((p, i) => renderCard(p, { index: i })).join('');
     initCardEvents(container);
   }
 

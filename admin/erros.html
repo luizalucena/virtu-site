@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Erros em Produção — Virtù Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    .err-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      align-items: center;
+    }
+    .err-filter-bar select,
+    .err-filter-bar input[type="date"] {
+      border: 1px solid var(--border, #e8e3dc);
+      border-radius: 4px;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      color: var(--navy, #2b3f54);
+      background: #faf9f7;
+    }
+    .err-filter-bar select:focus,
+    .err-filter-bar input:focus {
+      outline: none;
+      border-color: var(--navy, #2b3f54);
+    }
+    .err-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .err-stat {
+      background: #fff;
+      border: 1px solid var(--border, #e8e3dc);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+    }
+    .err-stat__label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-light, #9e9690);
+      margin: 0 0 0.25rem;
+    }
+    .err-stat__value {
+      font-size: 1.85rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: var(--navy, #2b3f54);
+      font-weight: 500;
+      line-height: 1;
+    }
+    .err-stat__value--warn { color: #B45309; }
+    .err-stat__value--crit { color: #991B1B; }
+    .err-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .err-table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .err-table th {
+      background: var(--navy, #2b3f54);
+      color: rgba(255,255,255,.85);
+      padding: 0.65rem 1rem;
+      text-align: left;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .err-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border, #e8e3dc);
+      vertical-align: top;
+      max-width: 0;
+    }
+    .err-table tr:last-child td { border-bottom: none; }
+    .err-table tr:hover td { background: #faf9f7; }
+    .err-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .err-badge--js_error        { background: #FEF2F2; color: #991B1B; }
+    .err-badge--promise_rejection { background: #FFF7ED; color: #B45309; }
+    .err-badge--capturado       { background: #EFF6FF; color: #1E40AF; }
+    .err-badge--outro           { background: #F5F5F5; color: #666; }
+    .err-mensagem {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 300px;
+      cursor: pointer;
+      color: #4A4440;
+    }
+    .err-mensagem:hover { text-decoration: underline; }
+    .err-pagina {
+      font-family: monospace;
+      font-size: 0.72rem;
+      color: #9e9690;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+    .err-stack-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(11,19,43,.6);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .err-stack-modal.open { display: flex; }
+    .err-stack-box {
+      background: #fff;
+      border-radius: 8px;
+      max-width: 760px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: auto;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .err-stack-close {
+      position: absolute;
+      top: 0.75rem;
+      right: 1rem;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: #9e9690;
+      background: none;
+      border: none;
+      line-height: 1;
+    }
+    .err-stack-close:hover { color: #2b3f54; }
+    .err-stack-pre {
+      font-family: monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #2b3f54;
+      margin-top: 1rem;
+      background: #F7F6F4;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+    .err-empty {
+      text-align: center;
+      padding: 3rem;
+      color: #aaa;
+      font-size: 0.88rem;
+    }
+    .err-btn-limpar {
+      margin-left: auto;
+      background: #FEF2F2;
+      color: #991B1B;
+      border: 1px solid #FCA5A5;
+      border-radius: 4px;
+      padding: 0.45rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.06em;
+    }
+    .err-btn-limpar:hover { background: #fee2e2; }
+    .err-btn-refresh {
+      background: var(--navy, #2b3f54);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.45rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .err-btn-refresh:hover { background: #1e2e3e; }
+    @media (max-width: 768px) {
+      .err-filter-bar { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      <span class="admin-sidebar__virtu">VIRTÙ</span>
+      <span class="admin-sidebar__tag">Admin</span>
+    </div>
+    <nav class="admin-sidebar__nav">
+      <a href="index.html"      class="admin-nav-btn" style="text-decoration:none">📦 Produtos</a>
+      <a href="financeiro.html" class="admin-nav-btn" style="text-decoration:none">💰 Financeiro</a>
+      <a href="cupons.html"     class="admin-nav-btn" style="text-decoration:none">🏷️ Cupons</a>
+      <a href="carrinhos.html"  class="admin-nav-btn" style="text-decoration:none">🛒 Carrinhos</a>
+      <a href="bazar.html"      class="admin-nav-btn" style="text-decoration:none">👗 Bazar</a>
+      <a href="fidelidade.html" class="admin-nav-btn" style="text-decoration:none">✦ Desconto Auto</a>
+      <a href="erros.html"      class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">🔴 Erros</a>
+    </nav>
+    <div class="admin-sidebar__footer" id="sidebarUser" style="font-size:0.72rem;color:#aaa;padding:1rem"></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1 class="admin-topbar__title">Erros em Produção</h1>
+    </div>
+
+    <!-- Métricas ─────────────────────────────────────────────── -->
+    <div class="err-stats">
+      <div class="err-stat">
+        <p class="err-stat__label">Total (24h)</p>
+        <p class="err-stat__value err-stat__value--crit" id="stat24h">–</p>
+      </div>
+      <div class="err-stat">
+        <p class="err-stat__label">Erros JS</p>
+        <p class="err-stat__value err-stat__value--warn" id="statJs">–</p>
+      </div>
+      <div class="err-stat">
+        <p class="err-stat__label">Checkout</p>
+        <p class="err-stat__value err-stat__value--crit" id="statCheckout">–</p>
+      </div>
+      <div class="err-stat">
+        <p class="err-stat__label">Páginas únicas</p>
+        <p class="err-stat__value" id="statPaginas">–</p>
+      </div>
+    </div>
+
+    <!-- Filtros ──────────────────────────────────────────────── -->
+    <div class="err-filter-bar">
+      <select id="filtroTipo">
+        <option value="">Todos os tipos</option>
+        <option value="js_error">JS Error</option>
+        <option value="promise_rejection">Promise Rejection</option>
+        <option value="capturado">Capturado (try/catch)</option>
+      </select>
+      <select id="filtroPagina">
+        <option value="">Todas as páginas</option>
+      </select>
+      <input type="date" id="filtroData" title="Filtrar por data" />
+      <button class="err-btn-refresh" id="btnRefresh">↻ Atualizar</button>
+      <button class="err-btn-limpar" id="btnLimpar">🗑 Limpar Tudo</button>
+    </div>
+
+    <!-- Tabela ───────────────────────────────────────────────── -->
+    <div class="err-table-wrap">
+      <table class="err-table">
+        <thead>
+          <tr>
+            <th style="width:110px">Tipo</th>
+            <th>Mensagem</th>
+            <th>Página</th>
+            <th style="width:140px">Data/Hora</th>
+            <th style="width:80px">Linha</th>
+          </tr>
+        </thead>
+        <tbody id="errosBody">
+          <tr><td colspan="5" class="err-empty">Carregando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Modal stack trace ─────────────────────────────────────────── -->
+<div class="err-stack-modal" id="stackModal">
+  <div class="err-stack-box">
+    <button class="err-stack-close" id="stackClose">✕</button>
+    <p style="font-weight:600;font-size:0.88rem;color:#2b3f54" id="stackTitulo"></p>
+    <pre class="err-stack-pre" id="stackConteudo"></pre>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="erros.js"></script>
+</body>
+</html>

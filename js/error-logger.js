@@ -76,6 +76,26 @@
     return false; // não suprime o erro no console do dev
   };
 
+  // ── API pública: captura explícita em blocos try/catch ─────
+  // Uso em checkout.js, conta.js, etc.:
+  //   window.VirtuLog?.capturar('checkout_error', err, { pedido_id: '...' })
+  window.VirtuLog = {
+    capturar: function (contexto, erro, extra) {
+      var mensagem = erro instanceof Error ? erro.message : String(erro || contexto);
+      var stack    = erro instanceof Error && erro.stack ? String(erro.stack).slice(0, 2000) : null;
+      var extraStr = extra ? (' | ' + JSON.stringify(extra)).slice(0, 200) : '';
+      enviarErro({
+        tipo:       'capturado',
+        mensagem:   ('[' + String(contexto).slice(0, 60) + '] ' + mensagem + extraStr).slice(0, 500),
+        stack:      stack,
+        pagina:     window.location.pathname + window.location.search,
+        linha:      null,
+        coluna:     null,
+        user_agent: navigator.userAgent ? navigator.userAgent.slice(0, 300) : null,
+      });
+    },
+  };
+
   // ── unhandledrejection (Promises rejeitadas) ───────────────
   window.addEventListener('unhandledrejection', function (event) {
     var reason = event.reason;

@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) {
-      console.warn('[Desconto Virtù]', e);
+      window.VirtuLog?.capturar('desconto_virtù', e);
     }
 
     // Auto-aplica cupom validado no carrinho
@@ -760,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
     } catch (err) {
-      console.error('[Frete]', err);
+      window.VirtuLog?.capturar('calcular_frete', err);
       if (freteResult) freteResult.style.display = 'none';
       showFreteMsg('Erro ao calcular frete. Verifique o CEP e tente novamente.', 'error');
       freteCalculado = false;
@@ -1162,7 +1162,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       clearTimeout(timeoutId);
-      console.error('[Checkout]', err);
+      // Log para Supabase (visível no admin/erros.html)
+      window.VirtuLog?.capturar('finalizar_pedido', err, { page: window.location.search });
       btn.innerHTML = '🔒 Finalizar Pedido';
       btn.disabled  = false;
       const msg = err.name === 'AbortError'
@@ -1292,7 +1293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) {
-      console.warn('[Checkout] Erro ao carregar perfil:', e);
+      window.VirtuLog?.capturar('carregar_perfil_checkout', e);
     }
   })();
 
@@ -1324,7 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
           estado:      endereco?.estado      || null,
         }, { onConflict: 'id' });
     } catch (e) {
-      console.warn('[Checkout] Erro ao salvar perfil:', e);
+      window.VirtuLog?.capturar('salvar_perfil_checkout', e);
     }
   };
 });

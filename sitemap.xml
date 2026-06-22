@@ -1,39 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VIRTÙ — sitemap.xml (estático, páginas principais)
+  Atualizado: 2026-06-22
+
+  NOTA: Este ficheiro cobre apenas as páginas estáticas do site.
+  O sitemap dinâmico completo (com TODOS os produtos) é gerado em tempo
+  real pela Edge Function do Supabase e referenciado no robots.txt:
+    https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1/sitemap
+
+  O Google dá prioridade ao sitemap dinâmico para descobrir produtos.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://wearvirtu.com/</loc>
-    <lastmod>2026-06-18</lastmod>
+    <lastmod>2026-06-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://wearvirtu.com/catalogo.html</loc>
-    <lastmod>2026-06-18</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-06-22</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://wearvirtu.com/produto.html</loc>
-    <lastmod>2026-06-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://wearvirtu.com/sobre.html</loc>
-    <lastmod>2026-06-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://wearvirtu.com/contato.html</loc>
-    <lastmod>2026-06-18</lastmod>
+    <lastmod>2026-06-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://wearvirtu.com/politicas.html</loc>
-    <lastmod>2026-06-18</lastmod>
+    <loc>https://wearvirtu.com/contato.html</loc>
+    <lastmod>2026-06-22</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://wearvirtu.com/politicas.html</loc>
+    <lastmod>2026-06-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
