@@ -37,8 +37,8 @@ let freteCalculado        = false;          // flag: frete foi calculado com suc
 // ── ESTADO DO CUPOM ─────────────────────────────────────────
 let cupomAplicado = null; // { codigo, tipo, valor } ou null
 
-// ── PROGRAMA DE FIDELIDADE ───────────────────────────────────
-let descontoFidelidade = 0;    // R$150 quando aplicável na 10ª compra
+// ── DESCONTO AUTOMÁTICO VIRTÙ (pedidos acima de R$1.000) ────────
+let descontoFidelidade = 0;    // R$100 aplicado automaticamente quando subtotal ≥ R$1.000
 let currentUserId      = null; // UUID do usuário autenticado
 
 // ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────
@@ -212,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const temCupom      = cupomAplicado && cupomAplicado.tipo !== 'frete';
       const temFidelidade = descontoFidelidade > 0;
       if (temCupom && temFidelidade) {
-        label = `Descontos (${cupomAplicado.codigo} + Fidelidade 🎁)`;
+        label = `Descontos (${cupomAplicado.codigo} + Virtù ✦)`;
       } else if (temCupom) {
         label = `Desconto (${cupomAplicado.codigo})`;
       } else if (temFidelidade) {
-        label = 'Desconto Fidelidade 🎁';
+        label = 'Desconto Virtù ✦';
       }
       if (descontoLabel) descontoLabel.textContent = label;
       if (descontoEl)    descontoEl.textContent     = `−${formatCurrency(totalDesc)}`;
@@ -459,84 +459,63 @@ document.addEventListener('DOMContentLoaded', () => {
     renderOrderSummary(getCart());
     await initCupom(); // campo de cupom no resumo do pedido
 
-    // Busca status de fidelidade da cliente autenticada
+    // ── DESCONTO AUTOMÁTICO: pedidos ≥ R$1.000 ganham R$100 ──────
     try {
       if (typeof supabaseClient !== 'undefined') {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        if (user) {
-          currentUserId = user.id;
+        if (user) currentUserId = user.id;
 
-          const { data: fid } = await supabaseClient
-            .rpc('fidelidade_status', { p_user_id: user.id });
+        // Busca a configuração do desconto (valor_minimo_premio e valor_desconto)
+        const { data: fidCfg } = await supabaseClient
+          .from('config_fidelidade')
+          .select('valor_desconto, valor_minimo_premio, ativo')
+          .eq('id', 1)
+          .single();
 
-          if (fid) {
-            const compras = fid.compras_pagas ?? 0;
-            const restam  = fid.restam_para_100 ?? (10 - compras % 10);
+        const FID_ATIVO   = fidCfg?.ativo ?? true;
+        const FID_MINIMO  = Number(fidCfg?.valor_minimo_premio ?? 1000);
+        const FID_DESCONTO= Number(fidCfg?.valor_desconto      ?? 100);
 
-            // Injeta banner de fidelidade acima do resumo do pedido
-            const summaryEl = document.getElementById('checkoutOrderSummary') ||
-                              document.querySelector('.checkout-order-summary') ||
-                              document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
+        if (FID_ATIVO && baseTotal >= FID_MINIMO) {
+          descontoFidelidade = FID_DESCONTO;
+          updateTotalWithFrete(freteValorSelecionado);
 
-            // Valores do programa (usa os do DB se disponíveis, senão fallback)
-            const FIDVAL = Number(fid.valor_desconto      ?? 150);
-            const FIDMIN = Number(fid.valor_minimo_premio ?? 499);
-
-            if (summaryEl && restam > 0) {
-              const pct = Math.min(100, ((compras % 10) / 10) * 100);
-
-              // Monta mensagem diferenciada para 10ª compra (com verificação de mínimo)
-              let msg;
-              let bannerBg    = '#EFF6FF';
-              let bannerBdr   = '#BFDBFE';
-              let bannerTxt   = '#1E40AF';
-              let barColor    = '#3B82F6';
-
-              if (restam === 1 && compras % 10 === 9) {
-                if (baseTotal >= FIDMIN) {
-                  // Qualificada: aplica desconto
-                  msg      = `🎁 Esta é sua <strong>10ª compra</strong>! <strong>R$${FIDVAL} de desconto</strong> aplicado automaticamente!`;
-                  bannerBg  = '#D1FAE5'; bannerBdr = '#6EE7B7';
-                  bannerTxt = '#065F46'; barColor  = '#059669';
-                } else {
-                  // Pedido mínimo não atingido
-                  const falta = (FIDMIN - baseTotal).toFixed(2).replace('.', ',');
-                  msg      = `🎁 Esta é sua <strong>10ª compra</strong>! Adicione mais <strong>R$ ${falta}</strong> em produtos para ganhar <strong>R$${FIDVAL} de desconto de fidelidade</strong> (mín. R$${FIDMIN}).`;
-                  bannerBg  = '#FEF3C7'; bannerBdr = '#FDE68A';
-                  bannerTxt = '#92400E'; barColor  = '#F59E0B';
-                }
-              } else {
-                msg = `🏅 Programa Fidelidade — <strong>${compras % 10}/10 compras</strong>. Faltam <strong>${restam}</strong> para R$${FIDVAL} de desconto! (mín. R$${FIDMIN})`;
-              }
-
-              const banner = document.createElement('div');
-              banner.id = 'fidelidadeBanner';
-              banner.style.cssText = `
-                background:${bannerBg};border:1px solid ${bannerBdr};
-                border-radius:4px;padding:10px 14px;font-size:0.82rem;
-                color:${bannerTxt};margin-bottom:12px;line-height:1.5;
-              `;
-              banner.innerHTML = `<div>${msg}</div>
-                <div style="background:#E5E7EB;border-radius:100px;height:4px;margin-top:8px;overflow:hidden">
-                  <div style="background:${barColor};height:100%;width:${pct}%;transition:width 0.4s"></div>
-                </div>`;
-              summaryEl.insertAdjacentElement('beforebegin', banner);
-            }
-
-            // Esta é a 10ª compra → aplica R$150 (somente se mínimo R$499 atingido)
-            if (restam === 1 && compras > 0 && compras % 10 === 9) {
-              if (baseTotal >= FIDMIN) {
-                descontoFidelidade = FIDVAL;
-                updateTotalWithFrete(freteValorSelecionado);
-              }
-              // Se não atingir mínimo: desconto não aplicado; DB também reverterá
-              // o contador quando processar-pagamento chamar registrar_compra_fidelidade
-            }
+          // Banner informativo (desconto já aplicado)
+          const summaryEl = document.getElementById('checkoutOrderSummary') ||
+                            document.querySelector('.checkout-order-summary') ||
+                            document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
+          if (summaryEl && !document.getElementById('fidelidadeBanner')) {
+            const banner = document.createElement('div');
+            banner.id = 'fidelidadeBanner';
+            banner.style.cssText = `
+              background:#D1FAE5;border:1px solid #6EE7B7;
+              border-radius:4px;padding:10px 14px;font-size:0.82rem;
+              color:#065F46;margin-bottom:12px;line-height:1.5;
+            `;
+            banner.innerHTML = `✦ Pedido acima de R$${FID_MINIMO.toLocaleString('pt-BR')} — <strong>R$${FID_DESCONTO.toFixed(0)} de desconto Virtù aplicado!</strong>`;
+            summaryEl.insertAdjacentElement('beforebegin', banner);
+          }
+        } else if (FID_ATIVO && baseTotal < FID_MINIMO) {
+          // Mostra quanto falta para ganhar o desconto
+          const summaryEl = document.getElementById('checkoutOrderSummary') ||
+                            document.querySelector('.checkout-order-summary') ||
+                            document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
+          if (summaryEl && !document.getElementById('fidelidadeBanner')) {
+            const falta = (FID_MINIMO - baseTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            const banner = document.createElement('div');
+            banner.id = 'fidelidadeBanner';
+            banner.style.cssText = `
+              background:#F5F2EE;border:1px solid #E2DDD7;
+              border-radius:4px;padding:10px 14px;font-size:0.82rem;
+              color:#6E6660;margin-bottom:12px;line-height:1.5;
+            `;
+            banner.innerHTML = `✦ Adicione mais <strong>R$&nbsp;${falta}</strong> em produtos e ganhe <strong>R$${FID_DESCONTO.toFixed(0)} de desconto automático</strong>.`;
+            summaryEl.insertAdjacentElement('beforebegin', banner);
           }
         }
       }
     } catch (e) {
-      console.warn('[Fidelidade]', e);
+      console.warn('[Desconto Virtù]', e);
     }
 
     // Auto-aplica cupom validado no carrinho

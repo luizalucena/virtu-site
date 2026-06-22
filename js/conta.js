@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Perfil complementar (CPF, WhatsApp)
       const { data: perfil } = await supabaseClient
         .from('clientes_perfil')
-        .select('cpf, whatsapp, compras_pagas')
+        .select('cpf, whatsapp')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -539,24 +539,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cpfEl.placeholder = maskCpf(perfil.cpf) + '  (deixe em branco para manter)';
       }
       if (dadosTel && perfil?.whatsapp && !dadosTel.value) dadosTel.value = perfil.whatsapp;
-
-      // Teaser de fidelidade no viewDados (mini barra)
-      const compras   = perfil?.compras_pagas ?? 0;
-      const meta      = 10; // fallback — a view completa usa o RPC com meta real
-      const progresso = compras % meta;
-      const pct       = (progresso / meta) * 100;
-      const teaser    = document.getElementById('fidelidadeTeaserDados');
-      const teaserMsg = document.getElementById('fidelidadeTeaserMsg');
-      const teaserBar = document.getElementById('fidelidadeTeaserBar');
-      if (teaser) {
-        teaser.style.display = 'flex';
-        if (teaserMsg) {
-          teaserMsg.textContent = progresso === meta - 1
-            ? '🎁 Próxima compra = R$150 de desconto! (pedido mín. R$499)'
-            : `${progresso} de ${meta} compras concluídas`;
-        }
-        if (teaserBar) teaserBar.style.width = `${pct}%`;
-      }
     } catch (e) {
       console.warn('[Conta] Erro ao carregar perfil:', e);
     }
@@ -575,121 +557,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ── TELA DE FIDELIDADE COMPLETA ──────────────────────────────
+  // ── TELA DE BENEFÍCIO VIRTÙ (desconto automático por pedido) ──
   async function loadFidelidade() {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
-
-    try {
-      // ── Progresso via RPC fidelidade_status ──────────────
-      const { data: fid, error: fidErr } = await supabaseClient
-        .rpc('fidelidade_status', { p_user_id: user.id });
-
-      if (!fidErr && fid) {
-        const compras    = fid.compras_pagas  ?? 0;
-        const meta       = fid.meta_compras   ?? 10;
-        const progresso  = fid.progresso      ?? (compras % meta);
-        const restam     = fid.restam_para_100 ?? (meta - progresso);
-        const pct        = meta > 0 ? (progresso / meta) * 100 : 0;
-        // fidelidade_status retorna campos planos: tem_premio_ativo, premio_codigo, premio_expira
-        const premioAtivo= fid.tem_premio_ativo
-          ? { codigo: fid.premio_codigo, expira_em: fid.premio_expira }
-          : null;
-
-        // Atualiza card de progresso
-        const bar    = document.getElementById('fidelBar');
-        const numEl  = document.getElementById('fidelComprasNum');
-        const metaEl = document.getElementById('fidelMeta');
-        const label  = document.getElementById('fidelStatusLabel');
-        const sub    = document.getElementById('fidelSubtitle');
-
-        if (bar)    bar.style.width    = `${Math.min(pct, 100)}%`;
-        if (numEl)  numEl.textContent  = progresso;
-        if (metaEl) metaEl.textContent = meta;
-
-        if (label) {
-          if (premioAtivo) {
-            label.textContent  = '🏆 Prêmio desbloqueado!';
-            label.style.color  = '#C4934A';
-          } else if (restam === 1) {
-            label.textContent  = '⭐ Falta só 1 compra para o prêmio!';
-            label.style.color  = '#2B3F54';
-          } else {
-            label.textContent  = restam === 0
-              ? 'Ciclo completo!'
-              : `Faltam ${restam} compra${restam !== 1 ? 's' : ''} para R$${(fid.valor_desconto ?? 150).toFixed(0)} de desconto`;
-            label.style.color  = '#2B3F54';
-          }
-        }
-
-        if (sub) {
-          sub.textContent = compras === 0
-            ? 'Faça sua primeira compra para começar a acumular!'
-            : `Total histórico: ${compras} compra${compras !== 1 ? 's' : ''} confirmada${compras !== 1 ? 's' : ''}.`;
-        }
-
-        // Renderiza steps (bolinhas numeradas)
-        const stepsEl = document.getElementById('fidelSteps');
-        if (stepsEl) {
-          const step = Math.max(1, Math.floor(meta / 5)); // máximo 10 marcadores
-          const marks = [];
-          for (let i = step; i <= meta; i += step) marks.push(i);
-          if (!marks.includes(meta)) marks.push(meta);
-          stepsEl.innerHTML = marks.map(m => {
-            const done = progresso >= m;
-            const isGoal = m === meta;
-            return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-              <div style="width:${isGoal?26:20}px;height:${isGoal?26:20}px;border-radius:50%;
-                background:${done ? (isGoal ? '#C4934A' : '#2B3F54') : '#F0EDE8'};
-                border:2px solid ${done ? (isGoal ? '#C4934A' : '#2B3F54') : '#E2DDD7'};
-                display:flex;align-items:center;justify-content:center;
-                font-size:${isGoal?'0.65':'0.6'}rem;font-weight:600;
-                color:${done?'#fff':'#AFA99F'};transition:all .4s">
-                ${isGoal ? '🎁' : m}
-              </div>
-              ${isGoal ? `<span style="font-size:0.6rem;color:#C4934A;font-weight:600">PRÊMIO</span>` : ''}
-            </div>`;
-          }).join('');
-        }
-
-        // Badge na nav (aparece se há prêmio ativo)
-        const badge = document.getElementById('fidelidadeBadge');
-        if (badge) badge.style.display = premioAtivo ? 'inline-block' : 'none';
-
-        // Card de prêmio ativo
-        const premioCard = document.getElementById('fidelPremioCard');
-        if (premioCard) {
-          if (premioAtivo) {
-            premioCard.style.display = 'block';
-            const codigoEl  = document.getElementById('fidelCodigoText');
-            const expiraEl  = document.getElementById('fidelPremioExpira');
-            const valorEl   = document.getElementById('fidelPremioValor');
-            if (codigoEl)  codigoEl.textContent  = premioAtivo.codigo;
-            if (expiraEl)  expiraEl.textContent  = fmtDataCurta(premioAtivo.expira_em);
-            if (valorEl)   valorEl.textContent   = Number(fid.valor_desconto ?? 150).toFixed(0);
-
-            // Função global para copiar cupom (chamada pelo botão inline)
-            window.copiarCupomFidelidade = async function () {
-              try {
-                await navigator.clipboard.writeText(premioAtivo.codigo);
-                const msg = document.getElementById('fidelCopiaMsg');
-                if (msg) { msg.style.opacity = '1'; setTimeout(() => msg.style.opacity = '0', 2500); }
-                const btn = document.getElementById('fidelCopiaCupom');
-                if (btn) { btn.style.background = 'rgba(168,213,162,.25)'; setTimeout(() => btn.style.background = 'rgba(196,147,74,.15)', 1800); }
-              } catch {
-                prompt('Copie o código:', premioAtivo.codigo);
-              }
-            };
-          } else {
-            premioCard.style.display = 'none';
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[Fidelidade] Erro ao carregar status:', e);
-    }
-
-    // ── Histórico de pedidos para a view de fidelidade ────
+    // O card de benefício é estático no HTML — não precisa de chamada ao DB.
+    // Carrega apenas o histórico de pedidos da cliente.
     await loadHistoricoFidelidade(user);
   }
 

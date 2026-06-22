@@ -4,12 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Fidelidade — Virtù Admin</title>
+  <title>Desconto Automático — Virtù Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="admin.css" />
   <style>
-    /* ── FIDELIDADE ADMIN ─────────────────────────────────── */
     .fid-section {
       background: #fff;
       border: 1px solid var(--border, #e8e3dc);
@@ -57,8 +56,6 @@
       color: var(--text-light, #9e9690);
       margin-top: 0.2rem;
     }
-
-    /* Config form */
     .fid-form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -74,8 +71,7 @@
       color: var(--text-light, #9e9690);
       margin-bottom: 0.4rem;
     }
-    .fid-field input,
-    .fid-field textarea {
+    .fid-field input {
       width: 100%;
       box-sizing: border-box;
       border: 1px solid var(--border, #e8e3dc);
@@ -87,18 +83,11 @@
       background: #faf9f7;
       transition: border-color 0.15s;
     }
-    .fid-field input:focus,
-    .fid-field textarea:focus {
+    .fid-field input:focus {
       outline: none;
       border-color: var(--navy, #2b3f54);
       background: #fff;
     }
-    .fid-field textarea {
-      resize: vertical;
-      min-height: 100px;
-      line-height: 1.6;
-    }
-    .fid-field--full { grid-column: 1 / -1; }
     .fid-field small {
       display: block;
       font-size: 0.67rem;
@@ -106,8 +95,6 @@
       margin-top: 4px;
       line-height: 1.5;
     }
-
-    /* Botões */
     .fid-btn-save {
       background: var(--navy, #2b3f54);
       color: #fff;
@@ -123,7 +110,6 @@
     }
     .fid-btn-save:hover { background: #1e2e3e; }
     .fid-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-
     .fid-msg {
       display: none;
       font-size: 0.82rem;
@@ -133,15 +119,33 @@
     }
     .fid-msg--ok  { background: #ECFDF5; color: #065F46; display: block; }
     .fid-msg--err { background: #FEF2F2; color: #991B1B; display: block; }
-
-    /* Tabelas */
-    .fid-table-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+    .fid-regra-preview {
+      background: linear-gradient(135deg, #0B132B 0%, #2B3F54 100%);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
     }
+    .fid-regra-preview__valor {
+      font-size: 2rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      color: #E8D5B5;
+      line-height: 1;
+    }
+    .fid-regra-preview__desc {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,.75);
+      line-height: 1.6;
+    }
+    .fid-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .fid-table {
       width: 100%;
-      min-width: 600px;
+      min-width: 500px;
       border-collapse: collapse;
       font-size: 0.82rem;
     }
@@ -163,47 +167,6 @@
     }
     .fid-table tr:last-child td { border-bottom: none; }
     .fid-table tr:hover td { background: #faf9f7; }
-
-    .fid-progress-bar {
-      background: #f0ede8;
-      border-radius: 100px;
-      height: 6px;
-      overflow: hidden;
-      min-width: 80px;
-    }
-    .fid-progress-bar__fill {
-      background: linear-gradient(90deg, #2b3f54, #c4934a);
-      height: 100%;
-      border-radius: 100px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 0.68rem;
-      font-weight: 600;
-    }
-    .badge--ativo    { background: #ECFDF5; color: #065F46; }
-    .badge--expirado { background: #FEF2F2; color: #991B1B; }
-    .badge--usado    { background: #EFF6FF; color: #1D4ED8; }
-
-    .cron-info {
-      background: #f0ede8;
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      font-size: 0.78rem;
-      color: #6e6660;
-      line-height: 1.6;
-    }
-    .cron-info code {
-      background: #e2ddd7;
-      border-radius: 3px;
-      padding: 1px 5px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.85em;
-    }
-
     @media (max-width: 768px) {
       .fid-section { padding: 1.25rem; }
       .fid-form-grid { grid-template-columns: 1fr; }
@@ -213,7 +176,6 @@
 <body>
 
 <div class="admin-layout">
-  <!-- Sidebar ──────────────────────────────────────── -->
   <aside class="admin-sidebar">
     <div class="admin-sidebar__logo">
       <span class="admin-sidebar__virtu">VIRTÙ</span>
@@ -225,130 +187,92 @@
       <a href="cupons.html"     class="admin-nav-btn" style="text-decoration:none">🏷️ Cupons</a>
       <a href="carrinhos.html"  class="admin-nav-btn" style="text-decoration:none">🛒 Carrinhos</a>
       <a href="bazar.html"      class="admin-nav-btn" style="text-decoration:none">👗 Bazar</a>
-      <a href="fidelidade.html" class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">⭐ Fidelidade</a>
+      <a href="fidelidade.html" class="admin-nav-btn admin-nav-btn--active" style="text-decoration:none">✦ Desconto Auto</a>
     </nav>
     <div class="admin-sidebar__footer" id="sidebarUser" style="font-size:0.72rem;color:#aaa;padding:1rem"></div>
   </aside>
 
-  <!-- Conteúdo ─────────────────────────────────────── -->
   <main class="admin-main">
     <div class="admin-topbar">
-      <h1 class="admin-topbar__title">Programa de Fidelidade</h1>
-      <div style="display:flex;align-items:center;gap:0.75rem">
-        <span id="statusAtivo" style="font-size:0.75rem;color:#9e9690"></span>
-        <button id="btnExpirarManual" class="fid-btn-save" style="background:#6e6660;padding:0.5rem 1.2rem;font-size:0.75rem" title="Executa fn_expirar_premios() manualmente">⚡ Expirar agora</button>
+      <h1 class="admin-topbar__title">Desconto Automático por Pedido</h1>
+    </div>
+
+    <!-- Preview da regra ──────────────────────────── -->
+    <div class="fid-regra-preview">
+      <div>
+        <p style="font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#C4934A;margin:0 0 6px">✦ Regra Ativa</p>
+        <p class="fid-regra-preview__valor">R$<span id="previewDesconto">100</span> de desconto</p>
+        <p class="fid-regra-preview__desc">em pedidos acima de <strong style="color:#E8D5B5">R$<span id="previewMinimo">1.000</span></strong><br>aplicado automaticamente no checkout, sem código</p>
+      </div>
+      <div style="margin-left:auto;background:rgba(196,147,74,.15);border:1px solid rgba(196,147,74,.4);border-radius:4px;padding:0.75rem 1.25rem;text-align:center">
+        <p style="font-size:0.65rem;color:#C4934A;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 4px">Status</p>
+        <p id="previewStatus" style="font-size:0.88rem;color:#E8D5B5;margin:0;font-weight:500">Ativo</p>
       </div>
     </div>
 
-    <!-- Métricas ────────────────────────────────────── -->
+    <!-- Métricas ──────────────────────────────────── -->
     <div class="fid-stats">
       <div class="fid-stat">
-        <p class="fid-stat__label">Clientes no programa</p>
+        <p class="fid-stat__label">Pedidos com desconto</p>
         <p class="fid-stat__value" id="statTotal">–</p>
+        <p class="fid-stat__sub">histórico completo</p>
       </div>
       <div class="fid-stat">
-        <p class="fid-stat__label">Prêmios emitidos</p>
-        <p class="fid-stat__value" id="statPremios">–</p>
-        <p class="fid-stat__sub" id="statPremiosSub"></p>
-      </div>
-      <div class="fid-stat">
-        <p class="fid-stat__label">Prêmios ativos</p>
-        <p class="fid-stat__value" id="statAtivos" style="color:#C4934A">–</p>
-      </div>
-      <div class="fid-stat">
-        <p class="fid-stat__label">Valor total emitido</p>
+        <p class="fid-stat__label">Total descontado</p>
         <p class="fid-stat__value" id="statValor" style="font-size:1.5rem">–</p>
+        <p class="fid-stat__sub">soma de todos os descontos</p>
+      </div>
+      <div class="fid-stat">
+        <p class="fid-stat__label">Último 30 dias</p>
+        <p class="fid-stat__value" id="stat30d" style="color:#C4934A">–</p>
+        <p class="fid-stat__sub">pedidos qualificados</p>
       </div>
     </div>
 
-    <!-- Configurações ───────────────────────────────── -->
+    <!-- Configuração ──────────────────────────────── -->
     <div class="fid-section">
-      <p class="fid-section__title">⚙️ Configurações do Programa</p>
-
+      <p class="fid-section__title">⚙️ Configuração da Regra</p>
       <form id="formConfig" novalidate>
         <div class="fid-form-grid">
           <div class="fid-field">
-            <label for="cfgMeta">Meta de compras</label>
-            <input type="number" id="cfgMeta" min="1" max="100" required value="10" />
-            <small>Número de compras confirmadas para ganhar o prêmio. Padrão: 10.</small>
+            <label for="cfgMinimo">Pedido mínimo (R$)</label>
+            <input type="number" id="cfgMinimo" min="1" step="0.01" required value="1000" />
+            <small>Subtotal acima deste valor ativa o desconto automático.</small>
           </div>
           <div class="fid-field">
             <label for="cfgValor">Valor do desconto (R$)</label>
-            <input type="number" id="cfgValor" min="1" max="9999" step="0.01" required value="100.00" />
-            <small>Valor em reais do cupom de desconto gerado. Padrão: R$100.</small>
-          </div>
-          <div class="fid-field">
-            <label for="cfgDias">Validade do prêmio (dias)</label>
-            <input type="number" id="cfgDias" min="1" max="365" required value="30" />
-            <small>Dias até o cupom expirar. Após expirar, o contador é zerado. Padrão: 30 dias.</small>
+            <input type="number" id="cfgValor" min="1" step="0.01" required value="100" />
+            <small>Valor fixo em reais deduzido do pedido.</small>
           </div>
           <div class="fid-field" style="align-self:end">
-            <label>Programa ativo</label>
+            <label>Regra ativa</label>
             <div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0">
-              <input type="checkbox" id="cfgAtivo" style="width:18px;height:18px;cursor:pointer;accent-color:var(--navy,#2b3f54)" />
+              <input type="checkbox" id="cfgAtivo" checked style="width:18px;height:18px;cursor:pointer;accent-color:var(--navy,#2b3f54)" />
               <span id="cfgAtivoLabel" style="font-size:0.82rem;color:#6e6660">Ativo</span>
             </div>
           </div>
-
-          <div class="fid-field fid-field--full">
-            <label for="cfgEmailTitulo">Assunto do e-mail de prêmio</label>
-            <input type="text" id="cfgEmailTitulo" placeholder="Ex: Parabéns! Você ganhou R$ 100 de desconto — Virtù" />
-            <small>Deixe em branco para usar o assunto padrão gerado automaticamente.</small>
-          </div>
         </div>
-
-        <button type="submit" class="fid-btn-save" id="btnSalvarConfig">Salvar Configurações</button>
+        <button type="submit" class="fid-btn-save" id="btnSalvarConfig">Salvar Configuração</button>
         <p id="configMsg" class="fid-msg"></p>
       </form>
     </div>
 
-    <!-- Agendamento automático ──────────────────────── -->
+    <!-- Pedidos recentes com desconto ─────────────── -->
     <div class="fid-section">
-      <p class="fid-section__title">🕐 Expiração Automática (pg_cron)</p>
-      <div class="cron-info">
-        <p style="margin:0 0 6px">A função <code>fn_expirar_premios()</code> é agendada automaticamente para rodar diariamente às <strong>03h00 (Recife)</strong> via <code>pg_cron</code>.</p>
-        <p style="margin:0 0 6px">O que ela faz: expira cupons vencidos → desativa o cupom no sistema → reseta o contador da cliente para 0.</p>
-        <p style="margin:0">Para ativar, habilite a extensão <code>pg_cron</code> em <strong>Supabase → Database → Extensions</strong>. A migration já agendou a rotina automaticamente se a extensão estiver ativa.</p>
-      </div>
-    </div>
-
-    <!-- Clientes em progresso ───────────────────────── -->
-    <div class="fid-section">
-      <p class="fid-section__title">👤 Clientes em Progresso</p>
+      <p class="fid-section__title">📋 Pedidos com Desconto Aplicado</p>
       <div class="fid-table-wrap">
-        <table class="fid-table" id="tblClientes">
+        <table class="fid-table" id="tblPedidos">
           <thead>
             <tr>
+              <th>Pedido</th>
               <th>Cliente</th>
-              <th>Compras ciclo atual</th>
-              <th>Progresso</th>
-              <th>Prêmio ativo</th>
-              <th>Total histórico</th>
-            </tr>
-          </thead>
-          <tbody id="tblClientesBody">
-            <tr><td colspan="5" style="text-align:center;color:#aaa;padding:2rem">Carregando…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Histórico de prêmios ─────────────────────────── -->
-    <div class="fid-section">
-      <p class="fid-section__title">🎁 Histórico de Prêmios</p>
-      <div class="fid-table-wrap">
-        <table class="fid-table" id="tblPremios">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Cliente</th>
-              <th>Gerado em</th>
-              <th>Expira em</th>
+              <th>Data</th>
+              <th>Total do Pedido</th>
+              <th>Desconto</th>
               <th>Status</th>
-              <th>Ciclo</th>
             </tr>
           </thead>
-          <tbody id="tblPremiosBody">
+          <tbody id="tblPedidosBody">
             <tr><td colspan="6" style="text-align:center;color:#aaa;padding:2rem">Carregando…</td></tr>
           </tbody>
         </table>
@@ -358,7 +282,6 @@
   </main>
 </div>
 
-<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="fidelidade.js"></script>
 </body>

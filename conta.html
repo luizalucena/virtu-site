@@ -251,7 +251,7 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
           Fidelidade
-          <span id="fidelidadeBadge" style="display:none;margin-left:auto;background:#C4934A;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:999px;font-weight:600;letter-spacing:0.04em">PRÊMIO</span>
+          
         </button>
 
         <button class="conta-nav__item" id="navDados">
@@ -295,58 +295,47 @@
 
       <!-- VIEW: Fidelidade ─────────────────────────────────── -->
       <div id="viewFidelidade" hidden>
-        <h2 class="conta-content__title">Programa de Fidelidade</h2>
-        <p class="conta-content__subtitle">Acumule compras e ganhe R$150 de desconto automático</p>
+        <h2 class="conta-content__title">Benefício Virtù</h2>
+        <p class="conta-content__subtitle">Desconto automático em pedidos acima de R$1.000</p>
 
-        <!-- Card de progresso ─────────────────────────────── -->
-        <div id="fidelProgressCard" style="background:#fff;border:1px solid #E8E3DC;border-radius:8px;padding:2rem;margin-bottom:1.5rem">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem">
-            <div>
-              <p style="font-size:0.68rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#9E9690;margin:0 0 4px">Nível de Fidelidade</p>
-              <p id="fidelStatusLabel" style="font-size:1.05rem;font-weight:600;color:#2B3F54;margin:0">Carregando…</p>
-            </div>
-            <div style="text-align:right">
-              <p style="font-size:0.68rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#9E9690;margin:0 0 4px">Compras confirmadas</p>
-              <p style="font-size:1.6rem;font-family:'Cormorant Garamond',Georgia,serif;color:#2B3F54;font-weight:500;margin:0">
-                <span id="fidelComprasNum">–</span><span style="font-size:1rem;color:#AFA99F"> / <span id="fidelMeta">10</span></span>
-              </p>
-            </div>
+        <!-- Card do benefício ──────────────────────────────── -->
+        <div style="background:linear-gradient(135deg,#0B132B 0%,#2B3F54 100%);border-radius:8px;padding:2rem;margin-bottom:1.5rem;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap">
+          <div>
+            <p style="font-size:0.65rem;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#C4934A;margin:0 0 8px">✦ Desconto Automático</p>
+            <p style="font-size:1.9rem;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;margin:0 0 4px;line-height:1.1">R$100 de desconto</p>
+            <p style="font-size:0.85rem;color:rgba(255,255,255,.7);margin:0">em pedidos acima de <strong style="color:#E8D5B5">R$1.000</strong></p>
           </div>
-
-          <!-- Barra de progresso com marcadores ──────────── -->
-          <div style="position:relative;margin-bottom:1rem">
-            <!-- Fundo da barra -->
-            <div style="background:#F0EDE8;border-radius:100px;height:8px;overflow:hidden">
-              <div id="fidelBar" style="background:linear-gradient(90deg,#2B3F54,#C4934A);height:100%;width:0%;transition:width 0.8s cubic-bezier(.4,0,.2,1);border-radius:100px"></div>
-            </div>
+          <div style="background:rgba(196,147,74,.15);border:1px solid rgba(196,147,74,.4);border-radius:6px;padding:1rem 1.5rem;text-align:center;min-width:140px">
+            <p style="font-size:0.65rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#C4934A;margin:0 0 4px">Aplicação</p>
+            <p style="font-size:0.85rem;color:#E8D5B5;margin:0;line-height:1.5">Automática<br><span style="font-size:0.75rem;color:rgba(255,255,255,.5)">sem código de cupom</span></p>
           </div>
-
-          <!-- Steps visuais ───────────────────────────────── -->
-          <div id="fidelSteps" style="display:flex;justify-content:space-between;margin-top:0.5rem;overflow:hidden"></div>
-
-          <p id="fidelSubtitle" style="font-size:0.78rem;color:#9E9690;margin:1rem 0 0;text-align:center;line-height:1.6"></p>
         </div>
 
-        <!-- Prêmio ativo (aparece quando há cupom disponível) -->
-        <div id="fidelPremioCard" style="display:none;background:linear-gradient(135deg,#1E2E3E 0%,#2B3F54 100%);border-radius:8px;padding:1.75rem 2rem;margin-bottom:1.5rem;color:#fff">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
-            <div>
-              <p style="font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#C4934A;margin:0 0 6px">🎁 Prêmio Desbloqueado</p>
-              <p style="font-size:1.15rem;font-weight:500;margin:0 0 4px">Você tem <strong>R$ <span id="fidelPremioValor">100</span> de desconto</strong></p>
-              <p style="font-size:0.78rem;color:rgba(255,255,255,.65);margin:0">Válido até <span id="fidelPremioExpira" style="color:#E8D5B5;font-weight:500"></span></p>
+        <!-- Como funciona ──────────────────────────────────── -->
+        <div style="background:#fff;border:1px solid #E8E3DC;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem">
+          <p style="font-size:0.68rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#9E9690;margin:0 0 1rem">Como funciona</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem">
+            <div style="display:flex;gap:0.75rem;align-items:flex-start">
+              <div style="width:32px;height:32px;border-radius:50%;background:#F0EDE8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.85rem">🛍️</div>
+              <div>
+                <p style="font-size:0.82rem;font-weight:600;color:#2B3F54;margin:0 0 2px">Adicione produtos</p>
+                <p style="font-size:0.75rem;color:#9E9690;margin:0;line-height:1.5">Monte seu carrinho com peças Virtù</p>
+              </div>
             </div>
-            <div style="text-align:center">
-              <p style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:0 0 6px">código do cupom</p>
-              <button id="fidelCopiaCupom" onclick="window.copiarCupomFidelidade()" style="background:rgba(196,147,74,.15);border:1px dashed #C4934A;border-radius:6px;color:#E8D5B5;padding:10px 20px;cursor:pointer;font-size:1rem;font-family:'Courier New',monospace;font-weight:700;letter-spacing:0.08em;transition:background .2s" title="Clique para copiar">
-                <span id="fidelCodigoText">–</span>
-                <svg style="vertical-align:middle;margin-left:6px" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
-              <p id="fidelCopiaMsg" style="font-size:0.68rem;color:#A8D5A2;margin:4px 0 0;opacity:0;transition:opacity .3s">✓ Código copiado!</p>
+            <div style="display:flex;gap:0.75rem;align-items:flex-start">
+              <div style="width:32px;height:32px;border-radius:50%;background:#F0EDE8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.85rem">✅</div>
+              <div>
+                <p style="font-size:0.82rem;font-weight:600;color:#2B3F54;margin:0 0 2px">Subtotal acima de R$1.000</p>
+                <p style="font-size:0.75rem;color:#9E9690;margin:0;line-height:1.5">O desconto é detectado automaticamente</p>
+              </div>
             </div>
-          </div>
-          <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
-            <p style="font-size:0.73rem;color:rgba(255,255,255,.5);margin:0">Use este código no campo de cupom no checkout.</p>
-            <a href="catalogo.html" style="background:#C4934A;color:#fff;font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:8px 20px;border-radius:4px;text-decoration:none;white-space:nowrap">Comprar agora →</a>
+            <div style="display:flex;gap:0.75rem;align-items:flex-start">
+              <div style="width:32px;height:32px;border-radius:50%;background:#F0EDE8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.85rem">🎁</div>
+              <div>
+                <p style="font-size:0.82rem;font-weight:600;color:#2B3F54;margin:0 0 2px">R$100 deduzidos</p>
+                <p style="font-size:0.75rem;color:#9E9690;margin:0;line-height:1.5">Aplicado no total antes do pagamento</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -416,16 +405,13 @@
 
         </form>
 
-        <!-- Teaser de Fidelidade (link para a aba Fidelidade) -->
-        <div id="fidelidadeTeaserDados" style="display:none;margin-top:2rem;background:#F5F2EE;border-radius:6px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer" onclick="document.getElementById('navFidelidade')?.click()">
+        <!-- Teaser do Benefício Virtù -->
+        <div style="margin-top:2rem;background:#F5F2EE;border-radius:6px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer" onclick="document.getElementById('navFidelidade')?.click()">
           <div>
-            <p style="font-size:0.65rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#9E9690;margin:0 0 3px">Programa Fidelidade</p>
-            <p id="fidelidadeTeaserMsg" style="font-size:0.85rem;color:#2B3F54;font-weight:500;margin:0 0 6px"></p>
-            <div style="background:#E2DDD7;border-radius:100px;height:5px;overflow:hidden;width:180px;max-width:100%">
-              <div id="fidelidadeTeaserBar" style="background:#C4934A;height:100%;width:0%;transition:width 0.5s ease"></div>
-            </div>
+            <p style="font-size:0.65rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#9E9690;margin:0 0 3px">✦ Benefício Virtù</p>
+            <p style="font-size:0.85rem;color:#2B3F54;font-weight:500;margin:0">R$100 de desconto automático em pedidos acima de R$1.000</p>
           </div>
-          <span style="font-size:0.72rem;color:#C4934A;font-weight:500;white-space:nowrap">Ver detalhes →</span>
+          <span style="font-size:0.72rem;color:#C4934A;font-weight:500;white-space:nowrap">Saiba mais →</span>
         </div>
       </div>
 
@@ -519,6 +505,6 @@
   <script src="js/announcement.js"></script>
   <script src="js/navbar-cats.js"></script>
   <script src="js/wishlist.js"></script>
-  <script src="js/conta.js"></script>
+  <script src="js/conta.js?v=20260622a"></script>
 </body>
 </html>
