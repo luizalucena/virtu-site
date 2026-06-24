@@ -1,0 +1,212 @@
+/* ============================================================
+   VIRTÙ — Home Redesign (camada final)
+   Corrige o redesign anterior: contraste do hero, cantos
+   arredondados (anulando o "border-radius: 0" das camadas
+   virtu-refinements/virtu-luxury), botões e tipografia.
+
+   Carregado POR ÚLTIMO no index.html para vencer a cascata.
+   Escopo: somente a homepage.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   0. FALLBACK DE IMAGEM — nunca deixar buraco branco
+   Acionado via onerror nas <img> externas (picsum).
+   ------------------------------------------------------------ */
+.img-fallback {
+  background:
+    radial-gradient(120% 90% at 75% 0%, rgba(196,147,74,0.22) 0%, transparent 55%),
+    linear-gradient(150deg, #243a4f 0%, #1a2a3c 55%, #16242f 100%);
+}
+.img-fallback::after {
+  content: "VIRTÙ";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  letter-spacing: 0.06em;
+  color: rgba(232, 213, 181, 0.5);
+  pointer-events: none;
+}
+/* Em cards de categoria o conteúdo/overlay ficam acima do ::after */
+.categoria-card.img-fallback .categoria-card__overlay,
+.categoria-card.img-fallback .categoria-card__content { z-index: 2; }
+
+/* ------------------------------------------------------------
+   1. TIPOGRAFIA — refino editorial de luxo
+   ------------------------------------------------------------ */
+/* Overlines e labels uppercase com respiro maior */
+.overline {
+  letter-spacing: 0.26em;
+  font-weight: 500;
+}
+.hero__overline {
+  letter-spacing: 0.32em;
+  font-size: 11px;
+  color: var(--color-gold);
+}
+.diferencial__label {
+  letter-spacing: 0.18em;
+}
+
+/* ------------------------------------------------------------
+   2. HERO — contraste correto sobre fundo claro + escala
+   (anula branco forçado por virtu-luxury / virtu-refinements)
+   ------------------------------------------------------------ */
+.hero { background: var(--color-off-white); }
+
+.hero__editorial-text .hero__title,
+.hero__title {
+  color: var(--color-navy);
+  text-shadow: none;
+  font-style: italic;            /* nome da coleção (Donna) em itálico */
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  line-height: 1.04;
+  font-size: clamp(2.85rem, 5.4vw, 4.85rem);
+}
+/* "– 2026" permanece reto (definido em home.css .hero__dash) */
+
+.hero__editorial-text .hero__desc,
+.hero__editorial .hero__desc {
+  color: var(--color-gray-600);  /* cinza-escuro legível, não branco */
+  font-size: var(--text-base);
+  line-height: 1.85;
+  letter-spacing: 0.2px;
+  max-width: 380px;
+}
+
+/* Imagem vertical do hero — cantos arredondados */
+.hero__editorial-image {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin: var(--space-8) clamp(var(--space-8), 5vw, var(--space-16)) var(--space-8) 0;
+}
+.hero__editorial-image img { border-radius: inherit; }
+
+/* ------------------------------------------------------------
+   3. BOTÕES — radius suave + hierarquia de CTA
+   ------------------------------------------------------------ */
+.btn { border-radius: var(--radius-sm); }
+
+/* Primário dourado preenchido, com peso visual */
+.btn--gold {
+  background: var(--color-gold);
+  border: 1px solid var(--color-gold);
+  color: var(--color-white);
+  box-shadow: 0 4px 14px rgba(196,147,74,0.22);
+}
+.btn--gold:hover {
+  background: #b0833e;
+  border-color: #b0833e;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(196,147,74,0.3);
+}
+
+/* Secundário com borda visível sobre fundo claro */
+.btn--ghost {
+  border: 1.5px solid var(--color-navy);
+  color: var(--color-navy);
+  background: transparent;
+  border-radius: var(--radius-sm);
+}
+.btn--ghost:hover {
+  background: var(--color-navy);
+  color: var(--color-white);
+}
+
+/* Secundário sobre fundos escuros (banner/feature): borda nítida + hover claro */
+.btn--ghost-white {
+  border: 1.5px solid rgba(255,255,255,0.85);
+  color: var(--color-white);
+  border-radius: var(--radius-sm);
+}
+.btn--ghost-white:hover {
+  background: var(--color-white);
+  color: var(--color-navy);
+  border-color: var(--color-white);
+}
+
+/* ------------------------------------------------------------
+   4. COLEÇÕES — grid assimétrico com cantos arredondados
+   (anula border-radius:0 das camadas anteriores)
+   ------------------------------------------------------------ */
+.categoria-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.categoria-card__img { border-radius: inherit; }
+
+/* Overlay um pouco mais profundo: garante leitura do texto
+   sem depender da imagem externa */
+.categoria-card__overlay {
+  background: linear-gradient(
+    to top,
+    rgba(20,32,45,0.66) 0%,
+    rgba(20,32,45,0.18) 50%,
+    rgba(20,32,45,0.04) 100%
+  );
+}
+
+/* Zoom suave no hover (motion contido) */
+.categoria-card:hover .categoria-card__img {
+  transform: scale(1.04);
+}
+.categoria-card__content h3 {
+  text-shadow: 0 2px 14px rgba(0,0,0,0.35);
+}
+
+/* ------------------------------------------------------------
+   5. TRUST BADGES — faixa horizontal, centrada, separadores finos
+   (mantém os .diferencial__sep do markup; remove o ::before duplicado)
+   ------------------------------------------------------------ */
+.diferencial {
+  text-align: center;
+  align-items: center;
+}
+.diferencial + .diferencial::before { display: none; }
+.diferencial__sep {
+  width: 1px;
+  height: 40px;
+  background: var(--color-gray-200);
+}
+
+/* ------------------------------------------------------------
+   6. FEATURE SPOT — card de destaque com imagem arredondada
+   ------------------------------------------------------------ */
+.feature-spot__image {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: var(--space-10);
+}
+.feature-spot__image img { border-radius: inherit; }
+
+/* Botão da peça da semana herda o gold preenchido (já aplicado acima) */
+
+/* ------------------------------------------------------------
+   7. INSTAGRAM — suavizar quadradinhos
+   ------------------------------------------------------------ */
+.insta-item { border-radius: var(--radius-md); }
+
+/* ------------------------------------------------------------
+   8. RESPONSIVO — colapso mobile mantém respiro e proporção
+   ------------------------------------------------------------ */
+@media (max-width: 900px) {
+  .hero__editorial-image {
+    margin: 0;
+    border-radius: var(--radius-lg);
+  }
+  .hero__editorial-text .hero__desc,
+  .hero__editorial .hero__desc { max-width: none; }
+  .feature-spot__image {
+    margin: var(--space-5);
+  }
+}
+
+@media (max-width: 768px) {
+  .categoria-card { border-radius: var(--radius-md); }
+}
