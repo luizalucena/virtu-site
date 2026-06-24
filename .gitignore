@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Supabase CLI temporários
+supabase/.temp/
+
+# Editor
+.vscode/
+*.swp
+*.swo
+
+# Node (caso use algum dia)
+node_modules/
