@@ -59,6 +59,9 @@
     <div class="announcement-bar__track" aria-label="Informações da loja">
       <!-- duplicado para loop contínuo -->
       <span class="announcement-bar__item">
+        <span class="sep">✦</span> Últimas unidades · Coleção Donna
+      </span>
+      <span class="announcement-bar__item">
         <span class="sep">✦</span> Frete grátis com cupom FRETEGRATIS
       </span>
       <span class="announcement-bar__item">
@@ -69,6 +72,9 @@
       </span>
       <span class="announcement-bar__item">
         <span class="sep">✦</span> Atendimento via WhatsApp
+      </span>
+      <span class="announcement-bar__item">
+        <span class="sep">✦</span> Últimas unidades · Coleção Donna
       </span>
       <span class="announcement-bar__item">
         <span class="sep">✦</span> Frete grátis com cupom FRETEGRATIS
@@ -231,82 +237,40 @@
 
     <!-- ── HERO ─────────────────────────────── -->
     <section class="hero" aria-label="Destaque principal">
-      <div class="hero__slider" id="heroSlider">
+      <div class="hero__editorial">
 
-        <!-- Slide 1 -->
-        <div class="hero__slide hero__slide--active">
-          <div class="hero__bg" style="background: linear-gradient(135deg, #1E2E3E 0%, #2B3F54 50%, #3D5470 100%);">
-            <!-- Placeholder visual elegante -->
-            <div class="hero__bg-pattern" aria-hidden="true"></div>
-          </div>
-          <div class="hero__content">
-            <div class="hero__text animate-fade-in-up">
-              <p class="overline hero__overline" id="heroLine1">Nova Coleção · 2026</p>
-              <h1 class="display-hero display-italic hero__title">
-                <span id="heroLine2">Donna <span class="hero__dash">&#8211;</span> 2026</span>
-              </h1>
-              <p class="hero__desc" id="heroSubtitle">
-                Roupas que atravessam estações e permanecem.<br>
-                Feitas para quem valoriza o cuidado nos detalhes.
-              </p>
-              <div class="hero__actions">
-                <a href="catalogo.html" class="btn btn--ghost-white btn--lg" id="heroCta">
-                  Explorar Coleção
-                </a>
-                <a href="catalogo.html" class="btn btn--ghost-gold btn--lg">
-                  Ver Novidades
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="hero__scroll-hint" aria-hidden="true">
-            <span class="label" style="color:rgba(255,255,255,0.5); writing-mode:vertical-rl;">scroll</span>
-            <div class="hero__scroll-line"></div>
+        <!-- Texto — esquerda -->
+        <div class="hero__editorial-text">
+          <p class="overline hero__overline" id="heroLine1">Nova Coleção · 2026</p>
+          <h1 class="hero__title">
+            <span id="heroLine2">Donna<span class="hero__dash"> &ndash; </span>2026</span>
+          </h1>
+          <p class="hero__desc" id="heroSubtitle">
+            Roupas que atravessam estações e permanecem.<br>
+            Feitas para quem valoriza o cuidado nos detalhes.
+          </p>
+          <div class="hero__actions">
+            <a href="catalogo.html" class="btn btn--gold btn--lg" id="heroCta">
+              Explorar Coleção
+            </a>
+            <a href="catalogo.html" class="btn btn--ghost btn--lg">
+              Ver Novidades
+            </a>
           </div>
         </div>
 
-        <!-- Slide 2 -->
-        <div class="hero__slide">
-          <div class="hero__bg" style="background: linear-gradient(135deg, #C4934A 0%, #9A7038 50%, #2B3F54 100%);">
-            <div class="hero__bg-pattern" aria-hidden="true"></div>
-          </div>
-          <div class="hero__content">
-            <div class="hero__text">
-              <p class="overline hero__overline">Peças Essenciais</p>
-              <p class="display-hero display-italic hero__title">
-                Há virtude<br>no vestir
-              </p>
-              <p class="hero__desc">
-                Cada escolha é uma afirmação de quem você é.<br>
-                Vista-se com intenção.
-              </p>
-              <div class="hero__actions">
-                <a href="catalogo.html" class="btn btn--ghost-white btn--lg">
-                  Descobrir
-                </a>
-              </div>
-            </div>
-          </div>
+        <!-- Imagem — direita -->
+        <div class="hero__editorial-image" aria-hidden="true">
+          <img
+            src="https://picsum.photos/seed/fashion/800/1100"
+            alt=""
+            loading="eager"
+            fetchpriority="high"
+            width="800"
+            height="1100"
+          />
         </div>
 
-      </div>
-
-      <!-- Controles do slider -->
-      <button class="hero__arrow hero__arrow--prev" id="heroPrev" aria-label="Slide anterior">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
-      <button class="hero__arrow hero__arrow--next" id="heroNext" aria-label="Próximo slide">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
-
-      <!-- Dots -->
-      <div class="hero__dots" role="tablist" aria-label="Slides">
-        <button class="hero__dot hero__dot--active" role="tab" aria-selected="true" aria-label="Slide 1"></button>
-        <button class="hero__dot" role="tab" aria-selected="false" aria-label="Slide 2"></button>
       </div>
     </section>
 
@@ -315,51 +279,23 @@
       <div class="container">
         <div class="diferenciais__grid" id="diferenciaisGrid">
           <div class="diferencial">
-            <div class="diferencial__icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M5 12H2l9-9 9 9h-3v8H5z"/>
-                <path d="M9 21v-6h6v6"/>
-              </svg>
-            </div>
-            <div class="diferencial__info">
-              <h3 id="dif0Titulo">Frete Grátis</h3>
-              <p id="dif0Desc">Com o cupom <strong>FRETEGRATIS</strong></p>
-            </div>
+            <p class="diferencial__stat" id="dif0Titulo">Frete</p>
+            <p class="diferencial__label" id="dif0Desc">grátis com cupom</p>
           </div>
+          <div class="diferencial__sep" aria-hidden="true"></div>
           <div class="diferencial">
-            <div class="diferencial__icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                <line x1="1" y1="10" x2="23" y2="10"/>
-              </svg>
-            </div>
-            <div class="diferencial__info">
-              <h3 id="dif1Titulo">Parcelamento</h3>
-              <p id="dif1Desc">Até 12x no cartão de crédito</p>
-            </div>
+            <p class="diferencial__stat" id="dif1Titulo">12×</p>
+            <p class="diferencial__label" id="dif1Desc">sem juros no cartão</p>
           </div>
+          <div class="diferencial__sep" aria-hidden="true"></div>
           <div class="diferencial">
-            <div class="diferencial__icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
-            </div>
-            <div class="diferencial__info">
-              <h3 id="dif2Titulo">Trocas Fáceis</h3>
-              <p id="dif2Desc">Até 7 dias para trocar</p>
-            </div>
+            <p class="diferencial__stat" id="dif2Titulo">7 dias</p>
+            <p class="diferencial__label" id="dif2Desc">para troca ou devolução</p>
           </div>
+          <div class="diferencial__sep" aria-hidden="true"></div>
           <div class="diferencial">
-            <div class="diferencial__icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.26 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.17 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8a16 16 0 0 0 6 6l.27-.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 16z"/>
-              </svg>
-            </div>
-            <div class="diferencial__info">
-              <h3 id="dif3Titulo">Atendimento</h3>
-              <p id="dif3Desc">Via WhatsApp, de seg. a sáb.</p>
-            </div>
+            <p class="diferencial__stat" id="dif3Titulo">Seg–Sáb</p>
+            <p class="diferencial__label" id="dif3Desc">atendimento via WhatsApp</p>
           </div>
         </div>
       </div>
@@ -370,47 +306,54 @@
     <!-- ── CATEGORIAS ────────────────────────── -->
     <section class="section categorias" aria-labelledby="categorias-title">
       <div class="container">
-        <div class="section-header">
-          <p class="overline">Explore por estilo</p>
-          <h2 id="categorias-title" class="display-lg display-italic">Nossas Coleções</h2>
+        <div class="categorias__header">
+          <div>
+            <p class="overline" style="margin-bottom: var(--space-3);">Primavera–Verão 2026</p>
+            <h2 id="categorias-title" class="display-xl display-italic">Coleções</h2>
+          </div>
+          <a href="catalogo.html" class="btn btn--ghost btn--sm">Ver catálogo</a>
         </div>
         <div class="categorias__grid">
-          <a href="catalogo.html?cat=vestidos" class="categoria-card categoria-card--large">
-            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#2B3F54,#3D5470);"></div>
+
+          <!-- Card hero: Vestidos -->
+          <a href="catalogo.html?cat=vestidos" class="categoria-card categoria-card--hero">
+            <img src="https://picsum.photos/seed/vestidovrt/700/980" alt="Vestidos" class="categoria-card__img" loading="lazy" width="700" height="980" />
             <div class="categoria-card__overlay"></div>
             <div class="categoria-card__content">
               <p class="overline" style="color:var(--color-gold);">01</p>
               <h3>Vestidos</h3>
-              <span class="btn btn--ghost-white btn--sm">Ver tudo</span>
+              <span class="btn btn--gold btn--sm">Ver tudo</span>
             </div>
           </a>
-          <a href="catalogo.html?cat=blusas" class="categoria-card">
-            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#C4934A,#9A7038);"></div>
-            <div class="categoria-card__overlay"></div>
-            <div class="categoria-card__content">
-              <p class="overline" style="color:rgba(255,255,255,0.7);">02</p>
-              <h3>Blusas</h3>
-              <span class="btn btn--ghost-white btn--sm">Ver tudo</span>
-            </div>
-          </a>
-          <a href="catalogo.html?cat=calcas" class="categoria-card">
-            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#3D5470,#2B3F54);"></div>
-            <div class="categoria-card__overlay"></div>
-            <div class="categoria-card__content">
-              <p class="overline" style="color:var(--color-gold);">03</p>
-              <h3>Calças</h3>
-              <span class="btn btn--ghost-white btn--sm">Ver tudo</span>
-            </div>
-          </a>
-          <a href="catalogo.html?cat=essenciais" class="categoria-card">
-            <div class="categoria-card__bg" style="background:linear-gradient(160deg,#E8D5B5,#C4934A);"></div>
-            <div class="categoria-card__overlay"></div>
-            <div class="categoria-card__content">
-              <p class="overline" style="color:var(--color-navy);">04</p>
-              <h3 style="color:var(--color-navy);">Essenciais</h3>
-              <span class="btn btn--ghost btn--sm">Ver tudo</span>
-            </div>
-          </a>
+
+          <!-- Coluna direita: 3 cards menores -->
+          <div class="categorias__col-right">
+            <a href="catalogo.html?cat=blusas" class="categoria-card">
+              <img src="https://picsum.photos/seed/blusavrt/600/400" alt="Blusas" class="categoria-card__img" loading="lazy" width="600" height="400" />
+              <div class="categoria-card__overlay"></div>
+              <div class="categoria-card__content">
+                <p class="overline" style="color:rgba(255,255,255,0.65);">02</p>
+                <h3>Blusas</h3>
+              </div>
+            </a>
+            <a href="catalogo.html?cat=calcas" class="categoria-card">
+              <img src="https://picsum.photos/seed/calcavrt/600/400" alt="Calças" class="categoria-card__img" loading="lazy" width="600" height="400" />
+              <div class="categoria-card__overlay"></div>
+              <div class="categoria-card__content">
+                <p class="overline" style="color:rgba(255,255,255,0.65);">03</p>
+                <h3>Calças</h3>
+              </div>
+            </a>
+            <a href="catalogo.html?cat=essenciais" class="categoria-card">
+              <img src="https://picsum.photos/seed/essencialvrt/600/400" alt="Essenciais" class="categoria-card__img" loading="lazy" width="600" height="400" />
+              <div class="categoria-card__overlay"></div>
+              <div class="categoria-card__content">
+                <p class="overline" style="color:rgba(255,255,255,0.65);">04</p>
+                <h3>Essenciais</h3>
+              </div>
+            </a>
+          </div>
+
         </div>
       </div>
     </section>
@@ -541,6 +484,35 @@
         </div>
         <div class="depoimentos__grid" id="depoimentosGrid">
           <!-- preenchido por products.js / main.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DESTAQUE EDITORIAL ──────────────────── -->
+    <section class="feature-spot" aria-label="Produto em destaque">
+      <div class="feature-spot__inner">
+        <div class="feature-spot__image">
+          <img
+            src="https://picsum.photos/seed/featvrt26/700/900"
+            alt="Peça em destaque — Coleção Donna 2026"
+            loading="lazy"
+            width="700"
+            height="900"
+          />
+        </div>
+        <div class="feature-spot__text">
+          <p class="overline" style="color:var(--color-gold);">Peça da Semana</p>
+          <h2 class="display-xl display-italic" style="color:var(--color-white);">
+            Vestido Donna<br>Linho Premium
+          </h2>
+          <p>
+            Corte fluido, tecido leve. Uma peça que atravessa estações sem perder elegância.
+            Disponível nos tamanhos P ao GG.
+          </p>
+          <p class="feature-spot__price">
+            a partir de <strong style="color:var(--color-gold);">R$ 498</strong>
+          </p>
+          <a href="catalogo.html" class="btn btn--gold btn--lg">Ver na loja</a>
         </div>
       </div>
     </section>
