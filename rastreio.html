@@ -310,34 +310,36 @@
         return;
       }
 
-      try {
+      // Busca segura por RPC: a função rastrear_pedido (SECURITY DEFINER)
+      // devolve apenas colunas não sensíveis de UM pedido pelo seu UUID.
+      // Não usamos mais .from('pedidos').select(...) direto porque a leitura
+      // anônima da tabela foi fechada (evita vazamento de CPF/endereço).
+      async function buscarPedido() {
         const { data, error } = await supabaseClient
-          .from('pedidos')
-          .select('id, nome_cliente, cliente_nome, status, criado_em, atualizado_em, codigo_rastreio')
-          .eq('id', pedidoId)
-          .maybeSingle();
-
+          .rpc('rastrear_pedido', { p_id: pedidoId });
         if (error) throw error;
-        if (!data)  { renderError('Pedido não encontrado.'); return; }
+        // A RPC retorna um array (0 ou 1 linha)
+        return Array.isArray(data) ? data[0] : data;
+      }
 
-        renderPedido(data);
+      try {
+        const pedido = await buscarPedido();
+        if (!pedido) { renderError('Pedido não encontrado.'); return; }
 
-        // Atualiza o status em tempo real
-        // Canal único por pedido para evitar conflito entre múltiplas abas
-        const realtimeChannel = supabaseClient
-          .channel(`rastreio-pedido-${pedidoId}`)
-          .on('postgres_changes', {
-            event:  'UPDATE',
-            schema: 'public',
-            table:  'pedidos',
-            filter: `id=eq.${pedidoId}`,
-          }, (payload) => renderPedido(payload.new))
-          .subscribe();
+        renderPedido(pedido);
 
-        // Limpa a subscrição ao sair para evitar vazamento de memória
-        window.addEventListener('beforeunload', () => {
-          supabaseClient.removeChannel(realtimeChannel);
-        }, { once: true });
+        // Atualização periódica do status (polling) — substitui o realtime,
+        // que dependia da leitura anônima da tabela (agora fechada).
+        const POLL_MS = 30000; // 30s
+        const intervalo = setInterval(async () => {
+          try {
+            const atualizado = await buscarPedido();
+            if (atualizado) renderPedido(atualizado);
+          } catch (_) { /* silencioso — tenta de novo no próximo ciclo */ }
+        }, POLL_MS);
+
+        // Limpa o polling ao sair para evitar trabalho desnecessário
+        window.addEventListener('beforeunload', () => clearInterval(intervalo), { once: true });
 
       } catch (e) {
         renderError('Erro ao buscar pedido. Tente novamente em instantes.');
