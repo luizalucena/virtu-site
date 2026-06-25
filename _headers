@@ -66,4 +66,4 @@
 
   # Content Security Policy (CSP) — controla origens permitidas
   # Atualizar se novas CDNs ou serviços forem adicionados
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://oxivtnuxnghpddwawfdr.supabase.co https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://oxivtnuxnghpddwawfdr.supabase.co wss://oxivtnuxnghpddwawfdr.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://oxivtnuxnghpddwawfdr.supabase.co https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://oxivtnuxnghpddwawfdr.supabase.co wss://oxivtnuxnghpddwawfdr.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';

@@ -45,7 +45,7 @@
   <!-- ▸ Segurança: Referrer-Policy e CSP via meta tag (GitHub Pages) -->
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://oxivtnuxnghpddwawfdr.supabase.co https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://oxivtnuxnghpddwawfdr.supabase.co wss://oxivtnuxnghpddwawfdr.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://oxivtnuxnghpddwawfdr.supabase.co https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://oxivtnuxnghpddwawfdr.supabase.co wss://oxivtnuxnghpddwawfdr.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <script src="js/error-logger.js"></script>
   <link rel="stylesheet" href="css/virtu-refinements.css?v=2" />
   <link rel="stylesheet" href="css/virtu-luxury.css?v=6" />
@@ -261,10 +261,10 @@
         </div>
 
         <!-- Imagem — direita -->
-        <div class="hero__editorial-image" aria-hidden="true">
+        <div class="hero__editorial-image">
           <img
-            src="https://picsum.photos/seed/fashion/800/1100"
-            alt=""
+            src="https://lh3.googleusercontent.com/d/1sEaSKSYLUqWFZyXDjkWMg3RACZVkKBDd=w900"
+            alt="Look da coleção Donna — Blusa Eliza com amarração na cintura"
             loading="eager"
             fetchpriority="high"
             width="800"
@@ -317,40 +317,40 @@
         </div>
         <div class="categorias__grid">
 
-          <!-- Card hero: Vestidos -->
-          <a href="catalogo.html?cat=vestidos" class="categoria-card categoria-card--hero">
-            <img src="https://picsum.photos/seed/vestidovrt/700/980" alt="Vestidos" class="categoria-card__img" loading="lazy" width="700" height="980" onerror="this.style.display='none';this.closest('.categoria-card').classList.add('img-fallback')" />
+          <!-- Card hero: Blusas (foto real de produto) -->
+          <a href="catalogo.html?cat=blusas" class="categoria-card categoria-card--hero">
+            <img src="https://lh3.googleusercontent.com/d/1XoJfxVF3bvGEGm2ml7xIvXd8Ip7n3fgY=w700" alt="Coleção de blusas" class="categoria-card__img" loading="lazy" width="700" height="980" onerror="this.style.display='none';this.closest('.categoria-card').classList.add('img-fallback')" />
             <div class="categoria-card__overlay"></div>
             <div class="categoria-card__content">
               <p class="overline" style="color:var(--color-gold);">01</p>
-              <h3>Vestidos</h3>
+              <h3>Blusas</h3>
               <span class="btn btn--gold btn--sm">Ver tudo</span>
             </div>
           </a>
 
           <!-- Coluna direita: 3 cards menores -->
           <div class="categorias__col-right">
-            <a href="catalogo.html?cat=blusas" class="categoria-card">
-              <img src="https://picsum.photos/seed/blusavrt/600/400" alt="Blusas" class="categoria-card__img" loading="lazy" width="600" height="400" onerror="this.style.display='none';this.closest('.categoria-card').classList.add('img-fallback')" />
-              <div class="categoria-card__overlay"></div>
-              <div class="categoria-card__content">
-                <p class="overline" style="color:rgba(255,255,255,0.65);">02</p>
-                <h3>Blusas</h3>
-              </div>
-            </a>
             <a href="catalogo.html?cat=calcas" class="categoria-card">
-              <img src="https://picsum.photos/seed/calcavrt/600/400" alt="Calças" class="categoria-card__img" loading="lazy" width="600" height="400" onerror="this.style.display='none';this.closest('.categoria-card').classList.add('img-fallback')" />
+              <img src="https://lh3.googleusercontent.com/d/1Mdhk0YQLFgegSIaCugN6AUiq49tAWr_W=w600" alt="Coleção de calças" class="categoria-card__img" loading="lazy" width="600" height="400" onerror="this.style.display='none';this.closest('.categoria-card').classList.add('img-fallback')" />
               <div class="categoria-card__overlay"></div>
               <div class="categoria-card__content">
-                <p class="overline" style="color:rgba(255,255,255,0.65);">03</p>
+                <p class="overline" style="color:rgba(255,255,255,0.7);">02</p>
                 <h3>Calças</h3>
               </div>
             </a>
-            <a href="catalogo.html?cat=essenciais" class="categoria-card">
-              <img src="https://picsum.photos/seed/essencialvrt/600/400" alt="Essenciais" class="categoria-card__img" loading="lazy" width="600" height="400" onerror="this.style.display='none';this.closest('.categoria-card').classList.add('img-fallback')" />
+            <!-- Vestidos: sem foto de produto ainda → tile editorial sólido (nunca paisagem) -->
+            <a href="catalogo.html?cat=vestidos" class="categoria-card categoria-card--solid categoria-card--solid-navy">
               <div class="categoria-card__overlay"></div>
               <div class="categoria-card__content">
-                <p class="overline" style="color:rgba(255,255,255,0.65);">04</p>
+                <p class="overline" style="color:var(--color-gold);">03</p>
+                <h3>Vestidos</h3>
+              </div>
+            </a>
+            <!-- Essenciais: sem foto de produto ainda → tile editorial sólido -->
+            <a href="catalogo.html?cat=essenciais" class="categoria-card categoria-card--solid categoria-card--solid-stone">
+              <div class="categoria-card__overlay"></div>
+              <div class="categoria-card__content">
+                <p class="overline" style="color:rgba(255,255,255,0.8);">04</p>
                 <h3>Essenciais</h3>
               </div>
             </a>
@@ -495,8 +495,8 @@
       <div class="feature-spot__inner">
         <div class="feature-spot__image">
           <img
-            src="https://picsum.photos/seed/featvrt26/700/900"
-            alt="Peça em destaque — Coleção Donna 2026"
+            src="https://lh3.googleusercontent.com/d/1Mdhk0YQLFgegSIaCugN6AUiq49tAWr_W=w700"
+            alt="Calça Natália — pantalona de cintura alta com lapelas frontais"
             loading="lazy"
             width="700"
             height="900"
@@ -505,17 +505,51 @@
         </div>
         <div class="feature-spot__text">
           <p class="overline" style="color:var(--color-gold);">Peça da Semana</p>
-          <h2 class="display-xl display-italic" style="color:var(--color-white);">
-            Vestido Donna<br>Linho Premium
+          <h2 class="display-xl" style="color:var(--color-white);">
+            Calça Natália
           </h2>
           <p>
-            Corte fluido, tecido leve. Uma peça que atravessa estações sem perder elegância.
-            Disponível nos tamanhos P ao GG.
+            Pantalona de cintura alta com cós estruturado e lapelas frontais sobrepostas.
+            Um corte que alonga a silhueta e veste do trabalho ao jantar.
           </p>
           <p class="feature-spot__price">
-            a partir de <strong style="color:var(--color-gold);">R$ 498</strong>
+            <strong style="color:var(--color-gold);">R$ 279,90</strong>
+            <span style="font-size:var(--text-sm); color:rgba(255,255,255,0.6);"> ou 12x sem juros</span>
           </p>
-          <a href="catalogo.html" class="btn btn--gold btn--lg">Ver na loja</a>
+          <a href="produto.html?id=calca-diana" class="btn btn--gold btn--lg">Ver produto</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FAIXA DE CONFIANÇA ─────────────────── -->
+    <section class="trust-bar" aria-label="Garantias da loja">
+      <div class="container trust-bar__inner">
+        <div class="trust-item">
+          <svg class="trust-item__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+          </svg>
+          <div>
+            <p class="trust-item__title">Compra segura</p>
+            <p class="trust-item__desc">Ambiente protegido e dados criptografados</p>
+          </div>
+        </div>
+        <div class="trust-item">
+          <svg class="trust-item__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 2v6h6"/><path d="M3 8a9 9 0 1 0 2.6-5.7L3 8"/>
+          </svg>
+          <div>
+            <p class="trust-item__title">Troca em 7 dias</p>
+            <p class="trust-item__desc">Não gostou? A primeira troca é por nossa conta</p>
+          </div>
+        </div>
+        <div class="trust-item">
+          <svg class="trust-item__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+          <div>
+            <p class="trust-item__title">Pix ou cartão</p>
+            <p class="trust-item__desc">Pix com 5% off ou 12x sem juros no cartão</p>
+          </div>
         </div>
       </div>
     </section>
@@ -729,7 +763,7 @@
     (function(){var K='vt_exit_shown',shown=false;if(sessionStorage.getItem(K))return;function show(){if(shown)return;shown=true;sessionStorage.setItem(K,'1');document.getElementById('vt-exit-overlay').style.display='flex';}document.addEventListener('mouseleave',function(e){if(e.clientY<=0)show();});var lastY=0,th=window.innerHeight*.75;window.addEventListener('scroll',function(){var y=window.scrollY;if(lastY-y>th)show();lastY=y;},{passive:true});document.getElementById('vt-exit-overlay').addEventListener('click',function(e){if(e.target===this)vtClosePop();});document.addEventListener('keydown',function(e){if(e.key==='Escape')vtClosePop();});})();
     function vtClosePop(){var el=document.getElementById('vt-exit-overlay');el.style.opacity='0';el.style.transition='opacity .2s';setTimeout(function(){el.style.display='none';el.style.opacity='';},200);}
     function vtCopyCoupon(){var c='FRETEGRATIS',m=document.getElementById('vt-copied-msg');function fb(){m.classList.add('show');setTimeout(function(){m.classList.remove('show');},2500);}if(navigator.clipboard){navigator.clipboard.writeText(c).then(fb);}else{var el=document.createElement('textarea');el.value=c;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);fb();}}
-  <\/script>
+  </script>
   <!-- END POP-UP -->
 </body>
 </html>

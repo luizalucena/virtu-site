@@ -21,7 +21,7 @@
 
   /* — Neutros — */
   --color-white:       #FFFFFF;
-  --color-off-white:   #F9F7F4;   /* Fundo geral da página */
+  --color-off-white:   #FAF8F5;   /* Fundo geral da página — creme quente */
   --color-gray-100:    #F2EFE9;   /* Cards e fundos suaves */
   --color-gray-200:    #E8E3DC;   /* Bordas */
   --color-gray-400:    #AFA99F;   /* Texto secundário fraco */
@@ -62,9 +62,9 @@
   --space-32: 128px;
 
   /* — Bordas e raios — */
-  --radius-sm:  8px;
-  --radius-md:  12px;
-  --radius-lg:  16px;
+  --radius-sm:  10px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
   --radius-full: 999px;
   --border-color: var(--color-gray-200);
 
