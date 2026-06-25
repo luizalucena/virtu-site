@@ -40,7 +40,14 @@ Deno.serve(async (req) => {
     // Variável de ambiente: MP_WEBHOOK_SECRET
     const WEBHOOK_SECRET = Deno.env.get('MP_WEBHOOK_SECRET');
 
-    if (WEBHOOK_SECRET) {
+    // Fail-closed: sem secret configurado, recusamos tudo. Evita que alguém
+    // que descubra a URL pública forje uma confirmação de pagamento PIX.
+    if (!WEBHOOK_SECRET) {
+      console.error('[Webhook] MP_WEBHOOK_SECRET não configurado — recusando por segurança');
+      return json({ erro: 'Webhook não configurado' }, 503);
+    }
+
+    {
       const xSignature = req.headers.get('x-signature') || '';
       const xRequestId = req.headers.get('x-request-id') || '';
 
@@ -81,9 +88,6 @@ Deno.serve(async (req) => {
         console.error('[Webhook] Assinatura HMAC inválida — possível webhook forjado');
         return json({ erro: 'Assinatura inválida' }, 401);
       }
-    } else {
-      // Secret não configurado — avisa mas não bloqueia (permite ativação gradual)
-      console.warn('[Webhook] MP_WEBHOOK_SECRET não configurado — validação HMAC desativada');
     }
 
     if (body.type !== 'payment' || !body.data?.id) {

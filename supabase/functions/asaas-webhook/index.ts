@@ -55,14 +55,17 @@ Deno.serve(async (req) => {
     // O ASAAS envia o header "asaas-access-token" em cada notificação.
     // Configure ASAAS_WEBHOOK_TOKEN no Supabase Secrets.
     const WEBHOOK_TOKEN = Deno.env.get('ASAAS_WEBHOOK_TOKEN');
-    if (WEBHOOK_TOKEN) {
-      const tokenRecebido = req.headers.get('asaas-access-token') || '';
-      if (tokenRecebido !== WEBHOOK_TOKEN) {
-        console.error('[asaas-webhook] Token inválido — possível requisição forjada');
-        return json({ erro: 'Não autorizado' }, 401);
-      }
-    } else {
-      console.warn('[asaas-webhook] ASAAS_WEBHOOK_TOKEN não configurado — validação desativada');
+    // Fail-closed: sem token configurado, recusamos tudo. Evita que alguém
+    // que descubra a URL pública forje um PAYMENT_CONFIRMED e marque pedidos
+    // como pagos (fraude / baixa de estoque indevida).
+    if (!WEBHOOK_TOKEN) {
+      console.error('[asaas-webhook] ASAAS_WEBHOOK_TOKEN não configurado — recusando por segurança');
+      return json({ erro: 'Webhook não configurado' }, 503);
+    }
+    const tokenRecebido = req.headers.get('asaas-access-token') || '';
+    if (tokenRecebido !== WEBHOOK_TOKEN) {
+      console.error('[asaas-webhook] Token inválido — possível requisição forjada');
+      return json({ erro: 'Não autorizado' }, 401);
     }
 
     const body = await req.json();
