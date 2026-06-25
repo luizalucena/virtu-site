@@ -199,7 +199,31 @@
   width: 1px;
   height: 40px;
   background: var(--color-gray-200);
+  align-self: center;          /* mantém o separador centralizado verticalmente */
 }
+
+/* Faixa de benefícios — alinhamento consistente dos 4 blocos.
+   Reserva a MESMA altura (2 linhas) para a área do título em todos,
+   para que os subtítulos comecem exatamente na mesma linha horizontal,
+   independente de o título ter 1 ou 2 linhas. */
+.diferenciais__grid { align-items: flex-start; }
+.diferencial {
+  justify-content: flex-start;
+  flex: 1 1 0;                 /* 4 colunas de largura igual */
+}
+.diferencial__stat {
+  display: flex;
+  align-items: center;         /* centraliza o título dentro da área reservada */
+  justify-content: center;
+  width: 100%;
+  min-height: 2.2em;           /* altura de ~2 linhas (line-height 1.1) */
+  line-height: 1.1;
+  text-align: center;
+}
+.diferencial__label { text-align: center; }
+
+/* Manifesto Virtù — primeira letra maiúscula (texto vem do Supabase) */
+#editorialTitle::first-letter { text-transform: uppercase; }
 
 /* ------------------------------------------------------------
    6. FEATURE SPOT — card de destaque com imagem arredondada
