@@ -6,10 +6,10 @@
 
   const css = document.createElement('style');
   css.textContent = [
-    '#vt-wa-btn { position:fixed; bottom:24px; right:24px; width:56px; height:56px; background:#25D366; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(37,211,102,0.4); z-index:9990; text-decoration:none; transition:transform .2s,box-shadow .2s; }',
-    '#vt-wa-btn:hover { transform:scale(1.1); box-shadow:0 6px 22px rgba(37,211,102,0.55); }',
-    '#vt-wa-btn svg { width:30px; height:30px; fill:#fff; }',
-    '#vt-wa-tip { position:fixed; bottom:90px; right:24px; background:#1a2030; color:#fff; font-size:12px; font-family:Cormorant Garamond,Georgia,serif; letter-spacing:.06em; padding:6px 12px; border-radius:3px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s; z-index:9989; }',
+    '#vt-wa-btn { position:fixed; bottom:24px; right:24px; width:56px; height:56px; background:#2B3F54; border:1px solid rgba(196,147,74,.45); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(26,38,64,0.28); z-index:9990; text-decoration:none; transition:transform .2s,box-shadow .2s; }',
+    '#vt-wa-btn:hover { transform:scale(1.08); box-shadow:0 10px 28px rgba(26,38,64,0.36); }',
+    '#vt-wa-btn svg { width:28px; height:28px; fill:#C4934A; }',
+    '#vt-wa-tip { position:fixed; bottom:90px; right:24px; background:#1E2E3E; color:#FAF8F5; font-size:12px; font-family:Cormorant Garamond,Georgia,serif; letter-spacing:.06em; padding:7px 13px; border-radius:10px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s; z-index:9989; }',
     '#vt-wa-btn:hover ~ #vt-wa-tip { opacity:1; }'
   ].join('');
   document.head.appendChild(css);

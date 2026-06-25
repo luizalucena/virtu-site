@@ -1,0 +1,488 @@
+/* ============================================================
+   VIRTÙ — Boutique Refinement Pass (camada final)
+   Carregada por ÚLTIMO em todas as páginas.
+   Objetivo: visual de boutique premium, coeso e acolhedor.
+   - Paleta única (navy · dourado · creme · neutros)
+   - Cantos arredondados consistentes em TODO o site
+   - Contraste legível, foco elegante, sombras suaves
+   Neutraliza o "flat look" (border-radius:0) de
+   virtu-luxury.css e virtu-refinements.css.
+   ============================================================ */
+
+/* ──────────────────────────────────────────────
+   0. UNIFICAÇÃO DA PALETA
+   Re-mapeia os tokens "lux-*" para a paleta única,
+   eliminando o petróleo near-black e o cinza-gelo frio.
+   ────────────────────────────────────────────── */
+:root {
+  /* Raios canônicos (reforço — já existem em style.css) */
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-pill: 999px;
+  --radius-full: 999px;
+
+  /* Sombras boutique — difusas e suaves */
+  --shadow-soft:  0 8px 24px rgba(26, 38, 64, 0.06);
+  --shadow-card:  0 6px 20px rgba(26, 38, 64, 0.07);
+  --shadow-hover: 0 14px 34px rgba(26, 38, 64, 0.10);
+
+  /* Contraste de textos auxiliares (mín. #5a5a5a) */
+  --color-label:    #44505f;   /* labels — navy acinzentado, legível */
+  --color-muted:    #5a5a5a;   /* textos auxiliares */
+
+  /* Remap dos tokens de luxo → paleta única (navy âncora #2B3F54) */
+  --lux-petrol:        var(--color-navy);        /* #2B3F54 — navy único do site */
+  --lux-petrol-mid:    var(--color-navy-dark);   /* #1E2E3E */
+  --lux-petrol-light:  var(--color-navy-light);  /* #3D5470 */
+  --lux-ice:           var(--color-off-white);
+  --lux-ice-mid:       var(--color-gray-100);
+  --lux-ice-border:    var(--color-gray-200);
+  --lux-ice-deep:      #DAD3CA;
+  --lux-gold:          var(--color-gold);
+  --lux-gold-pale:     var(--color-gold-pale);
+  --lux-gold-text:     #8C6333;
+}
+
+/* ──────────────────────────────────────────────
+   1. BOTÕES — cantos arredondados consistentes
+   ────────────────────────────────────────────── */
+.btn,
+button[type="submit"],
+.conta-form__submit,
+.avaliacao-form__submit,
+.newsletter-section__btn,
+.sobre-newsletter__btn,
+.sort-bar__filter-btn,
+.cart-coupon__btn,
+.checkout-btn,
+.produto-acoes .btn,
+.btn-comprar {
+  border-radius: var(--radius-md) !important;
+  transition: background var(--transition-base),
+              color var(--transition-base),
+              border-color var(--transition-base),
+              box-shadow var(--transition-base),
+              transform var(--transition-fast) !important;
+}
+
+/* CTAs primários com leve peso/sombra */
+.btn--primary,
+.btn--gold,
+.btn-comprar,
+.produto-acoes .btn--primary,
+.produto-acoes .btn--gold {
+  box-shadow: 0 4px 14px rgba(26, 38, 64, 0.10);
+}
+.btn--primary:hover,
+.btn--gold:hover,
+.btn-comprar:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+.btn:active { transform: translateY(0); }
+
+/* Newsletter (seção contato): botão com peso — dourado preenchido */
+.newsletter-section__btn.btn--ghost-white,
+.newsletter-section__btn {
+  background: var(--color-gold) !important;
+  border: 1px solid var(--color-gold) !important;
+  color: #fff !important;
+}
+.newsletter-section__btn:hover {
+  background: #b07d35 !important;
+  border-color: #b07d35 !important;
+}
+
+/* Pílulas e ícones circulares permanecem como estão */
+.cat-pill,
+.navbar__action-btn,
+.product-card__wishlist,
+.product-card__wishlist-btn,
+.produto-wishlist {
+  border-radius: var(--radius-pill) !important;
+}
+
+/* ──────────────────────────────────────────────
+   2. INPUTS / TEXTAREA / SELECT — caixa arredondada
+   Converte os campos "underline" (border-bottom) em
+   caixas arredondadas, legíveis e com respiro.
+   ────────────────────────────────────────────── */
+.input,
+.form-input,
+.conta-form__input,
+.avaliacao-form__input,
+.avaliacao-form__textarea,
+.cart-coupon__input,
+.rastreio-input,
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+select {
+  border: 1px solid var(--color-gray-200) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-white) !important;
+  color: var(--color-text) !important;
+  padding: 12px 16px !important;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--transition-base),
+              box-shadow var(--transition-base) !important;
+}
+
+textarea {
+  min-height: 110px !important;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* Foco consistente: borda navy + halo dourado suave */
+.input:focus,
+.form-input:focus,
+.conta-form__input:focus,
+.avaliacao-form__input:focus,
+.avaliacao-form__textarea:focus,
+.cart-coupon__input:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-navy) !important;
+  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.18) !important;
+  outline: none !important;
+}
+
+/* Placeholders podem ser mais claros — labels não */
+::placeholder { color: #9a948c !important; opacity: 1; }
+
+/* Selects com seta própria e padding p/ não cobrir o texto */
+select,
+.form-select,
+.sort-select {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232B3F54' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  padding-right: 38px !important;
+}
+
+/* Campos da newsletter navy (fundo escuro) preservam o contraste.
+   Especificidade reforçada p/ vencer a regra global input[type="email"]. */
+.newsletter-section .newsletter-section__input {
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #fff !important;
+  border-radius: var(--radius-md) !important;
+}
+.newsletter-section .newsletter-section__input:focus {
+  border-color: var(--color-gold) !important;
+  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.22) !important;
+}
+.newsletter-section .newsletter-section__input::placeholder { color: rgba(255, 255, 255, 0.45) !important; }
+
+/* ──────────────────────────────────────────────
+   3. CONTRASTE — labels e textos auxiliares
+   ────────────────────────────────────────────── */
+.conta-form__label,
+.avaliacao-form__label,
+.form-label,
+.input-label,
+.produto-opcao__label,
+.cat-header__count,
+.sort-bar__count,
+.avaliacao-form__nota-aviso {
+  color: var(--color-label) !important;
+}
+
+.cat-header__count,
+.sort-bar__count {
+  font-weight: 500 !important;
+}
+
+/* ──────────────────────────────────────────────
+   4. CARDS / IMAGENS / ACCORDIONS / BADGES — raios
+   ────────────────────────────────────────────── */
+.product-card,
+.product-card__image-wrap,
+.categoria-card,
+.categoria-card__image,
+.conta-card,
+.contato-form-wrap,
+.cart-item,
+.checkout-card,
+.avaliacao-card,
+.avaliacao-form-wrap {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.product-card__image-wrap,
+.galeria-main,
+.galeria-main__placeholder,
+.thumb-placeholder,
+.produto-thumb {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+
+.badge,
+[class*="badge-"],
+.produto-badge,
+.tag,
+.chip,
+.cart-coupon-tag {
+  border-radius: var(--radius-pill) !important;
+}
+
+.accordion-item,
+.accordion-header,
+.faq-item {
+  border-radius: var(--radius-sm);
+}
+
+/* Modais / overlays / popups */
+.modal,
+.modal__content,
+.guia-modal__content,
+#vt-exit-popup,
+.cart-sidebar,
+.toast {
+  border-radius: var(--radius-lg) !important;
+}
+
+/* ──────────────────────────────────────────────
+   5. SOMBRAS SUAVES — substitui sombras pesadas
+   ────────────────────────────────────────────── */
+.product-card:hover,
+.categoria-card:hover {
+  box-shadow: var(--shadow-card) !important;
+}
+.contato-form-wrap,
+.conta-card,
+.avaliacao-form-wrap {
+  box-shadow: var(--shadow-soft) !important;
+}
+
+/* ──────────────────────────────────────────────
+   6. FOCO GLOBAL — anel navy arredondado (não petróleo quadrado)
+   ────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-navy) !important;
+  outline-offset: 2px !important;
+}
+/* Inputs já têm halo próprio — evita outline duplo */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible { outline: none !important; }
+
+/* ──────────────────────────────────────────────
+   7. CATÁLOGO — swatch selecionado, slider, sort
+   ────────────────────────────────────────────── */
+
+/* Swatch de cor: círculo perfeito + anel navy limpo (sem brackets) */
+.color-btn,
+.color-swatch,
+.produto-cor {
+  border-radius: 50% !important;
+}
+.color-btn:focus-visible,
+.color-swatch:focus-visible,
+.produto-cor:focus-visible {
+  outline: none !important;
+}
+.color-btn--active,
+.color-btn.active,
+.color-swatch--active,
+.color-swatch.active,
+.produto-cor--active,
+.produto-cor.active {
+  box-shadow: 0 0 0 2px var(--color-white),
+              0 0 0 4px var(--color-navy) !important;
+}
+.color-btn--active::after,
+.color-swatch--active::after {
+  content: none !important;   /* remove o anel ::after quadrado/duplicado */
+}
+
+/* Slider de preço — trilho fino, thumb navy com sombra sutil */
+.price-range__track { height: 3px !important; border-radius: var(--radius-pill) !important; }
+.price-range__fill  { border-radius: var(--radius-pill) !important; background: var(--color-navy) !important; }
+.price-range__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50% !important;
+  background: var(--color-white) !important;
+  border: 2px solid var(--color-navy) !important;
+  box-shadow: 0 2px 6px rgba(26, 38, 64, 0.22) !important;
+  cursor: pointer;
+}
+.price-range__input::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: 2px solid var(--color-navy);
+  box-shadow: 0 2px 6px rgba(26, 38, 64, 0.22);
+  cursor: pointer;
+}
+.price-range__labels { color: var(--color-navy) !important; font-weight: 500; }
+
+/* Sort dropdown — arredondado e alinhado */
+.sort-select-wrap {
+  border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--color-gray-200) !important;
+  align-items: center;
+}
+.sort-bar__filter-btn { border-radius: var(--radius-pill) !important; }
+
+/* ──────────────────────────────────────────────
+   8. BUSCA (overlay) — caixa fechada arredondada, ícone alinhado
+   Corrige a "linha solta" do border-bottom estendido.
+   ────────────────────────────────────────────── */
+.search-overlay__inner { margin: 0 auto; }
+.search-overlay__form {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2);
+  border: 1.5px solid var(--color-navy) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 6px 8px 6px 22px !important;
+  background: var(--color-white) !important;
+  box-shadow: var(--shadow-soft);
+}
+.search-overlay__form .search-overlay__input {
+  flex: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 8px 0 !important;
+  font-size: clamp(20px, 4vw, 30px) !important;
+}
+.search-overlay__form .search-overlay__btn {
+  flex-shrink: 0 !important;
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50% !important;
+  background: var(--color-navy) !important;
+  color: var(--color-white) !important;
+  border: none !important;
+  padding: 0 !important;
+  transition: background var(--transition-base);
+}
+.search-overlay__form .search-overlay__btn:hover { background: var(--color-navy-dark) !important; color: var(--color-gold) !important; }
+
+/* Campos COMPOSTOS — a moldura fica no wrapper; o campo interno é "limpo"
+   (evita borda dupla criada pela regra global de inputs) */
+.sort-select-wrap .sort-select {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 18px 4px 2px !important;
+}
+.input-inline .input,
+.input-inline .btn {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.input-inline {
+  border-radius: var(--radius-pill) !important;
+  overflow: hidden;
+  border: 1px solid var(--color-gray-200);
+}
+.input-inline:focus-within {
+  border-color: var(--color-navy);
+  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.18);
+}
+
+/* Newsletter "sobre" — pill sobre fundo navy: campo translúcido, moldura no wrap */
+.sobre-newsletter__field {
+  border-radius: var(--radius-pill) !important;
+}
+.sobre-newsletter .sobre-newsletter__input {
+  border: none !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #fff !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ──────────────────────────────────────────────
+   8b. CHECKOUT — converte os inputs "underline" em caixas arredondadas
+   (mesma especificidade da camada luxury L23, carregada depois → vence)
+   ────────────────────────────────────────────── */
+[class*="checkout"] input[type="text"],
+[class*="checkout"] input[type="email"],
+[class*="checkout"] input[type="tel"],
+[class*="checkout"] input[type="number"],
+[class*="checkout"] select,
+.checkout-input {
+  border: 1px solid var(--color-gray-200) !important;
+  border-bottom: 1px solid var(--color-gray-200) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-white) !important;
+  color: var(--color-text) !important;
+  padding: 12px 16px !important;
+}
+[class*="checkout"] input[type="text"]:focus,
+[class*="checkout"] input[type="email"]:focus,
+[class*="checkout"] input[type="tel"]:focus,
+[class*="checkout"] input[type="number"]:focus,
+[class*="checkout"] select:focus,
+.checkout-input:focus {
+  border-color: var(--color-navy) !important;
+  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.18) !important;
+}
+
+/* ──────────────────────────────────────────────
+   9. AUDITORIA DE COR — status fora da paleta → paleta
+   (verde "pago", azul "enviado" → tons da paleta)
+   ────────────────────────────────────────────── */
+.badge-pago, [class*="status-pago"], [class*="status--paid"] {
+  background: rgba(196, 147, 74, 0.14) !important;
+  color: #7a5a22 !important;
+}
+.badge-enviado, [class*="status-enviado"] {
+  background: rgba(43, 63, 84, 0.10) !important;
+  color: var(--color-navy) !important;
+}
+
+/* ──────────────────────────────────────────────
+   10. SECÇÃO DE AVALIAÇÕES — fundo creme da paleta
+   ────────────────────────────────────────────── */
+.avaliacao-form-wrap {
+  background: var(--color-gray-100) !important;
+  border-top: 2px solid var(--color-gold) !important;
+  padding: 2.5rem 2rem !important;
+}
+.avaliacao-form__submit {
+  background: var(--color-navy) !important;
+  color: #fff !important;
+  padding: 0.9rem 2.6rem !important;
+}
+
+/* ──────────────────────────────────────────────
+   11. IMAGENS — fallback elegante (sem buraco branco)
+   ────────────────────────────────────────────── */
+img.img-fallback,
+img[data-fallback] {
+  background: linear-gradient(135deg, var(--color-gray-100), var(--color-gray-200));
+}
+
+/* ──────────────────────────────────────────────
+   12. MOBILE — áreas de toque confortáveis
+   ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .btn,
+  button[type="submit"],
+  .conta-form__submit,
+  .avaliacao-form__submit { min-height: 48px; }
+
+  .input,
+  .form-input,
+  .conta-form__input,
+  input, textarea, select { font-size: 16px !important; } /* evita zoom iOS */
+}
