@@ -202,14 +202,19 @@
   align-self: center;          /* mantém o separador centralizado verticalmente */
 }
 
-/* Faixa de benefícios — 4 blocos de largura igual, alinhados pelo topo.
-   Título proporcional (estava 42px, grande demais) e com altura reservada
-   de 2 linhas para que os subtítulos de todos comecem na mesma linha,
-   tenha o título 1 ou 2 linhas. */
-.diferenciais__grid { align-items: flex-start; }
+/* Faixa de benefícios — layout responsivo autossuficiente.
+   Desktop: 4 colunas iguais numa linha, separadores finos.
+   ≤760px: 2×2 (separadores ocultos). ≤460px: empilhado.
+   Título proporcional (24px, antes 42px) e alinhado ao topo. */
+.diferenciais__grid {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: center;
+}
 .diferencial {
-  justify-content: flex-start;
   flex: 1 1 0;                 /* 4 colunas de largura igual */
+  max-width: 240px;
 }
 .diferencial__stat {
   font-size: var(--text-lg);   /* 24px — antes 42px */
@@ -222,6 +227,28 @@
   text-align: center;
   font-size: var(--text-xs);
   line-height: 1.5;
+}
+
+/* Tablet/celular: grid 2 colunas (minmax 0 → nunca estoura), sem separadores */
+@media (max-width: 760px) {
+  .diferenciais__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-2);
+    align-items: start;
+  }
+  .diferencial {
+    flex: none;
+    max-width: none;
+    min-width: 0;
+    padding: 0 var(--space-3);
+  }
+  .diferencial__sep { display: none; }
+  .diferencial__stat { font-size: var(--text-md); }  /* 18px no mobile */
+}
+/* Celular pequeno: 1 coluna empilhada */
+@media (max-width: 460px) {
+  .diferenciais__grid { grid-template-columns: 1fr; }
 }
 
 /* Manifesto Virtù — primeira letra maiúscula (texto vem do Supabase) */
