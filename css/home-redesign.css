@@ -202,25 +202,27 @@
   align-self: center;          /* mantém o separador centralizado verticalmente */
 }
 
-/* Faixa de benefícios — alinhamento consistente dos 4 blocos.
-   Reserva a MESMA altura (2 linhas) para a área do título em todos,
-   para que os subtítulos comecem exatamente na mesma linha horizontal,
-   independente de o título ter 1 ou 2 linhas. */
+/* Faixa de benefícios — 4 blocos de largura igual, alinhados pelo topo.
+   Título proporcional (estava 42px, grande demais) e com altura reservada
+   de 2 linhas para que os subtítulos de todos comecem na mesma linha,
+   tenha o título 1 ou 2 linhas. */
 .diferenciais__grid { align-items: flex-start; }
 .diferencial {
   justify-content: flex-start;
   flex: 1 1 0;                 /* 4 colunas de largura igual */
 }
 .diferencial__stat {
-  display: flex;
-  align-items: center;         /* centraliza o título dentro da área reservada */
-  justify-content: center;
+  font-size: var(--text-lg);   /* 24px — antes 42px */
+  line-height: 1.3;
   width: 100%;
-  min-height: 2.2em;           /* altura de ~2 linhas (line-height 1.1) */
-  line-height: 1.1;
+  margin-bottom: var(--space-2);
   text-align: center;
 }
-.diferencial__label { text-align: center; }
+.diferencial__label {
+  text-align: center;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
 
 /* Manifesto Virtù — primeira letra maiúscula (texto vem do Supabase) */
 #editorialTitle::first-letter { text-transform: uppercase; }
