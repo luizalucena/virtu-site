@@ -87,8 +87,8 @@ h3, h4, .h3, .h4 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C4BA9E; /* nude médio */
-  border-radius: 3px;
+  background: rgba(43, 63, 84, 0.32); /* navy translúcido — paleta */
+  border-radius: 999px;
   transition: background 0.2s;
 }
 

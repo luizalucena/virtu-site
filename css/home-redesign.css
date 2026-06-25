@@ -159,8 +159,8 @@
 }
 .categoria-card--solid-stone {
   background:
-    radial-gradient(130% 100% at 80% 0%, rgba(255,255,255,0.14) 0%, transparent 55%),
-    linear-gradient(155deg, #8a7d6c 0%, #6f6453 55%, #564d40 100%);
+    radial-gradient(130% 100% at 80% 0%, rgba(196,147,74,0.20) 0%, transparent 55%),
+    linear-gradient(155deg, #3D5470 0%, #314A66 55%, #283C52 100%);
 }
 /* Nos tiles sólidos o overlay pode ser bem leve (não há foto a escurecer) */
 .categoria-card--solid .categoria-card__overlay {
