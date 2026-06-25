@@ -5,16 +5,16 @@
  *   2. Para a loja (wearvirtu@gmail.com): notificação de novo pedido PAGO
  *
  * Pode ser chamado com dados completos (de processar-pagamento) ou apenas
- * com { pedido_id, status } (de pix-webhook) — neste caso busca os dados no DB.
+ * com { pedido_id, status } (de asaas-webhook) — neste caso busca os dados no DB.
  *
  * Chamado por:
  *   - processar-pagamento: após confirmar pagamento (status pago ou pendente)
- *   - pix-webhook: após PIX confirmado (status pago)
+ *   - asaas-webhook: após PIX/cartão confirmado pelo ASAAS (status pago)
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Chamado apenas server-to-server (processar-pagamento / pix-webhook); CORS restrito.
+// Chamado apenas server-to-server (processar-pagamento / asaas-webhook); CORS restrito.
 const corsHeaders = {
   'Access-Control-Allow-Origin':  'https://wearvirtu.com',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
 
     // ── Resolve dados do pedido ──────────────────────────────────────
-    // Se só veio pedido_id (chamada do pix-webhook), busca tudo no banco.
+    // Se só veio pedido_id (chamada do asaas-webhook), busca tudo no banco.
     let {
       pedido_id,
       cliente,
