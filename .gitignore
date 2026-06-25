@@ -13,3 +13,6 @@ supabase/.temp/
 
 # Node (caso use algum dia)
 node_modules/
+
+# Configuração local do Claude (pode conter dados sensíveis)
+.claude/
