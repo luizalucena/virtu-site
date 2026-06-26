@@ -120,6 +120,25 @@ Toda tarefa segue estas etapas, nesta ordem:
 
 ## 8. Pendências / riscos conhecidos
 
-- **Token do GitHub — limpeza local feita (24/06/2026).** O Personal Access Token que estava exposto foi removido do `.git/config` e do `.claude/settings.local.json`; o remote agora usa URL limpa (`https://github.com/luizalucena/virtu-site.git`), as credenciais passam pelo Keychain do macOS (`credential.helper osxkeychain`) e `.claude/` entrou no `.gitignore`.
+### Auditoria de segurança — 26/06/2026
+
+**✅ Resolvido (já em produção):**
+- **C1 — Vazamento de pedidos:** a policy `rastreio_por_uuid` (`SELECT public USING(true)`) deixava a anon key ler TODA a tabela `pedidos` (CPF, endereço, telefone). Removida. Rastreio agora usa a função `rastrear_pedido(uuid)` (`SECURITY DEFINER`, só colunas não sensíveis) + polling no `rastreio.html`. Migration `20260625_fix_rls_seguranca.sql`.
+- **C2 — Controle de admin:** confirmado OK. `is_virtu_admin()` (allowlist = `wearvirtu@gmail.com` + `service_role`) protege produtos, configuracoes, cupons, fluxo_caixa, config_fidelidade, bazar_pecas e pedidos. **O login do painel TEM que ser `wearvirtu@gmail.com`** — mudar a allowlist na função se trocar.
+- **A1 — Webhook de pagamento:** `asaas-webhook` agora é fail-closed (sem `ASAAS_WEBHOOK_TOKEN` → recusa 503; token errado → 401). Secret setado e testado em produção.
+- **Cupons:** removida a leitura pública da tabela (`cupons_admin_read` só admin). A loja valida por RPC `validar_cupom` (`SECURITY DEFINER`). Migration `20260625_cupons_leitura_admin.sql`.
+- **Mercado Pago:** integração removida do código (função `pix-webhook` deletada do repo; gateway agora é só ASAAS via `processar-pagamento` + `asaas-webhook`).
+
+**⚠️ AÇÃO PENDENTE (só a Luíza, no painel — sem ferramenta automatizada):**
+- **Supabase → Edge Functions:** deletar a função publicada **`pix-webhook`** (MP, já removida do código mas ainda no ar).
+- **Supabase → Manage secrets:** deletar `MP_ACCESS_TOKEN` e `MP_WEBHOOK_SECRET` (não usados).
+- **Supabase → Authentication → Settings:** ativar **"Leaked password protection"**.
+- **GitHub Pages × `_headers`:** o deploy é GitHub Pages, que **ignora** o `_headers` — HSTS/CSP/X-Frame não valem em produção. Avaliar migrar para Cloudflare/Netlify Pages (aplicam o arquivo nativamente) ou replicar via `<meta http-equiv>`.
+- **Funções placeholder publicadas** (`smart-responder`, `virtusite`, `clever-service`) — conferir se são lixo de teste e deletar.
+- **Git:** `origin/staging` e `origin/main` divergiram (push direto no `main` durante a auditoria). Alinhar os dois branches quando puder.
+
+### Token do GitHub — limpeza local feita (24/06/2026)
+- O Personal Access Token que estava exposto foi removido do `.git/config` e do `.claude/settings.local.json`; o remote agora usa URL limpa (`https://github.com/luizalucena/virtu-site.git`), as credenciais passam pelo Keychain do macOS (`credential.helper osxkeychain`) e `.claude/` entrou no `.gitignore`.
   - **AÇÃO PENDENTE (só a Luíza pode fazer):** o token antigo ainda é válido no GitHub até ser revogado. Revogar em GitHub → Settings → Developer settings → Personal access tokens, e gerar um novo se precisar. No próximo `git push`, autenticar com o token novo (ele será salvo no Keychain automaticamente).
+
 - Manter esta lista atualizada conforme riscos surgirem ou forem resolvidos.
