@@ -709,9 +709,9 @@
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  /* Placeholder mais bonito */
+  /* Placeholder mais bonito — creme da paleta (nunca nude) */
   .product-card__image-wrap {
-    background: linear-gradient(145deg, #ede8e0, #d4c4b5);
+    background: linear-gradient(160deg, #F4F1EA, #EAE4D9);
   }
 }
 

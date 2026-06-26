@@ -115,7 +115,9 @@ const VirtuProducts = (() => {
     const _primeiraImg = Array.isArray(produto.imagens) && produto.imagens.length
       ? produto.imagens[0] : null;
     const imgUrl = _cvDrive(imagem_url || _primeiraImg);
-    const placeholderBg = imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)';
+    // Placeholder boutique (creme/navy + marca em serif via CSS .is-ph) — nunca nude.
+    // Alterna creme/navy por posição para dar ritmo à grade.
+    const phVariant = (typeof opts.index === 'number' && opts.index % 2 === 1) ? ' is-ph--navy' : '';
 
     // ── IMAGEM RESPONSIVA: WebP via Supabase Transform + srcset ──
     // Para imagens no Supabase Storage → usa o endpoint render/image que
@@ -125,7 +127,7 @@ const VirtuProducts = (() => {
       if (!url) return '';
       const loadAttr     = eager ? 'eager'  : 'lazy';
       const priorityAttr = eager ? ' fetchpriority="high"' : '';
-      const errFallback  = `this.style.display='none';this.parentElement.style.background='${placeholderBg}'`;
+      const errFallback  = `this.style.display='none';this.closest('.product-card__image-wrap').classList.add('is-ph')`;
       // Detecta Supabase Storage: .../storage/v1/object/public/...
       const supaMatch = url.match(/^(https:\/\/[^/]+\.supabase\.co)\/storage\/v1\/object\/public\/(.+)$/);
       if (supaMatch) {
@@ -148,7 +150,7 @@ const VirtuProducts = (() => {
     }
 
     const imgHtml    = _buildImgTag(imgUrl, eagerLoad);
-    const wrapStyle  = imgUrl ? '' : `style="background:${placeholderBg}"`;
+    const wrapPhClass = imgUrl ? '' : ` is-ph${phVariant}`;
 
     // ── SEGUNDA IMAGEM: crossfade no hover ────────────────────
     // imagens[] é a galeria completa; imagens[0] é a principal,
@@ -201,7 +203,7 @@ const VirtuProducts = (() => {
     return `
       <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" data-date="${dateAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
-          <div class="product-card__image-wrap" ${wrapStyle}>
+          <div class="product-card__image-wrap${wrapPhClass}">
             ${imgHtml}
             ${hoverImgHtml}
             ${badgeHtml}

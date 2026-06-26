@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `background:url('${item.imagem_url}') center/cover no-repeat`
           : item.imagem_placeholder
             ? `background:${item.imagem_placeholder}`
-            : 'background:linear-gradient(135deg,#E8E0D5,#D4CCC0)';
+            : 'background:linear-gradient(160deg,#F4F1EA,#EAE4D9)';
         return `
           <div class="checkout-order-item">
             <div class="checkout-order-item__img" style="${imgStyle}"></div>

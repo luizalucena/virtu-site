@@ -29,7 +29,7 @@
   --color-text:        #2B3F54;   /* Cor principal de texto */
   --color-text-light:  #6E6660;   /* Texto secundário */
   --color-border:      #E8E3DC;   /* Bordas e divisores */
-  --color-nude:        #D4C4B5;   /* Nude para placeholders */
+  --color-nude:        #EDE8DF;   /* (legado) creme suave — sem nude na paleta */
 
   /* — Tipografia — */
   --font-display:   'Cormorant Garamond', Georgia, serif;

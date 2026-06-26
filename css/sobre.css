@@ -245,8 +245,10 @@
 .sobre-manifesto__img {
   width: 100%;
   aspect-ratio: 4/5;
-  background: linear-gradient(160deg, #D4C4B5 0%, #A89888 40%, var(--color-navy) 100%);
-  border-radius: 4px;
+  background:
+    radial-gradient(120% 90% at 80% 0%, rgba(196, 147, 74, 0.18) 0%, transparent 55%),
+    linear-gradient(160deg, #3D5470 0%, #2B3F54 55%, #1C2C3C 100%);
+  border-radius: var(--radius-lg);
   margin-bottom: 1.5rem;
 }
 
@@ -359,8 +361,10 @@
 .sobre-fundadora__img {
   width: 100%;
   aspect-ratio: 3/4;
-  background: linear-gradient(145deg, #C9B8A8 0%, #A89888 50%, var(--color-navy) 100%);
-  border-radius: 4px;
+  background:
+    radial-gradient(120% 90% at 80% 0%, rgba(196, 147, 74, 0.18) 0%, transparent 55%),
+    linear-gradient(145deg, #3D5470 0%, #2B3F54 50%, #1C2C3C 100%);
+  border-radius: var(--radius-lg);
   position: relative;
 }
 .sobre-fundadora__img::after {

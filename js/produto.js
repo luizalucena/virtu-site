@@ -344,6 +344,9 @@ async function carregarProduto(produtoId) {
           });
         });
       }
+    } else {
+      // Sem foto → encerra o skeleton e revela o placeholder boutique (.is-ph)
+      document.querySelector('.galeria-main')?.classList.add('img-loaded');
     }
 
     // Compre Junto — carrega peças reais do Supabase
@@ -406,22 +409,23 @@ async function renderPecasRelacionadas(currentId, categoria) {
 
     if (rel.length === 0) { secao.style.display = 'none'; return; }
 
-    const cardHTML = p => {
+    const cardHTML = (p, i = 0) => {
       const preco  = p.preco_desconto ?? p.preco_original;
-      const bg     = p.imagem_url
-        ? `url('${p.imagem_url}') center/cover no-repeat`
-        : (p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)');
+      const temImg = !!p.imagem_url;
+      const phVariant = (i % 2 === 1) ? ' is-ph--navy' : '';
       const badge  = p.novidade
         ? `<span class="product-card__badge">Novo</span>`
         : p.destaque
           ? `<span class="product-card__badge">Mais Vendido</span>`
           : '';
       const cat = p.categoria ? p.categoria.charAt(0).toUpperCase() + p.categoria.slice(1) : '';
-      const label = p.imagem_url ? '' : `<span style="font-family:var(--font-display);font-size:12px;color:rgba(0,0,0,0.2);letter-spacing:2px;text-transform:uppercase;">foto</span>`;
+      const phHtml = temImg
+        ? `<div class="product-card__placeholder" style="background:url('${p.imagem_url}') center/cover no-repeat;width:100%;height:100%;"></div>`
+        : `<div class="product-card__placeholder is-ph${phVariant}"></div>`;
       return `
         <article class="product-card">
           <div class="product-card__image-wrap">
-            <div class="product-card__placeholder" style="background:${bg};width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${label}</div>
+            ${phHtml}
             ${badge}
             <button class="product-card__wishlist" data-wishlist-id="${p.id}" aria-label="Adicionar aos favoritos" aria-pressed="false">${heartSVG}</button>
             <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
@@ -434,7 +438,7 @@ async function renderPecasRelacionadas(currentId, categoria) {
         </article>`;
     };
 
-    grid.innerHTML = rel.map(cardHTML).join('');
+    grid.innerHTML = rel.map((p, i) => cardHTML(p, i)).join('');
 
     // wishlist.js gerencia os corações via event delegation global
     // Quick-add: redireciona para a página do produto para seleção de tamanho/cor
@@ -470,9 +474,10 @@ async function renderCompreJunto(produtoPrincipal, sugestoesIds) {
     }
 
     const fmt  = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    const bg   = p => p.imagem_url
-      ? `url('${p.imagem_url}') center/cover no-repeat`
-      : (p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)');
+    // Imagem real → background; sem foto → placeholder boutique (.is-ph) em vez de nude
+    const imgAttr = p => p.imagem_url
+      ? `class="compre-junto__img" style="background:url('${p.imagem_url}') center/cover no-repeat"`
+      : `class="compre-junto__img is-ph"`;
 
     const precoPrincipal = produtoPrincipal.preco_desconto ?? produtoPrincipal.preco_original;
     let total = precoPrincipal;
@@ -482,7 +487,7 @@ async function renderCompreJunto(produtoPrincipal, sugestoesIds) {
       return `
         <div class="compre-junto__card">
           <a href="produto.html?id=${p.id}" style="display:block">
-            <div class="compre-junto__img" style="background:${bg(p)}"></div>
+            <div ${imgAttr(p)}></div>
           </a>
           <div class="compre-junto__tag">${tag}</div>
           <p class="compre-junto__name">${p.nome}</p>

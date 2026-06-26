@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const temDesc = !!p.preco_desconto;
       const img = p.imagem_url
         ? `background:url('${p.imagem_url}') center/cover no-repeat`
-        : `background:${p.imagem_placeholder || 'linear-gradient(135deg,#E8E0D5,#D4CCC0)'}`;
+        : `background:${p.imagem_placeholder || 'linear-gradient(160deg,#F4F1EA,#EAE4D9)'}`;
       return `
         <div class="favorito-card">
           <a href="produto.html?id=${p.id}" class="favorito-card__img" style="${img}">
