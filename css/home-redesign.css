@@ -261,6 +261,10 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin: var(--space-10);
+  /* Retrato de produto consistente (4:5 ≈ formato da foto) que cabe na tela:
+     a seção inteira fica em ~80vh no desktop, sem estourar o viewport. */
+  aspect-ratio: 4 / 5;
+  max-height: 76vh;
 }
 .feature-spot__image img { border-radius: inherit; }
 

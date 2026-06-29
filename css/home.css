@@ -439,9 +439,9 @@
 .feature-spot__inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: center;          /* imagem e texto centralizados verticalmente */
   max-width: var(--container-max);
   margin-inline: auto;
-  min-height: 540px;
 }
 
 .feature-spot__image {
@@ -453,7 +453,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center 30%;   /* enquadra a peça/look inteiro, não corta nas pernas */
   display: block;
   transition: transform var(--transition-slow);
 }
