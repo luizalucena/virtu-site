@@ -51,6 +51,33 @@ function sanitize(val: unknown, maxLen = 255): string {
   return String(val ?? '').trim().replace(/[<>"'`]/g, '').slice(0, maxLen);
 }
 
+/**
+ * Fretes válidos para um CEP (anti-tampering do valor de frete).
+ * Espelha supabase/functions/calcular-frete — MANTER SINCRONIZADO:
+ *   Grande JP → grátis (+ motoboy R$15 só João Pessoa) · Nordeste → R$18
+ *   Fora do Nordeste → não atendido (lista vazia).
+ */
+function fretesPermitidos(cepRaw: unknown): number[] {
+  const digits = String(cepRaw ?? '').replace(/\D/g, '');
+  if (digits.length !== 8) return [];
+  const cep = parseInt(digits, 10);
+  const jp = cep >= 58000000 && cep <= 58099999;                 // João Pessoa
+  const grandeJP = jp
+    || (cep >= 58102000 && cep <= 58109999)                       // Cabedelo
+    || (cep >= 58300000 && cep <= 58339999)                       // Santa Rita
+    || (cep >= 58400000 && cep <= 58419999)                       // Bayeux
+    || (cep >= 58065000 && cep <= 58066999);                      // Conde
+  if (grandeJP) return jp ? [0, 15] : [0];
+  const nordeste =
+       (cep >= 40000000 && cep <= 48999999) || (cep >= 49000000 && cep <= 49999999)
+    || (cep >= 50000000 && cep <= 56999999) || (cep >= 57000000 && cep <= 57999999)
+    || (cep >= 58000000 && cep <= 58999999) || (cep >= 59000000 && cep <= 59999999)
+    || (cep >= 60000000 && cep <= 63999999) || (cep >= 64000000 && cep <= 64999999)
+    || (cep >= 65000000 && cep <= 65999999);
+  if (nordeste) return [18];
+  return [];
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -239,34 +266,44 @@ Deno.serve(async (req) => {
     }
 
     // ── Recálculo server-side do subtotal (anti-tampering) ───
-    let serverSubtotal = 0;
-    if (itens?.length) {
-      const productIds = (itens as any[]).map((i) => i.id).filter(Boolean);
-      if (productIds.length > 0) {
-        const { data: produtos } = await supabase
-          .from('produtos')
-          .select('id, preco_original, preco_desconto')
-          .in('id', productIds);
-
-        const priceMap: Record<string, number> = {};
-        for (const p of produtos ?? []) {
-          priceMap[p.id] = Number(p.preco_desconto ?? p.preco_original) || 0;
-        }
-        for (const item of itens as any[]) {
-          const sp = priceMap[item.id];
-          if (sp !== undefined) serverSubtotal += sp * (Number(item.qty) || 1);
-        }
-      }
+    // Todo item precisa existir no banco. Se algum não casar, recusamos —
+    // NUNCA confiamos no subtotal vindo do cliente (evita adulteração de preço).
+    if (!itens?.length) {
+      return json({ erro: 'Carrinho vazio.' }, 400);
     }
-    if (serverSubtotal === 0 && subtotal) {
-      console.warn('[processar-pagamento] Preços não encontrados — usando subtotal cliente:', subtotal);
-      serverSubtotal = Number(subtotal);
+    const productIds = (itens as any[]).map((i) => i.id).filter(Boolean);
+    const { data: produtos } = await supabase
+      .from('produtos')
+      .select('id, preco_original, preco_desconto')
+      .in('id', productIds);
+
+    const priceMap: Record<string, number> = {};
+    for (const p of produtos ?? []) {
+      priceMap[p.id] = Number(p.preco_desconto ?? p.preco_original) || 0;
+    }
+
+    let serverSubtotal = 0;
+    for (const item of itens as any[]) {
+      const sp = priceMap[item.id];
+      if (sp === undefined) {
+        console.error('[processar-pagamento] Item sem preço no banco:', item?.id);
+        return json({ erro: 'Um item do carrinho é inválido. Atualize a página e tente novamente.' }, 400);
+      }
+      serverSubtotal += sp * (Number(item.qty) || 1);
     }
 
     const freteNum = Number(frete ?? 0);
 
+    // ── Valida o frete server-side (anti-tampering) ──────────
+    // O cliente escolhe a opção, mas o PREÇO é validado contra o CEP.
+    const fretesOk = fretesPermitidos(endereco?.cep);
+    if (!fretesOk.some((p) => Math.abs(p - freteNum) <= 0.01)) {
+      console.warn(`[Frete] inválido: cep=${endereco?.cep} frete=${freteNum} permitidos=[${fretesOk}]`);
+      return json({ erro: 'Opção de frete inválida para o endereço informado.' }, 400);
+    }
+
     // ── Valida cupom server-side (anti-tampering) ────────────
-    // O frontend envia desconto=X, mas só confiamos no valor que o banco diz.
+    // Base do desconto = serverSubtotal (recalculado), NUNCA o subtotal do cliente.
     let descontoNum = 0;
     if (cupom_codigo && String(cupom_codigo).trim()) {
       try {
@@ -277,29 +314,32 @@ Deno.serve(async (req) => {
 
         if (cupomErr) {
           console.warn('[Cupom] Erro RPC:', cupomErr.message);
-          // Cupom inválido → desconto zero (não nega o pedido)
         } else if (cupomData?.valido === true) {
-          // Calcula o desconto com base no tipo e valor do cupom
-          const tipoCupom  = cupomData.tipo;           // 'porcentagem' | 'fixo'
-          const valorCupom = Number(cupomData.valor ?? 0);
-          const baseDesc   = Number(subtotal ?? 0);    // aplica sobre subtotal bruto
+          const tipoCupom   = cupomData.tipo;                  // 'percentual' | 'frete'
+          const valorCupom  = Number(cupomData.valor ?? 0);
+          const valorMinimo = Number(cupomData.valor_minimo ?? 0);
 
-          descontoNum =
-            tipoCupom === 'percentual'
-              ? Math.round(baseDesc * (valorCupom / 100) * 100) / 100
-              : valorCupom;  // 'fixo'
-
-          console.log(`[Cupom] "${codigoCupom}" validado → desconto=R$${descontoNum}`);
+          if (serverSubtotal < valorMinimo) {
+            // Pedido abaixo do mínimo exigido pelo cupom → não aplica
+            console.warn(`[Cupom] "${codigoCupom}" ignorado: subtotal R$${serverSubtotal} < mínimo R$${valorMinimo}`);
+          } else if (tipoCupom === 'percentual') {
+            // Aplica sobre o subtotal do servidor; nunca excede o próprio subtotal
+            descontoNum = Math.min(
+              serverSubtotal,
+              Math.round(serverSubtotal * (valorCupom / 100) * 100) / 100,
+            );
+            console.log(`[Cupom] "${codigoCupom}" validado → desconto=R$${descontoNum}`);
+          } else {
+            // Cupom 'frete' (ou outro tipo): não vira desconto de produto.
+            // Frete grátis é tratado automaticamente por CEP, não por cupom.
+            console.log(`[Cupom] "${codigoCupom}" tipo "${tipoCupom}" — sem desconto de produto`);
+          }
         } else {
-          console.warn(`[Cupom] "${codigoCupom}" inválido ou expirado (server): ${JSON.stringify(cupomData)}`);
-          // Desconto zero — cupom não se aplica
+          console.warn(`[Cupom] "${codigoCupom}" inválido/expirado/limite (server)`);
         }
       } catch (cupomEx) {
         console.error('[Cupom] Exceção:', cupomEx);
       }
-    } else {
-      // Sem cupom — usa desconto do client apenas para fidelidade (validado abaixo)
-      descontoNum = 0;
     }
 
     // ── Desconto de Fidelidade (validação server-side) ───────
@@ -336,6 +376,45 @@ Deno.serve(async (req) => {
 
     if (serverTotal <= 0) {
       return json({ erro: 'Valor do pedido inválido.' }, 400);
+    }
+
+    // ── Valida estoque ANTES de cobrar (reduz oversell) ──────
+    // Não é reserva atômica: resta uma pequena janela até o trigger debitar,
+    // mas evita aceitar pagamento de item claramente esgotado.
+    {
+      const { data: vars } = await supabase
+        .from('variacoes')
+        .select('produto_id, tamanho, cor_nome, estoque')
+        .in('produto_id', productIds);
+
+      for (const item of itens as any[]) {
+        const qty       = Number(item.qty) || 1;
+        const doProduto = (vars ?? []).filter((v) => v.produto_id === item.id);
+        let estoqueDisp: number;
+
+        const exata = doProduto.find((v) =>
+          (item.tamanho  == null || v.tamanho  === item.tamanho) &&
+          (item.cor_nome == null || v.cor_nome === item.cor_nome),
+        );
+        if (exata) {
+          estoqueDisp = Number(exata.estoque) || 0;
+        } else if (doProduto.length > 0) {
+          // espelha o fallback do trigger: qualquer variação do produto
+          estoqueDisp = doProduto.reduce((m, v) => Math.max(m, Number(v.estoque) || 0), 0);
+        } else {
+          // produto sem variação cadastrada → usa produtos.estoque
+          const { data: prod } = await supabase
+            .from('produtos').select('estoque').eq('id', item.id).maybeSingle();
+          estoqueDisp = Number(prod?.estoque) || 0;
+        }
+
+        if (estoqueDisp < qty) {
+          return json(
+            { erro: `Estoque insuficiente para "${sanitize(item?.nome || 'item', 80)}". Disponível: ${estoqueDisp}.` },
+            409,
+          );
+        }
+      }
     }
 
     // Cross-check ±2 centavos (tolerância para arredondamento client-side)
@@ -512,6 +591,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (dbError) throw new Error('[DB Insert] ' + dbError.message);
+
+    // Nota: o uso do cupom (cupom_usos_cliente + cupons.usos) é registrado
+    // automaticamente pelo trigger trg_registrar_uso_cupom em `pedidos`
+    // quando o pedido fica pago — não registrar aqui (evita contagem dupla).
 
     // ── Estoque ──────────────────────────────────────────────────
     // Delegado ao trigger trg_pedido_pago_baixa_estoque (AFTER INSERT OR UPDATE).
