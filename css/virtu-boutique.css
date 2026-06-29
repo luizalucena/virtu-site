@@ -545,6 +545,36 @@ img[data-fallback] {
 }
 
 /* ──────────────────────────────────────────────
+   16. CANTOS RETOS RESIDUAIS — neutraliza border-radius:0 forçado
+   por virtu-refinements/luxury em faixas e boxes ainda quadrados.
+   (a faixa de diferenciais do produto era o caso mais visível)
+   ────────────────────────────────────────────── */
+.produto-diferenciais {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+.produto-payment-strip {
+  border-radius: var(--radius-md) !important;
+}
+.produto-tamanho {
+  border-radius: var(--radius-sm) !important;
+}
+.guia-modal__close {
+  border-radius: 50% !important;
+}
+
+/* Sombras de hover dos CTAs — difusas e leves (boutique), não pesadas */
+.btn--primary:hover,
+.btn--gold:hover {
+  box-shadow: 0 6px 18px rgba(43, 63, 84, 0.12) !important;
+}
+.produto-acoes .btn--primary:hover,
+.produto-acoes .btn--gold:hover,
+.btn-comprar:hover {
+  box-shadow: 0 8px 22px rgba(43, 63, 84, 0.13) !important;
+}
+
+/* ──────────────────────────────────────────────
    12. MOBILE — áreas de toque confortáveis
    ────────────────────────────────────────────── */
 @media (max-width: 640px) {
