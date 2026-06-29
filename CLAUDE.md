@@ -126,6 +126,17 @@ Toda tarefa segue estas etapas, nesta ordem:
 
 ## 8. Pendências / riscos conhecidos
 
+### Auditoria completa — 29/06/2026 (segurança + qualidade)
+
+**✅ Aplicado em produção e verificado:**
+- **RPCs `SECURITY DEFINER` travadas (CRÍTICO):** anon podia manipular o inventário (`ajustar_estoque`, `definir_estoque`, `criar/atualizar/toggle_variacao`), vazar PII (`carrinhos_para_followup`), gerar prêmio sem comprar (`registrar_compra_fidelidade`) e ler financeiro das consignatárias. Migration `20260629_revoke_rpc_anon_e_search_path.sql` — REVOKE anon + guarda `is_virtu_admin()` + `search_path` fixo. Advisor confirmou o fechamento.
+- **`processar-pagamento` anti-fraude (deployado):** valida subtotal/frete/cupom/estoque no servidor (A1/A2/A4/A6/A7/A8). Smoke-test OK (item e frete adulterados → 400). Uso de cupom é registrado pelo trigger `trg_registrar_uso_cupom` (não duplicar no código).
+
+**⚠️ Pendente (decisão/ação da Luíza):**
+- **A5 — idempotência do checkout:** duplo-clique/retry pode gerar cobrança dupla (cada chamada cria pedido + cobrança ASAAS). Precisa de chave de idempotência (coluna + ajuste no checkout.js). Não implementado.
+- **Confirmação de e-mail:** verificar em Auth → "Confirm email" se está ON.
+- **Baixo/cosmético:** escape em `bazar.js`/`contato.js` (dados de admin); rate limit nos INSERTs públicos (contato/newsletter); `search_path` em 3 triggers de timestamp; índices duplicados/não usados (advisor performance).
+
 ### Auditoria de segurança — 26/06/2026
 
 **✅ Resolvido (já em produção):**
