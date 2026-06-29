@@ -751,7 +751,8 @@
 /* ── CTA ─────────────────────────────────── */
 .sobre-cta {
   padding: 6rem 5%;
-  background: linear-gradient(160deg, #F5EDE2 0%, #EDE3D8 100%);
+  background: linear-gradient(160deg, var(--color-off-white) 0%, #F4F1EA 100%);
+  border-top: 1px solid var(--color-line, rgba(43,63,84,0.1));
   text-align: center;
 }
 

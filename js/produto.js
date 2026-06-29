@@ -812,12 +812,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   const productActions = document.querySelector('.produto-acoes');
 
   if (stickyBar && productActions) {
+    // Em telas ≤900px a barra fica sempre visível (CSS); no desktop só ao rolar.
+    let scrolledPast = false;
+    const mqMobile   = window.matchMedia('(max-width: 900px)');
+    // Eleva o botão flutuante do WhatsApp sempre que a barra puder cobrir o CTA.
+    const syncWhatsApp = () => {
+      const barraVisivel = scrolledPast || mqMobile.matches;
+      document.body.classList.toggle('sticky-bar-visible', barraVisivel);
+    };
     const stickyObs = new IntersectionObserver(entries => {
       entries.forEach(e => {
-        stickyBar.classList.toggle('visible', !e.isIntersecting);
+        scrolledPast = !e.isIntersecting;
+        stickyBar.classList.toggle('visible', scrolledPast);
+        syncWhatsApp();
       });
     }, { threshold: 0 });
     stickyObs.observe(productActions);
+    mqMobile.addEventListener('change', syncWhatsApp);
+    syncWhatsApp();
   }
 
   // Compre Junto: renderizado dinamicamente por renderCompreJunto() acima

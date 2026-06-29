@@ -785,6 +785,34 @@
 
 .sticky-buy-bar.visible { display: flex; }
 
+/* Quando a barra de compra fixa está visível, eleva o botão flutuante do
+   WhatsApp para que ele nunca cubra/corte o CTA "Adicionar ao carrinho".
+   (a barra tem z-index 90; o WhatsApp 9990 — empilhar não basta, é preciso
+   tirá-lo de cima da barra) */
+body.sticky-bar-visible #vt-wa-btn { bottom: 96px; }
+body.sticky-bar-visible #vt-wa-tip { bottom: 160px; }
+
+/* Em telas estreitas: o info encolhe (nome com reticências) e o botão mantém
+   o texto inteiro, sem estourar a viewport. */
+@media (max-width: 600px) {
+  .sticky-buy-bar { gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+  .sticky-buy-bar__info { min-width: 0; flex: 1 1 auto; }
+  .sticky-buy-bar__name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sticky-buy-bar__price { white-space: nowrap; }
+  .sticky-buy-bar .btn,
+  .sticky-buy-bar .btn--primary {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 13px 18px;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+}
+
 .sticky-buy-bar__info {}
 
 .sticky-buy-bar__name {
@@ -1201,7 +1229,7 @@
 .avaliacao-form__sucesso {
   padding: 1rem;
   background: #f0fdf4;
-  border-left: 3px solid #27ae60;
+  border-left: 3px solid #2e7d32;
   color: #15803d;
   font-size: 0.88rem;
   display: none;

@@ -142,12 +142,14 @@
 .contato-info__link {
   font-family: var(--font-body);
   font-size: 0.9rem;
-  color: var(--color-gold);
+  color: var(--color-navy);
+  font-weight: 500;
   text-decoration: none;
   display: block;
   margin-bottom: 0.2rem;
+  transition: color var(--transition-fast);
 }
-.contato-info__link:hover { text-decoration: underline; }
+.contato-info__link:hover { color: var(--color-gold); }
 
 .contato-info__note {
   font-family: var(--font-body);

@@ -877,7 +877,7 @@
   min-height: 1.2em;
   font-family: var(--font-body);
 }
-.checkout-cupom__msg--ok    { color: #27ae60; }
+.checkout-cupom__msg--ok    { color: #2e7d32; }
 .checkout-cupom__msg--erro  { color: #c0392b; }
 
 /* ============================================================
