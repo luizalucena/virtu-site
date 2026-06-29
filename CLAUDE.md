@@ -93,6 +93,12 @@ Toda tarefa segue estas etapas, nesta ordem:
 - Edge Functions: TypeScript/Deno, padrão dos arquivos já existentes em `supabase/functions/`.
 - Validar dados no backend; nunca confiar só no frontend para regras de pagamento, estoque ou preço.
 
+**Skills de design — prioridade (IMPORTANTE)**
+
+- A skill **`taste-skill`** é a AUTORIDADE em toda decisão visual/de marca da Virtù: paleta, tipografia, bordas arredondadas, contraste, espaçamento, motion, conversão e os "AI tells" a evitar. Carregar e seguir a `taste-skill` em qualquer tarefa de UI/estilo.
+- Em caso de **conflito entre a `taste-skill` e qualquer outra skill de design** (ex.: `ui-ux-pro-max` / UI-UX Pro Max), a **`taste-skill` SEMPRE prevalece**. As demais skills entram apenas como apoio técnico (acessibilidade, contraste, espaçamento, checagens), nunca para sobrepor a identidade da marca (cores, fontes, estilo).
+- Não adotar paletas, fontes, componentes ou estilos sugeridos por outras skills se contrariarem a `taste-skill`. Na dúvida, seguir a `taste-skill` e apontar o conflito para a Luíza.
+
 ---
 
 ## 6. Checklist de verificação (antes de dar por pronto)
@@ -129,13 +135,17 @@ Toda tarefa segue estas etapas, nesta ordem:
 - **Cupons:** removida a leitura pública da tabela (`cupons_admin_read` só admin). A loja valida por RPC `validar_cupom` (`SECURITY DEFINER`). Migration `20260625_cupons_leitura_admin.sql`.
 - **Mercado Pago:** integração removida do código (função `pix-webhook` deletada do repo; gateway agora é só ASAAS via `processar-pagamento` + `asaas-webhook`).
 
-**⚠️ AÇÃO PENDENTE (só a Luíza, no painel — sem ferramenta automatizada):**
-- **Supabase → Edge Functions:** deletar a função publicada **`pix-webhook`** (MP, já removida do código mas ainda no ar).
-- **Supabase → Manage secrets:** deletar `MP_ACCESS_TOKEN` e `MP_WEBHOOK_SECRET` (não usados).
-- **Supabase → Authentication → Settings:** ativar **"Leaked password protection"**.
+**✅ Resolvido depois (29/06/2026):**
+- **Mercado Pago no ar:** função publicada `pix-webhook` deletada e secrets `MP_ACCESS_TOKEN` / `MP_WEBHOOK_SECRET` removidos (verificado: `pix-webhook` não consta mais em Edge Functions).
+- **Token do GitHub:** revogado pela Luíza; config local confirmada limpa (sem token embutido, `credential.helper=osxkeychain`).
+- **Git:** `origin/staging` e `origin/main` reunificados num merge sem conflito (commit `f95f595`) — a refinada estética (placeholders boutique) foi ao ar junto com as correções de segurança. Os dois branches estão idênticos.
+
+**⛔ Não acionável no plano atual:**
+- **"Leaked password protection" (Supabase):** só disponível no plano **Pro**. Mitigação no plano free: **senha forte e única no admin** (`wearvirtu@gmail.com`, via gerenciador de senhas) e, se disponível, **2FA/MFA** no login do admin — cobre o mesmo risco (proteção do acesso administrativo).
+
+**🟡 Melhorias opcionais (sem urgência):**
 - **GitHub Pages × `_headers`:** o deploy é GitHub Pages, que **ignora** o `_headers` — HSTS/CSP/X-Frame não valem em produção. Avaliar migrar para Cloudflare/Netlify Pages (aplicam o arquivo nativamente) ou replicar via `<meta http-equiv>`.
 - **Funções placeholder publicadas** (`smart-responder`, `virtusite`, `clever-service`) — conferir se são lixo de teste e deletar.
-- **Git:** `origin/staging` e `origin/main` divergiram (push direto no `main` durante a auditoria). Alinhar os dois branches quando puder.
 
 ### Token do GitHub — limpeza local feita (24/06/2026)
 - O Personal Access Token que estava exposto foi removido do `.git/config` e do `.claude/settings.local.json`; o remote agora usa URL limpa (`https://github.com/luizalucena/virtu-site.git`), as credenciais passam pelo Keychain do macOS (`credential.helper osxkeychain`) e `.claude/` entrou no `.gitignore`.
