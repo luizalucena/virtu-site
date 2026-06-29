@@ -1039,6 +1039,26 @@ document.addEventListener('DOMContentLoaded', () => {
       || document.querySelector('#freteOpcoes label')?.querySelector('span:first-of-type')?.textContent?.trim()
       || 'Entrega padrão';
 
+    // ── Idempotência (anti cobrança dupla) ───────
+    // Chave estável por tentativa: reusada se o cliente repetir o envio
+    // após timeout (mesmo carrinho/total ⇒ mesma chave ⇒ servidor não
+    // cobra de novo). Rotaciona se o carrinho/valor mudar; limpa no sucesso.
+    const idemFingerprint = `${tipoEnvio}|${finalTotal}|` +
+      cart.map(i => `${i.id}:${i.tamanho || ''}:${i.cor_nome || i.cor || ''}x${i.quantidade || i.qty || 1}`).join(',');
+    let idempotencyKey;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('virtu_idem') || 'null');
+      if (saved && saved.fp === idemFingerprint && saved.key) {
+        idempotencyKey = saved.key;
+      } else {
+        idempotencyKey = (crypto.randomUUID ? crypto.randomUUID()
+          : `k-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+        sessionStorage.setItem('virtu_idem', JSON.stringify({ fp: idemFingerprint, key: idempotencyKey }));
+      }
+    } catch {
+      idempotencyKey = (crypto.randomUUID ? crypto.randomUUID() : `k-${Date.now()}`);
+    }
+
     const payload = {
       tipo:                tipoEnvio,
       total:               finalTotal,
@@ -1053,6 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
       endereco,
       user_id:             currentUserId || null,
       fidelidade_desconto: descontoFidelidade > 0,
+      idempotency_key:     idempotencyKey,
     };
 
     // ── Cartão / Débito: inclui dados no payload para tokenização ASAAS ──
@@ -1095,6 +1116,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok || result.erro) {
         throw new Error(result.erro || `Erro ${res.status}`);
       }
+
+      // Pedido criado com sucesso → descarta a chave de idempotência
+      // (uma próxima compra do mesmo carrinho deve gerar nova cobrança).
+      try { sessionStorage.removeItem('virtu_idem'); } catch { /* noop */ }
 
       // Nota: uso do cupom é registrado server-side pela edge function
       // (cartão/débito: em processar-pagamento quando CONFIRMED; PIX: em asaas-webhook quando RECEIVED)

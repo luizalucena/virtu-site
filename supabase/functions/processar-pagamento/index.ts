@@ -206,7 +206,14 @@ Deno.serve(async (req) => {
       // fidelidade
       user_id,
       fidelidade_desconto,
+      // idempotência (anti cobrança dupla) — gerada no checkout.js
+      idempotency_key,
     } = body;
+
+    // Chave de idempotência: string curta, opcional (retrocompatível).
+    const idemKey = idempotency_key
+      ? String(idempotency_key).replace(/[^A-Za-z0-9._-]/g, '').slice(0, 100) || null
+      : null;
 
     // ── Validações de entrada ────────────────────────────────
     if (!tipo || !['pix', 'cartao', 'debito'].includes(tipo)) {
@@ -426,6 +433,43 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── Idempotência: evita cobrança dupla em retry/timeout ──
+    // Se já existe um pedido (não recusado) com esta chave, devolve a
+    // resposta original SEM criar uma nova cobrança no ASAAS.
+    // 'recusado' é ignorado de propósito: permite nova tentativa após
+    // cartão negado (a mesma chave é reusada pelo checkout.js).
+    if (idemKey) {
+      const { data: existente } = await supabase
+        .from('pedidos')
+        .select('id, asaas_payment_id, payment_status, pix_qr_code, pix_qr_base64, pix_expires_at')
+        .eq('idempotency_key', idemKey)
+        .neq('status', 'recusado')
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existente?.id) {
+        console.log('[processar-pagamento] Idempotência: pedido já existente, sem nova cobrança.', existente.id);
+        const respIdem: Record<string, unknown> = {
+          pedido_id:  existente.id,
+          payment_id: existente.asaas_payment_id,
+          status:     existente.payment_status,
+          duplicado:  true,
+        };
+        if (tipo === 'pix') {
+          respIdem.qr_code_base64 = existente.pix_qr_base64;
+          respIdem.qr_code        = existente.pix_qr_code;
+          respIdem.expires_at     = existente.pix_expires_at;
+        } else {
+          const aprovado = ['CONFIRMED', 'RECEIVED'].includes(existente.payment_status || '');
+          respIdem.mensagem = aprovado
+            ? 'Pagamento aprovado! 🎉'
+            : 'Pagamento em análise. Confirmaremos por e-mail em breve.';
+        }
+        return json(respIdem, 200);
+      }
+    }
+
     // ── Cria / recupera cliente no ASAAS ────────────────────
     let asaasCustomerId: string;
     try {
@@ -586,6 +630,7 @@ Deno.serve(async (req) => {
         pix_qr_code:        pixPayload      || null,
         pix_qr_base64:      pixQrCodeBase64 || null,
         pix_expires_at:     pixExpiresAt    || null,
+        idempotency_key:    idemKey,
       })
       .select('id')
       .single();
