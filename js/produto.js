@@ -206,7 +206,7 @@ async function carregarProduto(produtoId) {
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} no cartão`;
 
     // ── Strip de formas de pagamento e valores ─────────────
-    // PIX = −5% no checkout | Crédito/Débito = +10% no checkout
+    // PIX = valor cheio (sem ajuste) | Crédito/Débito = +10% no checkout
     const payStrip = document.getElementById('produtoPaymentStrip');
     if (payStrip && preco > 0) {
       const cardPrice = preco * 1.10;
@@ -216,7 +216,7 @@ async function carregarProduto(produtoId) {
         <div class="produto-payment-strip__row produto-payment-strip__row--pix">
           <span class="produto-payment-strip__metodo">PIX</span>
           <span class="produto-payment-strip__preco">${fmt(preco)}</span>
-          <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">5% de desconto no checkout</span>
+          <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">à vista</span>
         </div>
         <div class="produto-payment-strip__row produto-payment-strip__row--card">
           <span class="produto-payment-strip__metodo">

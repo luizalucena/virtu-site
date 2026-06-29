@@ -244,18 +244,6 @@ p, li, td, th, label,
   text-decoration: line-through;
 }
 
-/* PIX badge: nota discreta abaixo do preço */
-.product-card__pix-note {
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--lux-gold-text);
-  margin-top: 2px;
-  opacity: 0.85;
-}
-
 /* Swatches: escondidos no card — simplicidade máxima */
 .product-card__swatches {
   display: none;
@@ -1010,10 +998,6 @@ hr,
   /* Preço: font-size ajustado */
   .product-card__price-current {
     font-size: 0.82rem;
-  }
-
-  .product-card__pix-note {
-    font-size: 0.62rem;
   }
 
   /* Section titles: escala fluida */

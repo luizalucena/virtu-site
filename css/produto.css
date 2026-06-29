@@ -255,7 +255,7 @@
   flex-shrink: 0;
 }
 
-.produto-payment-strip__nota--pix  { color: #2e7d32; }
+.produto-payment-strip__nota--pix  { color: var(--color-gray-600); }
 .produto-payment-strip__nota--card { color: #c0824a; }
 
 .produto-payment-strip__parcelamento {

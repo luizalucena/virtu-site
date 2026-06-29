@@ -182,12 +182,6 @@ const VirtuProducts = (() => {
              title="${c.nome}"></span>`
     ).join('');
 
-    // Preço + nota PIX discreta
-    const pixDesconto = Math.round((1 - 0.95) * 100); // 5%
-    const pixNoteHtml = !produto._esgotado
-      ? `<span class="product-card__pix-note">PIX −${pixDesconto}%</span>`
-      : '';
-
     const precoHtml = temDesconto
       ? `<span class="product-card__price-current">${formatCurrency(precoFinal)}</span>
          <span class="product-card__price-old">${formatCurrency(preco_original)}</span>`
@@ -221,7 +215,6 @@ const VirtuProducts = (() => {
           <p class="product-card__category">${(categoria || '').charAt(0).toUpperCase() + (categoria || '').slice(1)}</p>
           <h3 class="product-card__name"><a href="${link}">${nome}</a></h3>
           <div class="product-card__price">${precoHtml}</div>
-          ${pixNoteHtml}
           ${swatchesHtml ? `<div class="product-card__swatches">${swatchesHtml}</div>` : ''}
         </div>
       </article>`;

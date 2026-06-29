@@ -313,15 +313,6 @@
   box-shadow: 0 14px 34px rgba(26, 42, 61, 0.10);
 }
 /* Nota PIX discreta */
-.product-card__pix-note {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  color: var(--color-gold);
-  font-weight: 500;
-}
-
 /* ------------------------------------------------------------
    10. FAIXA DE CONFIANÇA — segurança / troca / pagamento
    Ícones de linha fina; dourado só no traço (parcimônia)

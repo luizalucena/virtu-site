@@ -570,7 +570,7 @@
   flex-shrink: 0;
 }
 
-.checkout-payment-compare__nota--pix  { color: #2e7d32; }
+.checkout-payment-compare__nota--pix  { color: var(--color-gray-600); }
 .checkout-payment-compare__nota--card { color: #c0824a; }
 
 .checkout-payment-compare__parcelamento {

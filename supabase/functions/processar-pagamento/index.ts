@@ -37,11 +37,11 @@ const securityHeaders = {
 };
 
 // ── AJUSTE POR MÉTODO — espelho de AJUSTE_METODO no frontend ──
-// PIX: −5% sobre o subtotal (desconto); Débito/Crédito: +10% (acréscimo).
+// PIX: sem ajuste (valor cheio); Débito/Crédito: +10% (acréscimo).
 // O frete NÃO sofre ajuste — é custo fixo de logística.
 // Edite aqui E no checkout.js de forma sincronizada.
 const AJUSTE_METODO: Record<string, number> = {
-  pix:    -0.05,  // 5% de DESCONTO
+  pix:     0,     // sem ajuste — PIX paga o valor cheio
   debito:  0.10,  // 10% de ACRÉSCIMO
   cartao:  0.10,  // 10% de ACRÉSCIMO
 };
@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Calcula preço final com ajuste por método ───────────
-    // PIX −5%, Débito/Crédito +10% sobre o subtotalLiquido.
+    // PIX sem ajuste (valor cheio); Débito/Crédito +10% sobre o subtotalLiquido.
     // O frete não sofre ajuste — é custo fixo de logística.
     const parcelasNum     = Math.max(1, Math.min(Number(parcelas) || 1, 12));
     const ajuste          = AJUSTE_METODO[tipo] ?? 0;

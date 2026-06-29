@@ -43,11 +43,11 @@ let currentUserId      = null; // UUID do usuário autenticado
 
 // ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────
 // Edite aqui (e no processar-pagamento/index.ts) quando mudar as regras.
-//   PIX:    −5% sobre o subtotal (desconto)
+//   PIX:    sem ajuste (valor cheio)
 //   Débito: +10% sobre o subtotal (acréscimo)
 //   Crédito:+10% sobre o subtotal (acréscimo) — parcelamento divide o total
 const AJUSTE_METODO = {
-  pix:    -0.05,  // 5% de DESCONTO
+  pix:     0,     // sem ajuste — PIX paga o valor cheio
   debito:  0.10,  // 10% de ACRÉSCIMO
   cartao:  0.10,  // 10% de ACRÉSCIMO
 };
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── ATUALIZA LINHA DE AJUSTE E TOTAL FINAL ────────────────
   // Chamada sempre que: frete muda, aba de pagamento muda, nº de parcelas muda.
-  // PIX → desconto verde (−5%); Débito/Crédito → acréscimo laranja (+10%).
+  // PIX → sem ajuste (valor cheio); Débito/Crédito → acréscimo laranja (+10%).
   function atualizarTaxaETotal() {
     const descontoCupom   = calcularDesconto(baseTotal);
     const freteReal       = freteEfetivo();
@@ -271,19 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const parcelas = parseInt(document.getElementById('installments')?.value || '1');
     const preco    = calcularPreco(subtotalLiquido, freteReal, metodoAtivo, parcelas);
 
-    // ── Linha de ajuste (sempre visível quando há subtotal) ──
-    if (taxaLine) taxaLine.style.display = '';
-
-    if (preco.ehDesconto) {
-      // PIX — desconto verde
-      if (taxaLabel) taxaLabel.innerHTML =
-        `🎉 Desconto PIX <span style="color:#999;font-size:.78rem;font-weight:400">(${preco.pct.toFixed(0)}% de desconto)</span>`;
-      if (taxaEl) {
-        taxaEl.textContent = `−${formatCurrency(Math.abs(preco.diff))}`;
-        taxaEl.style.color = '#2e7d32';
-      }
+    // ── Linha de ajuste ──────────────────────────────────────
+    // PIX não tem ajuste (valor cheio) → oculta a linha.
+    // Débito/Crédito mantêm o acréscimo de +10%.
+    if (preco.diff === 0) {
+      if (taxaLine) taxaLine.style.display = 'none';
     } else {
-      // Débito / Crédito — acréscimo laranja
+      if (taxaLine) taxaLine.style.display = '';
       const eDebito   = metodoAtivo === 'debito';
       const labelHtml = eDebito
         ? `🏦 Acréscimo Débito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
@@ -314,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const baseComFrete  = subtotalLiquido + freteReal;
       const totalCard     = subtotalLiquido * 1.10 + freteReal;
       const parcela12     = totalCard / 12;
-      const totalPix      = Math.round(subtotalLiquido * 0.95 * 100) / 100 + freteReal;
+      const totalPix      = Math.round(subtotalLiquido * 100) / 100 + freteReal;
       if (comparePixEl)    comparePixEl.textContent    = formatCurrency(totalPix);
       if (compareCardEl)   compareCardEl.textContent   = formatCurrency(totalCard);
       if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(totalCard);
@@ -997,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const freteReal       = freteEfetivo();
 
     // ── Calcula total final com ajuste por método ─────────
-    // PIX −5%, Débito/Crédito +10% sobre o subtotalLiquido; frete sem ajuste.
+    // PIX sem ajuste (valor cheio); Débito/Crédito +10% sobre o subtotalLiquido; frete sem ajuste.
     const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoFidelidade);
     const isDebito        = activeTab === 'debito';
     const metodoRepasse   = isPix ? 'pix' : isDebito ? 'debito' : 'cartao';
