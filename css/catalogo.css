@@ -295,6 +295,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  /* Folga interna p/ o anel de seleção (box-shadow ±4px) não ser cortado
+     pelo overflow:hidden do .sidebar-block__content (efeito "parênteses"). */
+  padding: 6px 4px;
 }
 
 .color-btn {

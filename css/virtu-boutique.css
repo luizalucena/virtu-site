@@ -505,11 +505,15 @@ img[data-fallback] {
   z-index: 0;
 }
 .is-ph.is-ph--navy::after { color: rgba(250, 248, 245, 0.62); }
-/* Conteúdo interativo do card permanece acima da marca */
+/* Conteúdo interativo do card permanece acima da marca (::after = z-index 0).
+   IMPORTANTE: NÃO sobrescrever `position` aqui — badge/wishlist/quick-add são
+   `position: absolute` (ancorados nos cantos / na base da imagem). Trocar para
+   relative jogava-os para o fluxo no TOPO do card, cobrindo selo e coração e
+   estourando a largura. Apenas elevamos o z-index acima da marca. */
 .product-card__image-wrap.is-ph > .product-card__img,
 .product-card__image-wrap.is-ph > .product-card__badge,
 .product-card__image-wrap.is-ph > .product-card__wishlist,
-.product-card__image-wrap.is-ph > .product-card__quick-add { position: relative; z-index: 1; }
+.product-card__image-wrap.is-ph > .product-card__quick-add { z-index: 1; }
 
 /* Card relacionado / compre-junto que usa .product-card__placeholder como filler */
 .product-card__placeholder.is-ph,

@@ -214,7 +214,9 @@ h4 { font-size: var(--text-lg); }
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding-inline: var(--space-8);
+  /* Padding lateral responsivo e uniforme: 24px (mobile) → 64px (telas grandes).
+     Garante que nenhum texto/ícone encoste na borda da viewport. */
+  padding-inline: clamp(24px, 5vw, 64px);
 }
 
 .container--md {
@@ -1332,7 +1334,6 @@ h4 { font-size: var(--text-lg); }
     --text-3xl:  44px;
   }
 
-  .container { padding-inline: var(--space-6); }
   .footer__inner { padding-inline: var(--space-6); }
 
   .footer__grid {
@@ -1351,7 +1352,6 @@ h4 { font-size: var(--text-lg); }
     --text-2xl:  28px;
   }
 
-  .container { padding-inline: var(--space-4); }
   .footer__inner { padding-inline: var(--space-4); }
   .section { padding-block: var(--space-12); }
 

@@ -206,9 +206,10 @@
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem;
-  align-items: start;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 4rem;
+  /* texto e visual na MESMA faixa vertical — sem o vazio sob o texto curto */
+  align-items: center;
 }
 
 .sobre-manifesto__ornament {
@@ -246,6 +247,8 @@
 .sobre-manifesto__img {
   width: 100%;
   aspect-ratio: 4/5;
+  /* limita a altura para o bloco navy não dominar a seção (cap ~540px) */
+  max-height: min(72vh, 540px);
   background:
     radial-gradient(120% 90% at 80% 0%, rgba(196, 147, 74, 0.18) 0%, transparent 55%),
     linear-gradient(160deg, #3D5470 0%, #2B3F54 55%, #1C2C3C 100%);
