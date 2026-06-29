@@ -104,7 +104,7 @@
   background: #b0833e;
   border-color: #b0833e;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(196,147,74,0.3);
+  box-shadow: 0 6px 18px rgba(196,147,74,0.2);
 }
 
 /* Secundário com borda visível sobre fundo claro */

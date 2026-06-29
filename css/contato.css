@@ -4,7 +4,7 @@
 
 /* ── HEADER ──────────────────────────────── */
 .contato-header {
-  padding: calc(var(--navbar-height) + 36px + 3rem) 2rem 3rem;
+  padding: calc(var(--navbar-height) + 36px + 1.5rem) 2rem 3rem;
   background: var(--color-off-white);
   border-bottom: 1px solid var(--color-border);
 }

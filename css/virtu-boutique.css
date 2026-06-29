@@ -526,6 +526,25 @@ img[data-fallback] {
 }
 
 /* ──────────────────────────────────────────────
+   15. IMAGENS GRANDES — nunca estouram a tela
+   Heros e blocos editoriais limitados a ~80vh, cover.
+   ────────────────────────────────────────────── */
+.hero__editorial-image,
+.hero__editorial-image img,
+.categoria-card--hero,
+.sobre-manifesto__img,
+.sobre-fundadora__img,
+.editorial-banner,
+.galeria-main {
+  max-height: 80vh;
+}
+.hero__editorial-image img,
+.categoria-card__img,
+.galeria-main__img {
+  object-fit: cover;
+}
+
+/* ──────────────────────────────────────────────
    12. MOBILE — áreas de toque confortáveis
    ────────────────────────────────────────────── */
 @media (max-width: 640px) {

@@ -122,10 +122,11 @@
 /* ── HERO ────────────────────────────────── */
 .sobre-hero {
   position: relative;
-  min-height: 80vh;
+  min-height: 70vh;
+  max-height: 80vh;
   display: flex;
   align-items: flex-end;
-  padding: calc(var(--navbar-height) + var(--announcement-h) + 4rem) var(--spacing-xl, 5%) 5rem;
+  padding: calc(var(--navbar-height) + var(--announcement-h) + 3rem) var(--spacing-xl, 5%) 4.5rem;
   overflow: hidden;
 }
 
@@ -190,7 +191,7 @@
   font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 300;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.9);
   line-height: 1.8;
   max-width: 520px;
 }
