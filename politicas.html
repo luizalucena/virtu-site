@@ -66,12 +66,14 @@
 
     /* ── LAYOUT PRINCIPAL ──────────────────────── */
     .pol-layout {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
-      padding: 5.5rem var(--spacing-xl) 7rem;
+      /* var(--spacing-xl) era indefinido → padding colapsava a 0.
+         Padding lateral responsivo + ritmo vertical restaurado. */
+      padding: 5rem clamp(24px, 5vw, 56px) 6.5rem;
       display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 3rem;
+      grid-template-columns: 210px 1fr;
+      gap: 3.5rem;
       align-items: start;
     }
     @media (max-width: 720px) {
@@ -111,18 +113,28 @@
 
     /* ── SEÇÕES ────────────────────────────────── */
     .pol-section {
-      margin-bottom: 4rem;
+      margin-bottom: 4.5rem;
       scroll-margin-top: 5rem;
     }
+    /* Cabeçalho da seção: ícone + título na MESMA linha, com divisória fina */
+    .pol-section__head {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid var(--border-color, #e8e2d9);
+    }
     .pol-section__icon {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
       border-radius: 50%;
-      background: var(--color-cream, #f7f3ee);
+      background: var(--color-off-white, #f7f3ee);
+      border: 1px solid rgba(184, 148, 63, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 1rem;
     }
     .pol-section__icon svg {
       width: 18px;
@@ -131,12 +143,11 @@
     }
     .pol-section__title {
       font-family: var(--font-display);
-      font-size: 1.7rem;
+      font-size: clamp(1.45rem, 3vw, 1.75rem);
       font-weight: 400;
       color: var(--color-navy);
-      margin-bottom: 1.25rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border-color, #e8e2d9);
+      margin: 0;
+      line-height: 1.2;
     }
     .pol-section__body {
       font-family: var(--font-body);
@@ -149,13 +160,15 @@
 
     /* ── DESTAQUE CDC ──────────────────────────── */
     .pol-highlight {
-      background: var(--color-cream, #f7f3ee);
+      background: var(--color-off-white, #f7f3ee);
+      border: 1px solid rgba(184, 148, 63, 0.22);
       border-left: 3px solid var(--color-gold);
-      border-radius: 0 8px 8px 0;
-      padding: 1rem 1.25rem;
-      margin: 1.25rem 0;
-      font-size: 0.85rem;
-      line-height: 1.7;
+      border-radius: 4px 14px 14px 4px;
+      padding: 1.35rem 1.6rem;
+      margin: 1.5rem 0;
+      font-size: 0.875rem;
+      line-height: 1.75;
+      color: var(--color-text, #333);
     }
     .pol-highlight strong { color: var(--color-navy); font-weight: 600; }
 
@@ -176,8 +189,8 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       text-decoration: none;
-      padding: 0.6rem 1.25rem;
-      border-radius: 4px;
+      padding: 0.7rem 1.4rem;
+      border-radius: 10px;
       transition: all 0.2s;
     }
     .pol-cta a.primary {
@@ -334,7 +347,7 @@
 
   <!-- BREADCRUMB -->
   <div style="background:var(--color-cream,#f7f3ee);padding:1.75rem 2rem">
-    <nav class="breadcrumb" aria-label="Navegação estrutural" style="max-width:900px;margin:0 auto">
+    <nav class="breadcrumb" aria-label="Navegação estrutural" style="max-width:960px;margin:0 auto;padding-inline:clamp(24px,5vw,56px)">
       <a href="index.html">Início</a>
       <span aria-hidden="true">›</span>
       <span aria-current="page">Políticas</span>
@@ -362,19 +375,17 @@
 
         <!-- COMO FUNCIONA -->
         <section class="pol-section" id="como-funciona">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-          </div>
-          <h2 class="pol-section__title">Como funciona</h2>
+          </div><h2 class="pol-section__title">Como funciona</h2></div>
           <div class="pol-section__body" id="txtComoFunciona">A Virtù é uma loja de moda feminina online, sediada em João Pessoa (PB). Realizamos entregas para todo o Nordeste brasileiro. Você escolhe suas peças no site, finaliza o pedido com pagamento seguro via Pix ou cartão de crédito, e entregamos na sua porta. Todos os pedidos são preparados com cuidado e embalados com a identidade Virtù.</div>
         </section>
 
         <!-- TROCAS E DEVOLUÇÕES -->
         <section class="pol-section" id="trocas">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          </div>
-          <h2 class="pol-section__title">Trocas e devoluções</h2>
+          </div><h2 class="pol-section__title">Trocas e devoluções</h2></div>
 
           <div class="pol-highlight">
             <strong>Direito de arrependimento (CDC, Art. 49):</strong> compras online têm 7 dias corridos após o recebimento para devolução sem justificativa, com reembolso integral incluindo frete.
@@ -394,10 +405,9 @@ Para solicitar troca ou devolução, entre em contato pelo WhatsApp ou pelo form
 
         <!-- GUIA DE TAMANHOS -->
         <section class="pol-section" id="tamanhos">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-          </div>
-          <h2 class="pol-section__title">Guia de tamanhos</h2>
+          </div><h2 class="pol-section__title">Guia de tamanhos</h2></div>
           <p class="pol-section__body" id="txtGuiaTamanhoObs" style="margin-bottom:1rem">Medidas em centímetros. Caso esteja entre dois tamanhos, recomendamos o maior.</p>
 
           <table class="pol-size-table" id="tabelaTamanhos">
@@ -427,10 +437,9 @@ Para solicitar troca ou devolução, entre em contato pelo WhatsApp ou pelo form
 
         <!-- RASTREIO -->
         <section class="pol-section" id="rastreio">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          </div>
-          <h2 class="pol-section__title">Rastreio de pedido</h2>
+          </div><h2 class="pol-section__title">Rastreio de pedido</h2></div>
           <div class="pol-section__body" id="txtRastreio">Após a confirmação do pagamento, seu pedido é preparado e enviado em até 2 dias úteis. Realizamos entregas para todo o Nordeste — o prazo varia de 2 a 10 dias úteis conforme a sua localidade. Você receberá uma mensagem de confirmação quando o pedido sair para entrega.
 
 Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-mail informando o número do pedido recebido na confirmação de compra.</div>
@@ -441,19 +450,17 @@ Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-m
 
         <!-- SUSTENTABILIDADE -->
         <section class="pol-section" id="sustentabilidade">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9z"/><path d="M12 22c0-4.97-4.03-9-9-9 0 4.97 4.03 9 9 9z"/><path d="M12 2a9 9 0 0 1 0 18"/></svg>
-          </div>
-          <h2 class="pol-section__title">Sustentabilidade</h2>
+          </div><h2 class="pol-section__title">Sustentabilidade</h2></div>
           <div class="pol-section__body" id="txtSustentabilidade">A Virtù acredita em moda com propósito. Trabalhamos com fornecedores que respeitam os trabalhadores e o meio ambiente, priorizamos tecidos naturais e duráveis, e apostamos em peças atemporais em vez de tendências descartáveis. Embalagens reutilizáveis e sem plástico desnecessário fazem parte do nosso compromisso.</div>
         </section>
 
         <!-- TRABALHE CONOSCO -->
         <section class="pol-section" id="trabalhe-conosco">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <h2 class="pol-section__title">Trabalhe conosco</h2>
+          </div><h2 class="pol-section__title">Trabalhe conosco</h2></div>
           <div class="pol-section__body" id="txtTrabalheConosco">A Virtù é uma marca em crescimento e adoramos conhecer pessoas apaixonadas por moda. Se você tem interesse em fazer parte do nosso time — seja como produtora, fotógrafa, atendente ou em outra função — nos envie uma mensagem pelo WhatsApp ou e-mail com seu nome, área de interesse e um pouco sobre você.</div>
           <div class="pol-cta">
             <a href="contato.html" class="primary">Entrar em contato →</a>
@@ -462,10 +469,9 @@ Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-m
 
         <!-- TERMOS DE USO -->
         <section class="pol-section" id="termos">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          </div>
-          <h2 class="pol-section__title">Termos de uso</h2>
+          </div><h2 class="pol-section__title">Termos de uso</h2></div>
           <div class="pol-section__body" id="txtTermos">Ao utilizar o site da Virtù, você concorda com os presentes termos. O conteúdo deste site (textos, imagens, logotipo) é de propriedade exclusiva da Virtù e não pode ser reproduzido sem autorização.
 
 As informações de produto (descrições, tamanhos e preços) podem ser atualizadas sem aviso prévio. Nos reservamos o direito de cancelar pedidos em caso de erro de preço ou indisponibilidade de estoque, com reembolso integral ao cliente.
@@ -475,10 +481,9 @@ O uso indevido do site, incluindo tentativas de fraude ou acesso não autorizado
 
         <!-- PRIVACIDADE -->
         <section class="pol-section" id="privacidade">
-          <div class="pol-section__icon">
+          <div class="pol-section__head"><div class="pol-section__icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <h2 class="pol-section__title">Política de privacidade</h2>
+          </div><h2 class="pol-section__title">Política de privacidade</h2></div>
           <div class="pol-section__body" id="txtPrivacidade">A Virtù respeita sua privacidade. Coletamos apenas os dados necessários para processar seu pedido (nome, e-mail, CPF, endereço e telefone). Seus dados nunca são vendidos ou compartilhados com terceiros, exceto para operação do serviço (processamento de pagamento e entrega).
 
 Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail ou WhatsApp. Utilizamos cookies apenas para funcionamento do site.</div>

@@ -193,7 +193,7 @@ p, li, td, th, label,
 
 /* ── Info area do card — espaçamento editorial ── */
 .product-card__info {
-  padding: 14px 0 20px;
+  padding: 14px 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -989,7 +989,7 @@ hr,
 
   /* Product info padding reduzido no mobile */
   .product-card__info {
-    padding: 10px 0 16px;
+    padding: 10px 14px 16px;
     gap: 3px;
   }
 }
