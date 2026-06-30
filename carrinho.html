@@ -108,22 +108,29 @@
   </header>
 
   <!-- SEARCH OVERLAY -->
-  <div class="search-overlay" id="searchOverlay" role="dialog" aria-label="Busca" aria-modal="true" aria-hidden="true">
+  <div class="search-overlay" id="searchOverlay" role="search" aria-hidden="true">
+    <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
     <div class="search-overlay__inner">
-      <button class="search-overlay__close" id="searchClose" aria-label="Fechar busca">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
-          <path d="M18 6 6 18M6 6l12 12"/>
-        </svg>
-      </button>
+      <p class="search-overlay__eyebrow">Busca</p>
+      <h2 class="search-overlay__title">O que você procura?</h2>
       <form class="search-overlay__form" role="search">
-        <input type="search" class="search-overlay__input" placeholder="O que você procura?" aria-label="Campo de busca" />
+        <input type="search" class="search-overlay__input" aria-label="Campo de busca" autocomplete="off" />
         <button type="submit" class="search-overlay__btn" aria-label="Buscar">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
             <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
           </svg>
         </button>
       </form>
-      <p class="search-overlay__hint">Sugestões: Vestidos, Blusas, Calças, Novidades</p>
+      <div class="search-overlay__chips" aria-label="Sugestões de busca">
+        <button type="button" class="search-overlay__chip" data-q="vestidos">Vestidos</button>
+        <button type="button" class="search-overlay__chip" data-q="blusas">Blusas</button>
+        <button type="button" class="search-overlay__chip" data-q="calcas">Calças</button>
+        <button type="button" class="search-overlay__chip" data-q="novidades">Novidades</button>
+      </div>
     </div>
   </div>
 

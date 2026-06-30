@@ -90,6 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (term) window.location.href = `catalogo.html?busca=${encodeURIComponent(term)}`;
   });
 
+  // Chips de sugestão → busca rápida pelo termo
+  searchOverlay?.querySelectorAll('.search-overlay__chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const q = (chip.dataset.q || chip.textContent || '').trim();
+      if (q) window.location.href = `catalogo.html?busca=${encodeURIComponent(q)}`;
+    });
+  });
+
   // Clicar fora do form fecha
   searchOverlay?.addEventListener('click', (e) => {
     if (e.target === searchOverlay) closeSearch();
