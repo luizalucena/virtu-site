@@ -895,20 +895,20 @@ body.sticky-bar-visible #vt-wa-tip { bottom: 160px; }
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: var(--space-4);
+  margin: 0.1rem 0 1.1rem;
 }
 
 .badge-exclusivo {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.3rem 0.8rem;
+  padding: 0.34rem 0.85rem;
   font-size: 0.65rem;
   font-family: var(--font-body);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: var(--radius-pill);
 }
 
 .badge-exclusivo--gold {

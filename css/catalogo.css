@@ -269,8 +269,11 @@
 }
 
 .size-btn {
+  min-height: 42px;            /* alvo de toque confortável */
   padding: 8px 4px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
@@ -294,7 +297,7 @@
 .color-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 12px;
   /* Folga interna p/ o anel de seleção (box-shadow ±4px) não ser cortado
      pelo overflow:hidden do .sidebar-block__content (efeito "parênteses"). */
   padding: 6px 4px;
@@ -308,6 +311,14 @@
   transition: transform var(--transition-fast);
   position: relative;
   border: 1px solid transparent;
+}
+
+/* Área de toque confortável (~44px) sem alterar o visual de 24px do swatch */
+.color-btn::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
 }
 
 .color-btn:hover { transform: scale(1.15); }
