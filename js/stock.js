@@ -344,7 +344,7 @@ const VirtuStock = (() => {
     const btnAviso = document.createElement('button');
     btnAviso.id        = 'btnAvisarReposicao';
     btnAviso.className = 'btn btn--outline btn--full btn--md virtu-aviso-btn';
-    btnAviso.innerHTML = '🔔 Avise-me quando chegar';
+    btnAviso.innerHTML = 'Avise-me quando chegar';
     btnAviso.style.cssText = 'margin-top:8px;border-color:var(--color-gold);color:var(--color-gold)';
     acoes.appendChild(btnAviso);
 

@@ -759,3 +759,24 @@ img[data-fallback] {
   .conta-form__input,
   input, textarea, select { font-size: 16px !important; } /* evita zoom iOS */
 }
+
+/* ── Numerais tabulares: preços e totais não "dançam" o alinhamento ──── */
+.product-card__price-current,
+.product-card__price-old,
+.produto-preco-atual,
+.produto-preco-original,
+.produto-parcelamento,
+.produto-payment-strip__preco,
+.produto-payment-strip__parcelamento,
+.cart-item__total,
+.cart-summary__line,
+.cart-summary__total-line,
+.cart-summary__installments,
+.cart-summary__discount-value,
+.checkout-order-summary__line,
+.checkout-order-summary__total,
+.checkout-order-summary__installments,
+.sticky-buy-bar__price {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}

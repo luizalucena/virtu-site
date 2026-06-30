@@ -544,7 +544,7 @@ async function renderCompreJunto(produtoPrincipal, sugestoesIds) {
         // Avisa que tamanho/cor deve ser ajustado no carrinho
         const aviso = document.createElement('p');
         aviso.style.cssText = 'font-size:0.8em;color:#a07c5a;margin-top:0.5rem;text-align:center';
-        aviso.textContent = '⚠️ Selecione tamanho e cor de cada peça no carrinho.';
+        aviso.textContent = 'Selecione tamanho e cor de cada peça no carrinho.';
         addBtn.parentNode.insertBefore(aviso, addBtn.nextSibling);
         setTimeout(() => { addBtn.textContent = orig; addBtn.disabled = false; aviso.remove(); }, 3000);
       });
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         stockMsg.style.cssText = 'font-size:0.8rem;margin-top:0.25rem;color:#b8943f';
         document.querySelector('.produto-tamanhos')?.after(stockMsg);
       }
-      stockMsg.textContent = '⚡ Últimas unidades disponíveis!';
+      stockMsg.textContent = 'Últimas unidades disponíveis';
     } else {
       const msg = document.getElementById('stockMsg');
       if (msg) msg.textContent = '';
@@ -972,7 +972,7 @@ async function carregarAvaliacoes(produtoId) {
     .order('criado_em', { ascending: false });
 
   if (error || !data?.length) {
-    lista.innerHTML = `<p style="color:var(--color-text-light);font-size:0.85rem;font-style:italic">Seja a primeira a avaliar esta peça ✨</p>`;
+    lista.innerHTML = `<p style="color:var(--color-text-light);font-size:0.85rem;font-style:italic">Seja a primeira a avaliar esta peça</p>`;
     return;
   }
 

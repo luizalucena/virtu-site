@@ -616,9 +616,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }[s] || `<span style="font-size:0.7rem;color:#9E9690">${escHtml(s)}</span>`);
 
       const metodoPagto = m => ({
-        pix:    '⚡ PIX',
-        cartao: '💳 Cartão',
-        boleto: '📄 Boleto',
+        pix:    'PIX',
+        cartao: 'Cartão',
+        boleto: 'Boleto',
       }[m] || (m || '—'));
 
       let cicloCount = 0;

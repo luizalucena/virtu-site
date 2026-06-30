@@ -84,7 +84,7 @@ function renderCartItem(item, index) {
     item.cor_nome ? escHtml(item.cor_nome) : ''
   ].filter(Boolean);
   const meta = item.sem_variacao
-    ? '<span style="color:#c0392b;font-weight:500">⚠ Selecione tamanho e cor na página do produto</span>'
+    ? '<span style="color:#c0392b;font-weight:500">Selecione tamanho e cor na página do produto</span>'
     : (metaParts.join(' · ') || escHtml(item.categoria || ''));
 
   const preco      = item.preco || 0;
@@ -235,12 +235,12 @@ async function _verificarEstoqueBaixoNoCarrinho(items) {
       if (estoque === 0) {
         const badge = document.createElement('p');
         badge.className = 'cart-item__stock-badge cart-item__stock-badge--esgotado';
-        badge.textContent = '⚠ Esgotado — remova ou troque';
+        badge.textContent = 'Esgotado — remova ou troque';
         itemEl.querySelector('.cart-item__info')?.appendChild(badge);
       } else if (estoque <= 3) {
         const badge = document.createElement('p');
         badge.className = 'cart-item__stock-badge cart-item__stock-badge--urgente';
-        badge.textContent = `🔥 Últimas ${estoque} unidade${estoque > 1 ? 's' : ''}!`;
+        badge.textContent = `Últimas ${estoque} unidade${estoque > 1 ? 's' : ''}!`;
         itemEl.querySelector('.cart-item__info')?.appendChild(badge);
       }
     });
@@ -300,7 +300,7 @@ function updateSummary() {
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
     if (isFree && baseParaFrete > 0) {
-      text.textContent = '🎉 Frete grátis em todo o Brasil!';
+      text.textContent = 'Frete grátis em todo o Brasil';
       text.style.color = '#2e7d32';
     } else if (baseParaFrete > 0) {
       const remaining = freeShippingThreshold - baseParaFrete;

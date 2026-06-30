@@ -184,7 +184,7 @@
     overlay.innerHTML = `
       <div id="vt-abandono-popup">
         <button id="vt-abandono-close" aria-label="Fechar">✕</button>
-        <div id="vt-abandono-icon">🛍️</div>
+        <div id="vt-abandono-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="28" height="28"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
         <h2 id="vt-abandono-title">Espera! Seus itens vão embora</h2>
         <p id="vt-abandono-sub">Deixe seu e-mail e te mandamos um lembrete para retomar sua compra.</p>
         <form id="vt-abandono-form" novalidate>
@@ -197,7 +197,7 @@
             autocomplete="email"
             aria-label="Seu e-mail"
           />
-          <button type="submit" id="vt-abandono-btn">Salvar meu carrinho 📧</button>
+          <button type="submit" id="vt-abandono-btn">Salvar meu carrinho</button>
         </form>
         <p id="vt-abandono-msg" role="alert" aria-live="polite"></p>
         <p id="vt-abandono-disclaimer">Só enviamos 1 e-mail. Nada de spam.</p>
@@ -282,7 +282,7 @@
       await saveAbandono({ email, origem: 'exit_popup' });
 
       btn.textContent = '✓ Salvo!';
-      msg.textContent = 'Perfeito! Te avisamos por e-mail. 📧';
+      msg.textContent = 'Perfeito! Te avisamos por e-mail. ';
       msg.style.color = '#27ae60';
 
       setTimeout(closePopup, 1800);

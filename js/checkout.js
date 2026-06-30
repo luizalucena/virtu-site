@@ -280,10 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (taxaLine) taxaLine.style.display = '';
       const eDebito   = metodoAtivo === 'debito';
       const labelHtml = eDebito
-        ? `🏦 Acréscimo Débito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
+        ? `Acréscimo Débito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
         : parcelas === 1
-          ? `💳 Acréscimo Crédito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
-          : `💳 Acréscimo Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`;
+          ? `Acréscimo Crédito <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`
+          : `Acréscimo Crédito ${parcelas}x <span style="color:#999;font-size:.78rem;font-weight:400">(+${preco.pct.toFixed(0)}%)</span>`;
       if (taxaLabel) taxaLabel.innerHTML = labelHtml;
       if (taxaEl) {
         taxaEl.textContent = `+${formatCurrency(preco.diff)}`;
@@ -1171,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (['CONFIRMED', 'RECEIVED', 'PENDING'].includes(result.status)) {
         exibirSucesso(cliente.nome.split(' ')[0], result.pedido_id);
       } else if (result.status === 'DECLINED') {
-        btn.innerHTML = '🔒 Finalizar Pedido';
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finalizar Pedido`;
         btn.disabled  = false;
         showCheckoutMsg(`Pagamento recusado: ${result.mensagem || 'Verifique os dados do cartão e tente novamente.'}`, 'erro');
       } else {
@@ -1183,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(timeoutId);
       // Log para Supabase (visível no admin/erros.html)
       window.VirtuLog?.capturar('finalizar_pedido', err, { page: window.location.search });
-      btn.innerHTML = '🔒 Finalizar Pedido';
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finalizar Pedido`;
       btn.disabled  = false;
       const msg = err.name === 'AbortError'
         ? 'Tempo esgotado (25s). Verifique sua conexão e tente novamente.'
