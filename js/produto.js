@@ -664,7 +664,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!stockMsg) {
         stockMsg = document.createElement('p');
         stockMsg.id = 'stockMsg';
-        stockMsg.style.cssText = 'font-size:0.8rem;margin-top:0.25rem;color:#C4934A';
+        stockMsg.style.cssText = 'font-size:0.8rem;margin-top:0.25rem;color:#b8943f';
         document.querySelector('.produto-tamanhos')?.after(stockMsg);
       }
       stockMsg.textContent = '⚡ Últimas unidades disponíveis!';
@@ -744,7 +744,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (addToCartBtn) {
       const orig = addToCartBtn.innerHTML;
       addToCartBtn.innerHTML = '✓ Adicionado ao carrinho';
-      addToCartBtn.style.background = 'var(--color-navy, #2B3F54)';
+      addToCartBtn.style.background = 'var(--color-navy, #1a2a4a)';
       addToCartBtn.disabled = true;
       setTimeout(() => {
         addToCartBtn.innerHTML = orig;

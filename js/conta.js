@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="padding:2.5rem;text-align:center">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E2DDD7" stroke-width="1.2" style="margin-bottom:12px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <p style="font-size:0.88rem;color:#AFA99F;margin:0">Nenhum pedido encontrado ainda.</p>
-            <a href="catalogo.html" style="display:inline-block;margin-top:12px;font-size:0.78rem;color:#2B3F54;font-weight:500">Explorar coleção →</a>
+            <a href="catalogo.html" style="display:inline-block;margin-top:12px;font-size:0.78rem;color:#1a2a4a;font-weight:500">Explorar coleção →</a>
           </div>`;
         return;
       }
@@ -632,9 +632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const ciclo = isPago ? `<span style="font-size:0.7rem;color:#9E9690;font-weight:500">#${cicloCount}</span>` : '–';
         return `<tr style="${idx % 2 === 0 ? '' : 'background:#fafaf8'}">
           <td style="padding:0.85rem 1rem;font-size:0.78rem;color:#9E9690">${data}</td>
-          <td style="padding:0.85rem 1rem;font-size:0.8rem;font-family:'Courier New',monospace;color:#2B3F54;font-weight:600">#${numPedido}</td>
+          <td style="padding:0.85rem 1rem;font-size:0.8rem;font-family:'Courier New',monospace;color:#1a2a4a;font-weight:600">#${numPedido}</td>
           <td style="padding:0.85rem 1rem;font-size:0.78rem;color:#4A4440">${itensCount} ${Number(itensCount) === 1 ? 'item' : 'itens'}</td>
-          <td style="padding:0.85rem 1rem;font-size:0.82rem;color:#2B3F54;font-weight:500">${totalFmt}</td>
+          <td style="padding:0.85rem 1rem;font-size:0.82rem;color:#1a2a4a;font-weight:500">${totalFmt}</td>
           <td style="padding:0.85rem 1rem;font-size:0.78rem;color:#6E6660">${metodoPagto(p.payment_method)}</td>
           <td style="padding:0.85rem 1rem">${statusLabel(p.status)}</td>
           <td style="padding:0.85rem 1rem;text-align:center">${ciclo}</td>
@@ -644,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
       el.innerHTML = `
         <table style="width:100%;border-collapse:collapse;min-width:580px">
           <thead>
-            <tr style="background:#2B3F54;color:rgba(255,255,255,.85)">
+            <tr style="background:#1a2a4a;color:rgba(255,255,255,.85)">
               <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Data</th>
               <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Pedido</th>
               <th style="padding:0.75rem 1rem;text-align:left;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">Itens</th>

@@ -31,17 +31,17 @@
   --color-label:    #44505f;   /* labels — navy acinzentado, legível */
   --color-muted:    #5a5a5a;   /* textos auxiliares */
 
-  /* Remap dos tokens de luxo → paleta única (navy âncora #2B3F54) */
-  --lux-petrol:        var(--color-navy);        /* #2B3F54 — navy único do site */
-  --lux-petrol-mid:    var(--color-navy-dark);   /* #1E2E3E */
-  --lux-petrol-light:  var(--color-navy-light);  /* #3D5470 */
+  /* Remap dos tokens de luxo → paleta única (navy âncora #1a2a4a) */
+  --lux-petrol:        var(--color-navy);        /* #1a2a4a — navy único do site */
+  --lux-petrol-mid:    var(--color-navy-dark);   /* #14223c */
+  --lux-petrol-light:  var(--color-navy-light);  /* #2f456e */
   --lux-ice:           var(--color-off-white);
   --lux-ice-mid:       var(--color-gray-100);
   --lux-ice-border:    var(--color-gray-200);
   --lux-ice-deep:      #DAD3CA;
   --lux-gold:          var(--color-gold);
   --lux-gold-pale:     var(--color-gold-pale);
-  --lux-gold-text:     #8C6333;
+  --lux-gold-text:     #7e6a2e;
 }
 
 /* ──────────────────────────────────────────────
@@ -90,8 +90,8 @@ button[type="submit"],
   color: #fff !important;
 }
 .newsletter-section__btn:hover {
-  background: #b07d35 !important;
-  border-color: #b07d35 !important;
+  background: #a8842f !important;
+  border-color: #a8842f !important;
 }
 
 /* Pílulas e ícones circulares permanecem como estão */
@@ -352,7 +352,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--color-navy) !important;
-  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(184, 148, 63, 0.18) !important;
   outline: none !important;
 }
 
@@ -364,7 +364,7 @@ select,
 .form-select,
 .sort-select {
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232B3F54' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231a2a4a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
   padding-right: 38px !important;
@@ -380,7 +380,7 @@ select,
 }
 .newsletter-section .newsletter-section__input:focus {
   border-color: var(--color-gold) !important;
-  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.22) !important;
+  box-shadow: 0 0 0 3px rgba(184, 148, 63, 0.22) !important;
 }
 .newsletter-section .newsletter-section__input::placeholder { color: rgba(255, 255, 255, 0.45) !important; }
 
@@ -562,7 +562,7 @@ select:focus-visible { outline: none !important; }
 }
 .input-inline:focus-within {
   border-color: var(--color-navy);
-  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.18);
+  box-shadow: 0 0 0 3px rgba(184, 148, 63, 0.18);
 }
 
 /* Newsletter "sobre" — pill sobre fundo navy: campo translúcido, moldura no wrap */
@@ -601,7 +601,7 @@ select:focus-visible { outline: none !important; }
 [class*="checkout"] select:focus,
 .checkout-input:focus {
   border-color: var(--color-navy) !important;
-  box-shadow: 0 0 0 3px rgba(196, 147, 74, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(184, 148, 63, 0.18) !important;
 }
 
 /* ──────────────────────────────────────────────
@@ -609,11 +609,11 @@ select:focus-visible { outline: none !important; }
    (verde "pago", azul "enviado" → tons da paleta)
    ────────────────────────────────────────────── */
 .badge-pago, [class*="status-pago"], [class*="status--paid"] {
-  background: rgba(196, 147, 74, 0.14) !important;
+  background: rgba(184, 148, 63, 0.14) !important;
   color: #7a5a22 !important;
 }
 .badge-enviado, [class*="status-enviado"] {
-  background: rgba(43, 63, 84, 0.10) !important;
+  background: rgba(26, 42, 74, 0.10) !important;
   color: var(--color-navy) !important;
 }
 
@@ -647,14 +647,14 @@ img[data-fallback] {
    ────────────────────────────────────────────── */
 .is-ph {
   background:
-    radial-gradient(120% 90% at 80% 0%, rgba(196, 147, 74, 0.10) 0%, transparent 55%),
+    radial-gradient(120% 90% at 80% 0%, rgba(184, 148, 63, 0.10) 0%, transparent 55%),
     linear-gradient(160deg, #F4F1EA 0%, #EAE4D9 100%) !important;
   position: relative;
 }
 .is-ph.is-ph--navy {
   background:
-    radial-gradient(120% 90% at 80% 0%, rgba(196, 147, 74, 0.18) 0%, transparent 55%),
-    linear-gradient(160deg, #2F4660 0%, #243A4F 55%, #1C2C3C 100%) !important;
+    radial-gradient(120% 90% at 80% 0%, rgba(184, 148, 63, 0.18) 0%, transparent 55%),
+    linear-gradient(160deg, #22365e 0%, #20335a 55%, #14223c 100%) !important;
 }
 .is-ph::after {
   content: 'Virtù';
@@ -667,7 +667,7 @@ img[data-fallback] {
   font-style: italic;
   font-size: clamp(20px, 3.2vw, 40px);
   letter-spacing: 0.02em;
-  color: rgba(43, 63, 84, 0.32);
+  color: rgba(26, 42, 74, 0.32);
   pointer-events: none;
   z-index: 0;
 }
@@ -692,8 +692,8 @@ img[data-fallback] {
    ────────────────────────────────────────────── */
 .categoria-card--solid-stone {
   background:
-    radial-gradient(130% 100% at 80% 0%, rgba(196, 147, 74, 0.20) 0%, transparent 55%),
-    linear-gradient(155deg, #3D5470 0%, #314A66 55%, #283C52 100%) !important;
+    radial-gradient(130% 100% at 80% 0%, rgba(184, 148, 63, 0.20) 0%, transparent 55%),
+    linear-gradient(155deg, #2f456e 0%, #243a64 55%, #1b2c4c 100%) !important;
 }
 
 /* ──────────────────────────────────────────────
@@ -737,12 +737,12 @@ img[data-fallback] {
 /* Sombras de hover dos CTAs — difusas e leves (boutique), não pesadas */
 .btn--primary:hover,
 .btn--gold:hover {
-  box-shadow: 0 6px 18px rgba(43, 63, 84, 0.12) !important;
+  box-shadow: 0 6px 18px rgba(26, 42, 74, 0.12) !important;
 }
 .produto-acoes .btn--primary:hover,
 .produto-acoes .btn--gold:hover,
 .btn-comprar:hover {
-  box-shadow: 0 8px 22px rgba(43, 63, 84, 0.13) !important;
+  box-shadow: 0 8px 22px rgba(26, 42, 74, 0.13) !important;
 }
 
 /* ──────────────────────────────────────────────

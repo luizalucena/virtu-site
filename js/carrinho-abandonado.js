@@ -227,7 +227,7 @@
       #vt-abandono-icon { font-size:36px;margin-bottom:12px; }
       #vt-abandono-title {
         font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;
-        font-weight:500;color:#1c2e3e;margin:0 0 10px;
+        font-weight:500;color:#15233f;margin:0 0 10px;
       }
       #vt-abandono-sub { font-size:14px;color:#666;margin:0 0 20px;line-height:1.5; }
       #vt-abandono-form { display:flex;flex-direction:column;gap:10px; }
@@ -236,13 +236,13 @@
         font-size:15px;outline:none;width:100%;box-sizing:border-box;
         font-family:inherit;
       }
-      #vt-abandono-email:focus { border-color:#C4934A; }
+      #vt-abandono-email:focus { border-color:#b8943f; }
       #vt-abandono-btn {
-        background:#2B3F54;color:#fff;border:none;border-radius:4px;
+        background:#1a2a4a;color:#fff;border:none;border-radius:4px;
         padding:13px;font-size:14px;font-weight:600;cursor:pointer;
         font-family:inherit;transition:background .2s;
       }
-      #vt-abandono-btn:hover { background:#1c2e3e; }
+      #vt-abandono-btn:hover { background:#15233f; }
       #vt-abandono-msg { font-size:12px;color:#27ae60;margin:8px 0 0;min-height:16px; }
       #vt-abandono-disclaimer { font-size:11px;color:#bbb;margin:10px 0 0; }
       @media(max-width:440px){

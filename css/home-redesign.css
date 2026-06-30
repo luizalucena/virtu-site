@@ -14,8 +14,8 @@
    ------------------------------------------------------------ */
 .img-fallback {
   background:
-    radial-gradient(120% 90% at 75% 0%, rgba(196,147,74,0.22) 0%, transparent 55%),
-    linear-gradient(150deg, #243a4f 0%, #1a2a3c 55%, #16242f 100%);
+    radial-gradient(120% 90% at 75% 0%, rgba(184, 148, 63,0.22) 0%, transparent 55%),
+    linear-gradient(150deg, #20335a 0%, #1a2a3c 55%, #16242f 100%);
 }
 .img-fallback::after {
   content: "VIRTÙ";
@@ -98,13 +98,13 @@
   background: var(--color-gold);
   border: 1px solid var(--color-gold);
   color: var(--color-white);
-  box-shadow: 0 4px 14px rgba(196,147,74,0.22);
+  box-shadow: 0 4px 14px rgba(184, 148, 63,0.22);
 }
 .btn--gold:hover {
-  background: #b0833e;
-  border-color: #b0833e;
+  background: #a8842f;
+  border-color: #a8842f;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(196,147,74,0.2);
+  box-shadow: 0 6px 18px rgba(184, 148, 63,0.2);
 }
 
 /* Secundário com borda visível sobre fundo claro */
@@ -154,13 +154,13 @@
 .categoria-card--solid:hover { filter: brightness(1.07); }
 .categoria-card--solid-navy {
   background:
-    radial-gradient(130% 100% at 80% 0%, rgba(196,147,74,0.16) 0%, transparent 55%),
-    linear-gradient(155deg, #2f4660 0%, #243a4f 55%, #1c2c3c 100%);
+    radial-gradient(130% 100% at 80% 0%, rgba(184, 148, 63,0.16) 0%, transparent 55%),
+    linear-gradient(155deg, #22365e 0%, #20335a 55%, #14223c 100%);
 }
 .categoria-card--solid-stone {
   background:
-    radial-gradient(130% 100% at 80% 0%, rgba(196,147,74,0.20) 0%, transparent 55%),
-    linear-gradient(155deg, #3D5470 0%, #314A66 55%, #283C52 100%);
+    radial-gradient(130% 100% at 80% 0%, rgba(184, 148, 63,0.20) 0%, transparent 55%),
+    linear-gradient(155deg, #2f456e 0%, #243a64 55%, #1b2c4c 100%);
 }
 /* Nos tiles sólidos o overlay pode ser bem leve (não há foto a escurecer) */
 .categoria-card--solid .categoria-card__overlay {

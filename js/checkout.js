@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (taxaLabel) taxaLabel.innerHTML = labelHtml;
       if (taxaEl) {
         taxaEl.textContent = `+${formatCurrency(preco.diff)}`;
-        taxaEl.style.color = '#C0824A';
+        taxaEl.style.color = '#b8943f';
       }
     }
 
@@ -722,13 +722,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const cards = data.opcoes.map((op, i) => `
         <label class="shipping-option" style="cursor:pointer;display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1rem;border:1px solid #e8ddd4;border-radius:4px;margin-bottom:0.5rem;background:#fff;transition:border-color 0.15s">
           <input type="radio" name="shipping" value="${op.id}" class="shipping-option__radio"
-            data-preco="${op.preco}" ${i === 0 ? 'checked' : ''} style="accent-color:#1c2e3e;flex-shrink:0" />
+            data-preco="${op.preco}" ${i === 0 ? 'checked' : ''} style="accent-color:#15233f;flex-shrink:0" />
           <div class="shipping-option__info" style="flex:1;min-width:0">
-            <span class="shipping-option__name" style="display:block;font-size:0.85rem;font-weight:500;color:#1c2e3e">${op.nome}</span>
+            <span class="shipping-option__name" style="display:block;font-size:0.85rem;font-weight:500;color:#15233f">${op.nome}</span>
             <span class="shipping-option__time" style="display:block;font-size:0.75rem;color:#aaa;margin-top:0.1rem">${op.descricao ? op.descricao + ' · ' : ''}${op.prazo}</span>
           </div>
           <div style="text-align:right;flex-shrink:0">
-            <span style="font-size:0.9rem;font-weight:600;color:${op.preco === 0 ? '#27ae60' : '#1c2e3e'}">${op.precoFormatado}</span>
+            <span style="font-size:0.9rem;font-weight:600;color:${op.preco === 0 ? '#27ae60' : '#15233f'}">${op.precoFormatado}</span>
             ${op.precoOriginal ? `<span style="display:block;font-size:0.72rem;color:#aaa;text-decoration:line-through">${op.precoOriginal}</span>` : ''}
           </div>
         </label>`).join('');

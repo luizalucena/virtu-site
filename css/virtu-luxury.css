@@ -27,9 +27,9 @@
   --lux-white:          #FFFFFF;
 
   /* Ouro editorial — menos saturado, mais sofisticado */
-  --lux-gold:           #B8864A;  /* acento principal */
+  --lux-gold:           #b8943f;  /* acento principal */
   --lux-gold-pale:      #F2EBE0;  /* fundo destaque suave */
-  --lux-gold-text:      #8C6333;  /* ouro em texto pequeno */
+  --lux-gold-text:      #7e6a2e;  /* ouro em texto pequeno */
 
   /* Tipografia — medidas editoriais */
   --lux-tracking-tight: -0.02em;  /* títulos grandes */
@@ -1201,7 +1201,7 @@ hr,
 
 .admin-nav-btn--active {
   background: rgba(184,134,74,0.15) !important;
-  border-left-color: #B8864A !important;
-  color: #B8864A !important;
+  border-left-color: #b8943f !important;
+  color: #b8943f !important;
 }
 

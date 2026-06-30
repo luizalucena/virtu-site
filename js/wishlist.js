@@ -160,7 +160,7 @@
 
         // Mostra dica para fazer login
         const hint = document.createElement('div');
-        hint.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1c2e3e;color:#fff;padding:0.75rem 1.5rem;font-size:0.8rem;letter-spacing:0.05em;z-index:9999;border-radius:2px;opacity:0;transition:opacity 0.3s';
+        hint.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#15233f;color:#fff;padding:0.75rem 1.5rem;font-size:0.8rem;letter-spacing:0.05em;z-index:9999;border-radius:2px;opacity:0;transition:opacity 0.3s';
         hint.textContent = 'Faça login para salvar favoritos permanentemente';
         document.body.appendChild(hint);
         requestAnimationFrame(() => { hint.style.opacity = '1'; });

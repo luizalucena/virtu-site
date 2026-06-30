@@ -404,7 +404,7 @@
 .ed-deco {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid rgba(196,147,74,0.15);
+  border: 1px solid rgba(184, 148, 63,0.15);
 }
 
 .ed-deco--1 {
@@ -419,7 +419,7 @@
   height: 300px;
   right: 80px;
   top: -20px;
-  border-color: rgba(196,147,74,0.08);
+  border-color: rgba(184, 148, 63,0.08);
 }
 
 .editorial-banner__content {
@@ -511,7 +511,7 @@
 .insta-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(43,63,84,0.45);
+  background: rgba(26, 42, 74,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -587,8 +587,8 @@
 ============================================================ */
 .frete-strip {
   background: linear-gradient(90deg, #f5f0e8 0%, #faf7f2 50%, #f5f0e8 100%);
-  border-top: 1px solid rgba(196, 147, 74, 0.2);
-  border-bottom: 1px solid rgba(196, 147, 74, 0.2);
+  border-top: 1px solid rgba(184, 148, 63, 0.2);
+  border-bottom: 1px solid rgba(184, 148, 63, 0.2);
   padding: var(--space-4) 0;
 }
 

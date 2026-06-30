@@ -622,7 +622,7 @@
 .cat-sidebar-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(43,63,84,0.5);
+  background: rgba(26, 42, 74,0.5);
   z-index: 150;
   opacity: 0;
   pointer-events: none;

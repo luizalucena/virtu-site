@@ -122,7 +122,7 @@
         background: rgba(255,255,255,0.9); border: none; cursor: pointer;
         width: 30px; height: 30px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        color: #1c2e3e; transition: background 0.15s;
+        color: #15233f; transition: background 0.15s;
       }
       .exit-popup__close:hover { background: #fff; }
 
@@ -135,20 +135,20 @@
       .exit-popup__ornament {
         position: absolute; top: -40px; left: -40px;
         width: 120px; height: 120px; border-radius: 50%;
-        border: 1px solid rgba(196,147,74,0.15);
+        border: 1px solid rgba(184, 148, 63,0.15);
         pointer-events: none;
       }
 
       .exit-popup__overline {
         font-size: 0.62rem; letter-spacing: 0.2em;
-        text-transform: uppercase; color: #C4934A;
+        text-transform: uppercase; color: #b8943f;
         font-family: 'Jost', sans-serif;
       }
 
       .exit-popup__title {
         font-family: 'Cormorant Garamond', serif;
         font-style: italic; font-size: 1.65rem;
-        color: #1c2e3e; font-weight: 300; line-height: 1.2;
+        color: #15233f; font-weight: 300; line-height: 1.2;
         margin-top: 0.25rem;
       }
 
@@ -159,26 +159,26 @@
 
       .exit-popup__coupon {
         display: flex; align-items: center; gap: 0.5rem;
-        background: #faf9f7; border: 1.5px dashed #C4934A;
+        background: #faf9f7; border: 1.5px dashed #b8943f;
         padding: 0.7rem 1rem; margin-block: 0.25rem;
       }
 
       .exit-popup__coupon-code {
         font-family: 'Jost', monospace; font-size: 1.1rem;
         font-weight: 600; letter-spacing: 0.15em;
-        color: #1c2e3e; flex: 1;
+        color: #15233f; flex: 1;
       }
 
       .exit-popup__coupon-copy {
         display: flex; align-items: center; gap: 0.3rem;
-        background: none; border: 1px solid #C4934A;
-        color: #C4934A; padding: 0.3rem 0.7rem;
+        background: none; border: 1px solid #b8943f;
+        color: #b8943f; padding: 0.3rem 0.7rem;
         font-size: 0.7rem; letter-spacing: 0.08em;
         text-transform: uppercase; cursor: pointer;
         font-family: 'Jost', sans-serif;
         transition: all 0.15s; white-space: nowrap;
       }
-      .exit-popup__coupon-copy:hover { background: #C4934A; color: #fff; }
+      .exit-popup__coupon-copy:hover { background: #b8943f; color: #fff; }
 
       .exit-popup__desconto {
         font-size: 0.75rem; color: #999;
@@ -187,13 +187,13 @@
       .exit-popup__cta {
         display: block; text-align: center;
         padding: 0.9rem; margin-top: 0.5rem;
-        background: #1c2e3e; color: #fff;
+        background: #15233f; color: #fff;
         font-size: 0.7rem; letter-spacing: 0.18em;
         text-transform: uppercase; text-decoration: none;
         font-family: 'Jost', sans-serif;
         transition: background 0.2s;
       }
-      .exit-popup__cta:hover { background: #0f1d28; }
+      .exit-popup__cta:hover { background: #0e1a32; }
 
       .exit-popup__skip {
         background: none; border: none; cursor: pointer;
@@ -211,7 +211,7 @@
 
       .exit-popup__img-bg {
         position: absolute; inset: 0;
-        background: linear-gradient(160deg, #2B3F54 0%, #1E2E3E 40%, #C4934A 100%);
+        background: linear-gradient(160deg, #1a2a4a 0%, #14223c 40%, #b8943f 100%);
       }
 
       .exit-popup__img-overlay {

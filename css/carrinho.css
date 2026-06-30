@@ -650,7 +650,7 @@
   .cart-coupon__input:focus {
     border-color: var(--color-gold);
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(196,147,74,0.1);
+    box-shadow: 0 0 0 3px rgba(184, 148, 63,0.1);
   }
 
   /* Botão APLICAR — full width, mais elegante */
@@ -811,8 +811,8 @@
 .cart-gift-wrap {
   margin: 1rem 0;
   padding: 0.875rem 1rem;
-  background: linear-gradient(135deg, rgba(196,147,74,0.07), rgba(196,147,74,0.03));
-  border: 1px solid rgba(196,147,74,0.25);
+  background: linear-gradient(135deg, rgba(184, 148, 63,0.07), rgba(184, 148, 63,0.03));
+  border: 1px solid rgba(184, 148, 63,0.25);
   border-radius: 8px;
 }
 
@@ -914,10 +914,10 @@
   transition: color 0.15s;
 }
 
-.exit-popup__close:hover { color: var(--color-navy, #1c2e3e); }
+.exit-popup__close:hover { color: var(--color-navy, #15233f); }
 
 .exit-popup__top {
-  background: var(--color-navy, #1c2e3e);
+  background: var(--color-navy, #15233f);
   padding: 2.5rem 2rem 2rem;
   text-align: center;
   position: relative;
@@ -930,7 +930,7 @@
   top: -60px; right: -60px;
   width: 200px; height: 200px;
   border-radius: 50%;
-  border: 1px solid rgba(196,147,74,0.2);
+  border: 1px solid rgba(184, 148, 63,0.2);
 }
 
 .exit-popup__top::after {
@@ -939,7 +939,7 @@
   bottom: -40px; left: -40px;
   width: 140px; height: 140px;
   border-radius: 50%;
-  border: 1px solid rgba(196,147,74,0.15);
+  border: 1px solid rgba(184, 148, 63,0.15);
 }
 
 .exit-popup__icon {
@@ -986,8 +986,8 @@
   display: flex;
   align-items: center;
   gap: 0;
-  border: 1.5px dashed var(--color-gold, #c4934a);
-  background: rgba(196,147,74,0.05);
+  border: 1.5px dashed var(--color-gold, #b8943f);
+  background: rgba(184, 148, 63,0.05);
   margin-bottom: 1.25rem;
 }
 
@@ -998,7 +998,7 @@
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: 0.15em;
-  color: var(--color-navy, #1c2e3e);
+  color: var(--color-navy, #15233f);
   text-align: center;
   border: none;
   background: transparent;
@@ -1007,7 +1007,7 @@
 
 .exit-popup__copiar {
   padding: 0.85rem 1rem;
-  background: var(--color-gold, #c4934a);
+  background: var(--color-gold, #b8943f);
   border: none;
   cursor: pointer;
   font-size: 0.68rem;
@@ -1041,7 +1041,7 @@
   transition: color 0.15s;
 }
 
-.exit-popup__continuar:hover { color: var(--color-navy, #1c2e3e); }
+.exit-popup__continuar:hover { color: var(--color-navy, #15233f); }
 
 @media (max-width: 520px) {
   .exit-popup__titulo { font-size: 1.35rem; }

@@ -12,10 +12,10 @@
    ---------------------------- */
 :root {
   /* — Cores principais — */
-  --color-navy:        #2B3F54;   /* Azul âncora (texto, navbar, botões) */
-  --color-navy-dark:   #1E2E3E;   /* Navy mais escuro (hover) */
-  --color-navy-light:  #3D5470;   /* Navy médio */
-  --color-gold:        #C4934A;   /* Ouro concha (acentos, preços) */
+  --color-navy:        #1a2a4a;   /* Azul âncora (texto, navbar, botões) */
+  --color-navy-dark:   #14223c;   /* Navy mais escuro (hover) */
+  --color-navy-light:  #2f456e;   /* Navy médio */
+  --color-gold:        #b8943f;   /* Ouro concha (acentos, preços) */
   --color-gold-light:  #E8D5B5;   /* Ouro claro (bordas, backgrounds sutis) */
   --color-gold-pale:   #F5EFE6;   /* Ouro palha (seção newsletter) */
 
@@ -26,7 +26,7 @@
   --color-gray-200:    #E8E3DC;   /* Bordas */
   --color-gray-400:    #AFA99F;   /* Texto secundário fraco */
   --color-gray-600:    #6E6660;   /* Texto secundário */
-  --color-text:        #2B3F54;   /* Cor principal de texto */
+  --color-text:        #1a2a4a;   /* Cor principal de texto */
   --color-text-light:  #6E6660;   /* Texto secundário */
   --color-border:      #E8E3DC;   /* Bordas e divisores */
   --color-nude:        #EDE8DF;   /* (legado) creme suave — sem nude na paleta */
@@ -69,10 +69,10 @@
   --border-color: var(--color-gray-200);
 
   /* — Sombras — */
-  --shadow-sm: 0 1px 4px rgba(43,63,84,0.08);
-  --shadow-md: 0 4px 16px rgba(43,63,84,0.12);
-  --shadow-lg: 0 8px 32px rgba(43,63,84,0.16);
-  --shadow-card: 0 2px 12px rgba(43,63,84,0.08);
+  --shadow-sm: 0 1px 4px rgba(26, 42, 74,0.08);
+  --shadow-md: 0 4px 16px rgba(26, 42, 74,0.12);
+  --shadow-lg: 0 8px 32px rgba(26, 42, 74,0.16);
+  --shadow-card: 0 2px 12px rgba(26, 42, 74,0.08);
 
   /* — Transições — */
   --transition-fast: 0.18s ease;
@@ -510,7 +510,7 @@ h4 { font-size: var(--text-lg); }
   border-radius: 8px;
   padding: 0.5rem 0;
   min-width: 200px;
-  box-shadow: 0 8px 32px rgba(43,63,84,0.12);
+  box-shadow: 0 8px 32px rgba(26, 42, 74,0.12);
   z-index: 300;
   opacity: 0;
   visibility: hidden;
@@ -591,8 +591,8 @@ h4 { font-size: var(--text-lg); }
 }
 
 .btn--gold:hover {
-  background: #b0833e;
-  border-color: #b0833e;
+  background: #a8842f;
+  border-color: #a8842f;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -875,7 +875,7 @@ h4 { font-size: var(--text-lg); }
 
 .input:focus {
   border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px rgba(196,147,74,0.1);
+  box-shadow: 0 0 0 3px rgba(184, 148, 63,0.1);
 }
 
 .input::placeholder {
@@ -1114,7 +1114,7 @@ h4 { font-size: var(--text-lg); }
 .footer__social-btn:hover {
   border-color: var(--color-gold);
   color: var(--color-gold);
-  background: rgba(196,147,74,0.1);
+  background: rgba(184, 148, 63,0.1);
 }
 
 .footer__social-btn svg {
@@ -1169,7 +1169,7 @@ h4 { font-size: var(--text-lg); }
 .mobile-menu__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(43,63,84,0.5);
+  background: rgba(26, 42, 74,0.5);
   opacity: 0;
   transition: opacity var(--transition-base);
   backdrop-filter: blur(4px);
@@ -1488,7 +1488,7 @@ html, body {
 
 /* 6. Focus visible para acessibilidade (teclado) */
 :focus-visible {
-  outline: 2px solid var(--color-gold, #C4934A);
+  outline: 2px solid var(--color-gold, #b8943f);
   outline-offset: 2px;
 }
 :focus:not(:focus-visible) {
@@ -1543,7 +1543,7 @@ body.menu-open {
     backdrop-filter: blur(4px);
     width: 34px;
     height: 34px;
-    box-shadow: 0 2px 8px rgba(43,63,84,0.12);
+    box-shadow: 0 2px 8px rgba(26, 42, 74,0.12);
   }
 
   /* Quick-add sempre visível em mobile */

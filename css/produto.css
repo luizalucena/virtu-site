@@ -256,7 +256,7 @@
 }
 
 .produto-payment-strip__nota--pix  { color: var(--color-gray-600); }
-.produto-payment-strip__nota--card { color: #c0824a; }
+.produto-payment-strip__nota--card { color: #b8943f; }
 
 .produto-payment-strip__parcelamento {
   display: block;
@@ -576,7 +576,7 @@
 .guia-modal__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(43,63,84,0.55);
+  background: rgba(26, 42, 74,0.55);
   backdrop-filter: blur(4px);
 }
 
@@ -780,7 +780,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  box-shadow: 0 -4px 20px rgba(43,63,84,0.1);
+  box-shadow: 0 -4px 20px rgba(26, 42, 74,0.1);
 }
 
 .sticky-buy-bar.visible { display: flex; }
@@ -912,14 +912,14 @@ body.sticky-bar-visible #vt-wa-tip { bottom: 160px; }
 }
 
 .badge-exclusivo--gold {
-  background: rgba(196,147,74,0.12);
-  border: 1px solid rgba(196,147,74,0.45);
+  background: rgba(184, 148, 63,0.12);
+  border: 1px solid rgba(184, 148, 63,0.45);
   color: var(--color-gold);
 }
 
 .badge-exclusivo--navy {
-  background: rgba(43,63,84,0.08);
-  border: 1px solid rgba(43,63,84,0.25);
+  background: rgba(26, 42, 74,0.08);
+  border: 1px solid rgba(26, 42, 74,0.25);
   color: var(--color-navy);
 }
 
@@ -1313,8 +1313,8 @@ body.sticky-bar-visible #vt-wa-tip { bottom: 160px; }
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(196,147,74,0.25);
-  border: 1px solid rgba(196,147,74,0.4);
+  background: rgba(184, 148, 63,0.25);
+  border: 1px solid rgba(184, 148, 63,0.4);
   display: flex;
   align-items: center;
   justify-content: center;

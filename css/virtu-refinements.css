@@ -63,13 +63,13 @@ h3, h4, .h3, .h4 {
    ────────────────────────────────────────────────────────────── */
 
 ::selection {
-  background: rgba(196, 147, 74, 0.22); /* gold com 22% opacidade */
-  color: #1E2E3E;
+  background: rgba(184, 148, 63, 0.22); /* gold com 22% opacidade */
+  color: #14223c;
 }
 
 ::-moz-selection {
-  background: rgba(196, 147, 74, 0.22);
-  color: #1E2E3E;
+  background: rgba(184, 148, 63, 0.22);
+  color: #14223c;
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -87,13 +87,13 @@ h3, h4, .h3, .h4 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(43, 63, 84, 0.32); /* navy translúcido — paleta */
+  background: rgba(26, 42, 74, 0.32); /* navy translúcido — paleta */
   border-radius: 999px;
   transition: background 0.2s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2B3F54; /* navy no hover */
+  background: #1a2a4a; /* navy no hover */
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ h3, h4, .h3, .h4 {
    ────────────────────────────────────────────────────────────── */
 
 :focus-visible {
-  outline: 2px solid rgba(196, 147, 74, 0.65);
+  outline: 2px solid rgba(184, 148, 63, 0.65);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -152,7 +152,7 @@ h3, h4, .h3, .h4 {
 
 .navbar.scrolled {
   /* Sombra mais suave e difusa — menos "pesada" */
-  box-shadow: 0 2px 24px rgba(43, 63, 84, 0.09);
+  box-shadow: 0 2px 24px rgba(26, 42, 74, 0.09);
 }
 
 /* Links da navbar: underline mais elegante (1px → 0.5px) */
@@ -163,7 +163,7 @@ h3, h4, .h3, .h4 {
 
 /* Ícones de ação (lupa, coração, carrinho): hover mais suave */
 .navbar__action-btn:hover {
-  background: rgba(43, 63, 84, 0.06); /* 06% ao invés de qualquer cor sólida */
+  background: rgba(26, 42, 74, 0.06); /* 06% ao invés de qualquer cor sólida */
   color: var(--color-gold);
 }
 
@@ -173,7 +173,7 @@ h3, h4, .h3, .h4 {
   -webkit-backdrop-filter: blur(12px);
   background: rgba(249, 247, 244, 0.97);
   /* Sombra mais suave e espalhada */
-  box-shadow: 0 12px 48px rgba(43, 63, 84, 0.1), 0 2px 8px rgba(43, 63, 84, 0.06);
+  box-shadow: 0 12px 48px rgba(26, 42, 74, 0.1), 0 2px 8px rgba(26, 42, 74, 0.06);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -199,7 +199,7 @@ h3, h4, .h3, .h4 {
 .btn--primary:hover,
 .btn--gold:hover {
   transform: translateY(-1.5px); /* +0.5px a mais que o original */
-  box-shadow: 0 6px 20px rgba(43, 63, 84, 0.18);
+  box-shadow: 0 6px 20px rgba(26, 42, 74, 0.18);
 }
 
 .btn--ghost:hover {
@@ -220,12 +220,12 @@ h3, h4, .h3, .h4 {
 
 .product-card__image-wrap {
   /* Sombra quase invisível que aparece no hover */
-  box-shadow: 0 0 0 rgba(43, 63, 84, 0);
+  box-shadow: 0 0 0 rgba(26, 42, 74, 0);
   transition: box-shadow 0.35s ease;
 }
 
 .product-card:hover .product-card__image-wrap {
-  box-shadow: 0 8px 28px rgba(43, 63, 84, 0.1);
+  box-shadow: 0 8px 28px rgba(26, 42, 74, 0.1);
 }
 
 /* Zoom: 1.04 → 1.035 (mais elegante, menos agressivo) */
@@ -256,7 +256,7 @@ h3, h4, .h3, .h4 {
 }
 
 .product-card:hover .product-card__price-current {
-  color: #b0833e; /* gold levemente mais escuro = mais contrastante */
+  color: #a8842f; /* gold levemente mais escuro = mais contrastante */
 }
 
 /* Quick-add button: easing mais natural */
@@ -282,7 +282,7 @@ h3, h4, .h3, .h4 {
 .input:focus {
   border-color: var(--color-gold);
   /* Focus ring mais suave: 2px ao invés de 3px */
-  box-shadow: 0 0 0 2px rgba(196, 147, 74, 0.14);
+  box-shadow: 0 0 0 2px rgba(184, 148, 63, 0.14);
   outline: none;
 }
 
@@ -295,7 +295,7 @@ h3, h4, .h3, .h4 {
 
 /* Select styled como input */
 select.input:focus {
-  box-shadow: 0 0 0 2px rgba(196, 147, 74, 0.14);
+  box-shadow: 0 0 0 2px rgba(184, 148, 63, 0.14);
 }
 
 /* Labels: espaçamento levemente maior */
@@ -356,9 +356,9 @@ select.input:focus {
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(196, 147, 74, 0.3) 20%,
+    rgba(184, 148, 63, 0.3) 20%,
     var(--color-gold) 50%,
-    rgba(196, 147, 74, 0.3) 80%,
+    rgba(184, 148, 63, 0.3) 80%,
     transparent 100%
   );
   opacity: 0.6;
@@ -370,8 +370,8 @@ select.input:focus {
 
 .newsletter__input-wrap .input-inline {
   /* Borda mais suave no input da newsletter */
-  border-color: rgba(43, 63, 84, 0.15);
-  box-shadow: 0 2px 8px rgba(43, 63, 84, 0.05);
+  border-color: rgba(26, 42, 74, 0.15);
+  box-shadow: 0 2px 8px rgba(26, 42, 74, 0.05);
 }
 
 .newsletter__privacy {
@@ -460,7 +460,7 @@ select.input:focus {
 
 .search-overlay__input::placeholder {
   font-style: italic;
-  color: rgba(43, 63, 84, 0.25);
+  color: rgba(26, 42, 74, 0.25);
 }
 
 .search-overlay {
@@ -708,12 +708,12 @@ select.input:focus {
 
 /* Círculos decorativos: mais visíveis e refined */
 .ed-deco {
-  border-color: rgba(196, 147, 74, 0.12);
+  border-color: rgba(184, 148, 63, 0.12);
   transition: opacity 0.6s ease;
 }
 
-.ed-deco--1 { border-color: rgba(196, 147, 74, 0.10); }
-.ed-deco--2 { border-color: rgba(196, 147, 74, 0.06); }
+.ed-deco--1 { border-color: rgba(184, 148, 63, 0.10); }
+.ed-deco--2 { border-color: rgba(184, 148, 63, 0.06); }
 
 /* ──────────────────────────────────────────────────────────────
    26. INSTAGRAM FEED — Grid mais apertado = impacto visual
@@ -735,7 +735,7 @@ select.input:focus {
 
 /* Overlay mais sutil */
 .insta-overlay {
-  background: rgba(43, 63, 84, 0.35); /* 0.45 → 0.35 */
+  background: rgba(26, 42, 74, 0.35); /* 0.45 → 0.35 */
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -1149,7 +1149,7 @@ select.input:focus {
 .produto-acoes .btn--gold:hover,
 .btn-comprar:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(43, 63, 84, 0.2);
+  box-shadow: 0 8px 24px rgba(26, 42, 74, 0.2);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -1195,11 +1195,11 @@ select.input:focus {
 .guia-modal__content {
   border-radius: 0; /* var(--radius-lg) → 0 */
   padding: var(--space-10) var(--space-10);
-  box-shadow: 0 24px 64px rgba(43, 63, 84, 0.18);
+  box-shadow: 0 24px 64px rgba(26, 42, 74, 0.18);
 }
 
 .guia-modal__overlay {
-  background: rgba(43, 63, 84, 0.5); /* 0.55 → 0.5 */
+  background: rgba(26, 42, 74, 0.5); /* 0.55 → 0.5 */
 }
 
 /* Tabela do guia: mais clean */
@@ -1355,7 +1355,7 @@ select.input:focus {
 }
 
 .newsletter .input-inline:focus {
-  border-color: rgba(196, 147, 74, 0.6);
+  border-color: rgba(184, 148, 63, 0.6);
   background: rgba(255, 255, 255, 0.12);
   outline: none;
 }
@@ -1601,7 +1601,7 @@ select.input:focus {
 
 .pedido-card:hover,
 .order-card:hover {
-  box-shadow: 0 4px 16px rgba(43, 63, 84, 0.08);
+  box-shadow: 0 4px 16px rgba(26, 42, 74, 0.08);
 }
 
 /* Status badge: flat */

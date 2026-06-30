@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cores
     const cores = cfg?.filtros_cores || [
-      {nome:'Azul Âncora',hex:'#2B3F54'},{nome:'Dourado',hex:'#C4934A'},
+      {nome:'Azul Âncora',hex:'#1a2a4a'},{nome:'Dourado',hex:'#b8943f'},
       {nome:'Cru',hex:'#E8D5B5'},{nome:'Preto',hex:'#1a1a1a'},
       {nome:'Off-White',hex:'#F9F7F4'},{nome:'Cinza',hex:'#6E6660'},
       {nome:'Terracota',hex:'#8B6F5E'},{nome:'Rosa',hex:'#D4A5A5'}

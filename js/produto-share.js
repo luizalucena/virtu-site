@@ -24,10 +24,10 @@
 
     // CSS
     var css = document.createElement('style');
-    css.textContent = '#vt-share-wa { display:flex; align-items:center; gap:10px; background:transparent; color:#2B3F54; border:1.5px solid #2B3F54; border-radius:14px; padding:13px 24px; font-family:Cormorant Garamond,Georgia,serif; font-size:13px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; width:100%; justify-content:center; margin-top:12px; transition:background .25s,color .25s,box-shadow .25s; text-decoration:none; }'
-      + '#vt-share-wa:hover { background:#2B3F54; color:#FAF8F5; box-shadow:0 8px 22px rgba(26,38,64,.16); }'
-      + '#vt-share-wa:hover svg { fill:#C4934A; }'
-      + '#vt-share-wa svg { width:18px; height:18px; fill:#C4934A; flex-shrink:0; transition:fill .25s; }';
+    css.textContent = '#vt-share-wa { display:flex; align-items:center; gap:10px; background:transparent; color:#1a2a4a; border:1.5px solid #1a2a4a; border-radius:14px; padding:13px 24px; font-family:Cormorant Garamond,Georgia,serif; font-size:13px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; width:100%; justify-content:center; margin-top:12px; transition:background .25s,color .25s,box-shadow .25s; text-decoration:none; }'
+      + '#vt-share-wa:hover { background:#1a2a4a; color:#FAF8F5; box-shadow:0 8px 22px rgba(26,38,64,.16); }'
+      + '#vt-share-wa:hover svg { fill:#b8943f; }'
+      + '#vt-share-wa svg { width:18px; height:18px; fill:#b8943f; flex-shrink:0; transition:fill .25s; }';
     document.head.appendChild(css);
 
     // Botão — sem número de destino: abre WhatsApp para a cliente escolher o contato
