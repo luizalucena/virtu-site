@@ -252,7 +252,6 @@ function updateSummary() {
   const items       = getCart();
   const subtotal    = items.reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
   const giftExtra   = giftWrap ? giftWrapPrice : 0;
-  const baseParaFrete = subtotal + giftExtra;
 
   // Recalcula desconto com base no subtotal atual (corrige bug ao remover itens)
   if (appliedCoupon && appliedPct > 0) {
@@ -261,7 +260,9 @@ function updateSummary() {
     discount = Math.min(appliedValorFixo, subtotal);
   }
 
-  const isFree      = baseParaFrete >= freeShippingThreshold;
+  // Frete grátis ≥799 é sobre o subtotal dos PRODUTOS (sem embalagem presente),
+  // igual ao calcular-frete/processar-pagamento.
+  const isFree      = subtotal >= freeShippingThreshold;
   const total       = Math.max(0, subtotal - discount + giftExtra); // frete calculado no checkout
   const installment = total / 12;
 
@@ -303,14 +304,14 @@ function updateSummary() {
   // Barra de frete grátis
   const fill = document.getElementById('freeShippingFill');
   const text = document.getElementById('freeShippingText');
-  const pct  = Math.min(100, (baseParaFrete / freeShippingThreshold) * 100);
+  const pct  = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   if (fill) fill.style.width = `${pct}%`;
   if (text) {
-    if (isFree && baseParaFrete > 0) {
+    if (isFree && subtotal > 0) {
       text.textContent = 'Frete grátis em todo o Brasil';
       text.style.color = '#2e7d32';
-    } else if (baseParaFrete > 0) {
-      const remaining = freeShippingThreshold - baseParaFrete;
+    } else if (subtotal > 0) {
+      const remaining = freeShippingThreshold - subtotal;
       text.textContent = `Falta ${formatCurrency(remaining)} para frete grátis em todo o Brasil`;
       text.style.color = '';
     } else {

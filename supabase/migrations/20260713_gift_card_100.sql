@@ -65,7 +65,11 @@ DECLARE
   v_consumido       BOOLEAN := FALSE;
   v_em_uso          BOOLEAN := FALSE;
 BEGIN
-  IF p_user_id IS NULL THEN
+  -- Anti-sondagem: um cliente autenticado (auth.uid() não-nulo) só pode
+  -- consultar o PRÓPRIO status. O backend (service_role) tem auth.uid()
+  -- nulo e pode consultar qualquer user_id.
+  IF p_user_id IS NULL
+     OR (auth.uid() IS NOT NULL AND p_user_id IS DISTINCT FROM auth.uid()) THEN
     RETURN jsonb_build_object(
       'elegivel', FALSE, 'compras_validas', 0, 'consumido', FALSE,
       'em_uso', FALSE, 'valor', c_valor, 'min_subtotal', c_min_subtotal,

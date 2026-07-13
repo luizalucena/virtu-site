@@ -498,11 +498,16 @@ document.addEventListener('DOMContentLoaded', () => {
           giftCardMinSubtotal = Number(gc?.min_subtotal ?? 459);
           const GC_VALOR      = Number(gc?.valor ?? 100);
 
+          // Mínimo do gift card é sobre o subtotal dos PRODUTOS (sem embalagem
+          // presente), igual ao backend — evita prometer no preview um
+          // desconto que o servidor não aplicaria.
+          const subtotalProdutos = getCart().reduce((s, i) => s + (i.preco || 0) * (i.qty || 1), 0);
+
           const summaryEl = document.getElementById('checkoutOrderSummary') ||
                             document.querySelector('.checkout-order-summary') ||
                             document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
 
-          if (giftCardElegivel && baseTotal >= giftCardMinSubtotal) {
+          if (giftCardElegivel && subtotalProdutos >= giftCardMinSubtotal) {
             descontoGiftCard = GC_VALOR;
             updateTotalWithFrete(freteValorSelecionado);
 
@@ -517,10 +522,10 @@ document.addEventListener('DOMContentLoaded', () => {
               banner.innerHTML = `✦ Gift Card Virtù — <strong>R$${GC_VALOR.toFixed(0)} de desconto aplicado!</strong>`;
               summaryEl.insertAdjacentElement('beforebegin', banner);
             }
-          } else if (giftCardElegivel && baseTotal < giftCardMinSubtotal) {
+          } else if (giftCardElegivel && subtotalProdutos < giftCardMinSubtotal) {
             // Elegível, mas ainda não atingiu o mínimo — mostra o incentivo.
             if (summaryEl && !document.getElementById('giftCardBanner')) {
-              const falta = (giftCardMinSubtotal - baseTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+              const falta = (giftCardMinSubtotal - subtotalProdutos).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
               const banner = document.createElement('div');
               banner.id = 'giftCardBanner';
               banner.style.cssText = `
