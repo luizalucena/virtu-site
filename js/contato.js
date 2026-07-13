@@ -2,6 +2,17 @@
    VIRTÙ — Contato JavaScript
    ============================================================ */
 
+// Escapa texto do banco antes de injetar via innerHTML (defesa em profundidade).
+// FAQ e benefícios da newsletter vêm de `configuracoes` (só admin escreve).
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /* ── CARREGAR INFOS DE CONTATO DO SUPABASE ── */
 (async () => {
   if (typeof supabaseClient === 'undefined') return;
@@ -37,12 +48,12 @@
       faqWrap.innerHTML = cfg.faq_items.map(f => {
         if (f.link) {
           return `<div class="contato-faq__item contato-faq__item--link">
-            <a href="${f.link}" class="contato-faq__question contato-faq__question--link">${f.pergunta} <span>→</span></a>
+            <a href="${escHtml(f.link)}" class="contato-faq__question contato-faq__question--link">${escHtml(f.pergunta)} <span>→</span></a>
           </div>`;
         }
         return `<details class="contato-faq__item">
-          <summary class="contato-faq__question">${f.pergunta}</summary>
-          <p class="contato-faq__answer">${f.resposta}</p>
+          <summary class="contato-faq__question">${escHtml(f.pergunta)}</summary>
+          <p class="contato-faq__answer">${escHtml(f.resposta)}</p>
         </details>`;
       }).join('');
     }
@@ -54,7 +65,7 @@
     if (nSub && cfg.newsletter_subtitulo) nSub.textContent = cfg.newsletter_subtitulo;
     const nBen = document.getElementById('contatoNewsletterBeneficios');
     if (nBen && Array.isArray(cfg.newsletter_beneficios)) {
-      nBen.innerHTML = cfg.newsletter_beneficios.map(b => `<li>✦ ${b}</li>`).join('');
+      nBen.innerHTML = cfg.newsletter_beneficios.map(b => `<li>✦ ${escHtml(b)}</li>`).join('');
     }
 
   } catch { /* mantém valores estáticos como fallback */ }

@@ -6,6 +6,18 @@
 
 const VirtuProducts = (() => {
 
+  // Escapa texto do banco antes de injetar via innerHTML (defesa em profundidade).
+  // Os dados vêm da tabela `produtos` (só admin escreve), mas escapamos mesmo
+  // assim para não depender disso.
+  function escHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // Cache de sessão (limpo a cada carregamento de página)
   let _cache = null;
 
@@ -139,12 +151,12 @@ const VirtuProducts = (() => {
         const s1200 = `${base}?width=1200&quality=85&format=webp`;
         return `<img src="${url}" srcset="${s400} 400w, ${s800} 800w, ${s1200} 1200w"
           sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, (max-width: 1280px) 22vw, 18vw"
-          alt="${nome}" class="product-card__img"
+          alt="${escHtml(nome)}" class="product-card__img"
           loading="${loadAttr}" decoding="async"${priorityAttr}
           onerror="${errFallback}">`;
       }
       // URL externa (Google Drive, lh3, etc.)
-      return `<img src="${url}" alt="${nome}" class="product-card__img"
+      return `<img src="${url}" alt="${escHtml(nome)}" class="product-card__img"
         loading="${loadAttr}" decoding="async"${priorityAttr}
         onerror="${errFallback}">`;
     }
@@ -159,7 +171,7 @@ const VirtuProducts = (() => {
       ? produto.imagens[1] : null;
     const hoverImgUrl = _segundaImg ? _cvDrive(_segundaImg) : null;
     const hoverImgHtml = hoverImgUrl
-      ? `<img src="${hoverImgUrl}" alt="${nome} — vista alternativa"
+      ? `<img src="${hoverImgUrl}" alt="${escHtml(nome)} — vista alternativa"
            class="product-card__img product-card__img--hover"
            loading="lazy" decoding="async"
            aria-hidden="true">`
@@ -172,14 +184,14 @@ const VirtuProducts = (() => {
     } else if (badge === 'Sale' || temDesconto) {
       badgeHtml = `<span class="product-card__badge product-card__badge--sale">${pct > 0 ? `−${pct}%` : 'Sale'}</span>`;
     } else if (badge && badge !== 'Sale') {
-      badgeHtml = `<span class="product-card__badge">${badge}</span>`;
+      badgeHtml = `<span class="product-card__badge">${escHtml(badge)}</span>`;
     }
 
     // Swatches de cor (mantidos no DOM para filtros, ocultos via CSS luxury)
     const swatchesHtml = (cores || []).map((c, i) =>
       `<span class="product-card__swatch${i === 0 ? ' active' : ''}"
-             style="background:${c.hex}${c.nome === 'Off-White' ? ';border:1px solid #ccc' : ''}"
-             title="${c.nome}"></span>`
+             style="background:${escHtml(c.hex)}${c.nome === 'Off-White' ? ';border:1px solid #ccc' : ''}"
+             title="${escHtml(c.nome)}"></span>`
     ).join('');
 
     const precoHtml = temDesconto
@@ -195,7 +207,7 @@ const VirtuProducts = (() => {
 
     const dateAttr = produto.criado_em ? new Date(produto.criado_em).getTime() : 0;
     return `
-      <article class="product-card" data-cat="${categoria}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" data-date="${dateAttr}" role="listitem">
+      <article class="product-card" data-cat="${escHtml(categoria)}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" data-date="${dateAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
           <div class="product-card__image-wrap${wrapPhClass}">
             ${imgHtml}
@@ -212,8 +224,8 @@ const VirtuProducts = (() => {
           </div>
         </a>
         <div class="product-card__info">
-          <p class="product-card__category">${(categoria || '').charAt(0).toUpperCase() + (categoria || '').slice(1)}</p>
-          <h3 class="product-card__name"><a href="${link}">${nome}</a></h3>
+          <p class="product-card__category">${escHtml((categoria || '').charAt(0).toUpperCase() + (categoria || '').slice(1))}</p>
+          <h3 class="product-card__name"><a href="${link}">${escHtml(nome)}</a></h3>
           <div class="product-card__price">${precoHtml}</div>
           ${swatchesHtml ? `<div class="product-card__swatches">${swatchesHtml}</div>` : ''}
         </div>
@@ -350,7 +362,7 @@ const VirtuProducts = (() => {
     const nBen = document.getElementById('newsletterBeneficios');
     if (nBen && Array.isArray(cfg.newsletter_beneficios)) {
       nBen.innerHTML = cfg.newsletter_beneficios
-        .map(b => `<li>${b}</li>`).join('');
+        .map(b => `<li>${escHtml(b)}</li>`).join('');
     }
   }
 
