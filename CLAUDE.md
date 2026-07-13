@@ -126,6 +126,25 @@ Toda tarefa segue estas etapas, nesta ordem:
 
 ## 8. Pendências / riscos conhecidos
 
+### Re-auditoria de lançamento — 13/07/2026 (veredito: GO)
+
+Re-verificação completa com foco em pagamento. **Nenhum bloqueador Crítico/Alto.**
+
+**✅ Reconfirmado em produção (sem mudança necessária):**
+- **Pagamento**: `processar-pagamento` recalcula preço/frete/cupom/fidelidade/estoque no servidor; idempotência ativa; cartão nunca logado nem persistido (só alimenta `chargeBody.creditCard`→ASAAS). `asaas-webhook` é idempotente (update atômico `.eq('status','pendente')`) e fail-closed (testado ao vivo: 401 sem/`token` errado → `ASAAS_WEBHOOK_TOKEN` configurado). `calcular-frete` espelha exatamente o `fretesPermitidos()`. Contrato `qty` front↔back correto (carrinho usa `qty`).
+- **Sem segredos no front**; admin protegido por RLS + `is_virtu_admin()`; avaliações (conteúdo de usuário) escapadas com `escHtml`.
+
+**✅ Corrigido nesta rodada (commits locais, sem push):**
+- **B2 — escape defense-in-depth**: `products.js` (nome/categoria/badge/cor/newsletter) e `contato.js` (faq/newsletter) — dados de admin escapados via `escHtml`.
+- **B4 — índices duplicados**: migration `20260713_remove_indices_duplicados.sql` removeu 4 pares idênticos (verificado no banco).
+- **B1 — limpeza de Edge Functions órfãs**: deletadas `clever-service`, `smart-responder`, `virtusite` (templates `Hello` do Supabase, não usados; código guardado se precisar recriar).
+
+**⏸️ Adiado de propósito (pós-lançamento):**
+- **B3 — perf RLS (`auth.fn()`→`(select auth.fn())`)**: mexe em ~10 policies; ganho só em escala. Evitar rewrite de RLS na semana do lançamento.
+- Hardening dos lints 0028/0029: revogar EXECUTE das funções de trigger (no-op quando chamadas direto) e `search_path` nos 3 triggers de timestamp. Não é risco real.
+
+**⚠️ Ação da Luíza (não-código):** validar pagamento E2E (PIX/cartão real ou sandbox); confirmar `Confirm email = ON` (Auth); rodar `node --check` local.
+
 ### Auditoria completa — 29/06/2026 (segurança + qualidade)
 
 **✅ Aplicado em produção e verificado:**
