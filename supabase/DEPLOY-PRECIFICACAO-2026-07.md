@@ -32,8 +32,8 @@ brecha (deve estar REVOKE anon, GRANT authenticated/service_role).
 - [ ] **Crédito**: +5%, total ,90; parcelas somam exatamente o total (conferir
       no ASAAS que `totalValue`/`installmentCount` foi aceito — ⚠️ ponto novo).
 - [ ] **Débito**: +5%, igual ao crédito à vista.
-- [ ] **Frete**: CEP JP → grátis; NE <799 → R$18; SP <799 → R$29,90; Manaus <799
-      → R$19,90; qualquer CEP com subtotal ≥799 → grátis.
+- [ ] **Frete**: CEP JP → grátis; NE <799 → R$18; SP/Sul <799 → R$19,90; Manaus
+      (Norte/CO) <799 → R$29,90; qualquer CEP com subtotal ≥799 → grátis.
 - [ ] **Gift card**: cliente com ≥6 compras pagas em dias diferentes e subtotal
       ≥459 → −R$100 (1x). 5 pedidos pagos no mesmo dia → NÃO destrava. Após usar
       num pedido pago → não aplica de novo. Cancelar/estornar esse pedido →
@@ -45,8 +45,8 @@ brecha (deve estar REVOKE anon, GRANT authenticated/service_role).
 - **ASAAS parcelado**: passamos a enviar `totalValue` + `installmentCount` (em
   vez de `value` + `installmentValue`) para a soma das parcelas bater exata.
   Confirmar no sandbox que o ASAAS aceita e divide corretamente antes da prod.
-- **Frete Norte/CO (R$19,90) < Sul/Sudeste (R$29,90)** — valores informados;
-  incomum, confirmar se é intencional.
+- **Frete regional**: Sul/Sudeste R$19,90 · Norte/Centro-Oeste R$29,90 ·
+  Nordeste R$18 · Grande JP grátis.
 - **Embalagem presente** não entra no subtotal de produtos para gift card (≥459)
   nem para frete grátis (≥799) — igual ao backend.
 

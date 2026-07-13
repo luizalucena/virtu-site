@@ -73,8 +73,8 @@ function sanitize(val: unknown, maxLen = 255): string {
  * Espelha supabase/functions/calcular-frete — MANTER SINCRONIZADO:
  *   Grande JP → grátis (+ motoboy R$15 só João Pessoa)
  *   Nordeste (fora Grande JP) → R$18
- *   Sul / Sudeste            → R$29,90
- *   Norte / Centro-Oeste     → R$19,90
+ *   Sul / Sudeste            → R$19,90
+ *   Norte / Centro-Oeste     → R$29,90
  *   Frete grátis em TODO o Brasil quando subtotal ≥ R$799 (além de 0,
  *   o valor regional continua válido caso o cliente já tivesse selecionado).
  *
@@ -108,8 +108,8 @@ function fretesPermitidos(cepRaw: unknown, subtotal = 0): number[] {
     || (cep >= 80000000 && cep <= 99999999);                      // Sul (PR/SC/RS)
 
   if (nordeste)              regional = 18.00;
-  else if (norteCentroOeste) regional = 19.90;
-  else if (sulSudeste)       regional = 29.90;
+  else if (sulSudeste)       regional = 19.90;
+  else if (norteCentroOeste) regional = 29.90;
 
   if (regional === null) return [];               // CEP inexistente/ inválido
 

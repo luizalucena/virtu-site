@@ -5,8 +5,8 @@
  * Regiões atendidas (todo o Brasil):
  *   Grande JP (Frete Grátis) — João Pessoa, Cabedelo, Santa Rita, Bayeux, Conde
  *   Nordeste (R$ 18,00)      — AL, BA, CE, MA, PB, PE, PI, RN, SE
- *   Norte / Centro-Oeste (R$ 19,90)
- *   Sul / Sudeste (R$ 29,90)
+ *   Sul / Sudeste (R$ 19,90)
+ *   Norte / Centro-Oeste (R$ 29,90)
  *   Frete GRÁTIS em todo o Brasil quando o subtotal ≥ R$ 799,00.
  *
  * Input:  POST { cep: string, valor: number }   (valor = subtotal dos produtos)
@@ -166,10 +166,10 @@ Deno.serve(async (req) => {
     let prazo = '';
     if (isNordeste(cepNum)) {
       precoRegional = 18.00;  prazo = '7-14 dias úteis';
-    } else if (inRanges(cepNum, NORTE_CO_RANGES)) {
-      precoRegional = 19.90;  prazo = '10-18 dias úteis';
     } else if (inRanges(cepNum, SUL_SUDESTE_RANGES)) {
-      precoRegional = 29.90;  prazo = '7-14 dias úteis';
+      precoRegional = 19.90;  prazo = '7-14 dias úteis';
+    } else if (inRanges(cepNum, NORTE_CO_RANGES)) {
+      precoRegional = 29.90;  prazo = '10-18 dias úteis';
     }
 
     if (precoRegional === null) {
