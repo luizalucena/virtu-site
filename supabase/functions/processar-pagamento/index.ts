@@ -340,7 +340,14 @@ Deno.serve(async (req) => {
         console.error('[processar-pagamento] Item sem preço no banco:', item?.id);
         return json({ erro: 'Um item do carrinho é inválido. Atualize a página e tente novamente.' }, 400);
       }
-      serverSubtotal += sp * (Number(item.qty) || 1);
+      // Quantidade DEVE ser inteiro positivo (anti-fraude): qty negativo/zero/
+      // fracionário poderia reduzir o total ou burlar a checagem de estoque.
+      const qtyItem = Number(item.qty);
+      if (!Number.isInteger(qtyItem) || qtyItem < 1 || qtyItem > 50) {
+        console.error('[processar-pagamento] Quantidade inválida:', item?.id, item?.qty);
+        return json({ erro: 'Quantidade inválida no carrinho.' }, 400);
+      }
+      serverSubtotal += sp * qtyItem;
     }
 
     const freteNum = Number(frete ?? 0);
