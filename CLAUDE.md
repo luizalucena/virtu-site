@@ -134,6 +134,10 @@ Re-verificação completa com foco em pagamento. **Nenhum bloqueador Crítico/Al
 - **Pagamento**: `processar-pagamento` recalcula preço/frete/cupom/fidelidade/estoque no servidor; idempotência ativa; cartão nunca logado nem persistido (só alimenta `chargeBody.creditCard`→ASAAS). `asaas-webhook` é idempotente (update atômico `.eq('status','pendente')`) e fail-closed (testado ao vivo: 401 sem/`token` errado → `ASAAS_WEBHOOK_TOKEN` configurado). `calcular-frete` espelha exatamente o `fretesPermitidos()`. Contrato `qty` front↔back correto (carrinho usa `qty`).
 - **Sem segredos no front**; admin protegido por RLS + `is_virtu_admin()`; avaliações (conteúdo de usuário) escapadas com `escHtml`.
 
+**🔴 CRÍTICO corrigido em produção (13/07, 2ª passagem):**
+- **Pagamento fantasma via INSERT direto (`pedidos`)**: a policy `pedidos_insert_seguro` deixava anon/authenticated inserir em `pedidos` sem restringir `status` → com a anon key pública dava para criar pedido `status='pago'` sem passar pelo ASAAS (contornando o anti-fraude + disparando baixa de estoque). **Provado em produção** (INSERT anon passou pela RLS). Migration `20260713_pedidos_bloqueia_insert_cliente.sql` removeu a policy (a criação é feita só pelo edge function com service_role, que ignora RLS). Re-teste pós-fix: anon → 42501. **⚠️ O advisor NÃO pegou isso** (o `WITH CHECK` não era literalmente `true`) — advisor é necessário, não suficiente.
+- **Quantidade negativa/zero/fracionária**: `processar-pagamento` usava `Number(qty)||1`, aceitando `qty` negativo (reduziria o valor cobrado e burlaria estoque). Agora exige inteiro 1–50. Deployado + testado (qty -5/0/2.5 → 400).
+
 **✅ Corrigido nesta rodada (commits locais, sem push):**
 - **B2 — escape defense-in-depth**: `products.js` (nome/categoria/badge/cor/newsletter) e `contato.js` (faq/newsletter) — dados de admin escapados via `escHtml`.
 - **B4 — índices duplicados**: migration `20260713_remove_indices_duplicados.sql` removeu 4 pares idênticos (verificado no banco).
