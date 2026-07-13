@@ -118,8 +118,18 @@
   padding: 4rem 3rem;
 }
 
+/* Mobile: sem painel navy, o form vai para o TOPO (elimina o vão vertical
+   que aparecia por causa do min-height:100vh + centralização). */
+@media (max-width: 800px) {
+  .conta-auth { min-height: auto; }
+  .conta-auth__form-area {
+    align-items: flex-start;
+    padding: 2.75rem 1.75rem 3.5rem;
+  }
+}
+
 @media (max-width: 600px) {
-  .conta-auth__form-area { padding: 3rem 1.5rem; }
+  .conta-auth__form-area { padding: 2.5rem 1.5rem 3rem; }
 }
 
 .conta-auth__box {
