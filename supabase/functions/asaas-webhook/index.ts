@@ -129,38 +129,13 @@ Deno.serve(async (req) => {
     // NÃO chamar comprar_variacao aqui — causaria duplo débito.
     console.log(`[asaas-webhook] Estoque: delegado ao trigger DB (trg_pedido_pago_baixa_estoque)`);
 
-    // ── Fidelidade: registra a compra confirmada ─────────────
-    if (userId) {
-      try {
-        const { data: fidData, error: fidErr } = await supabase
-          .rpc('registrar_compra_fidelidade', { p_user_id: userId, p_total: pedidoSubtotal });
-
-        if (fidErr) {
-          console.error('[asaas-webhook] Fidelidade erro:', fidErr.message);
-        } else {
-          console.log(`[asaas-webhook] Fidelidade: compras_pagas=${fidData?.compras_pagas}`);
-
-          // Se prêmio gerado → notifica a cliente por e-mail
-          if (fidData?.desconto_100 === true && fidData?.codigo) {
-            const SB_URL   = Deno.env.get('SUPABASE_URL');
-            const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
-            if (SB_URL && ANON_KEY) {
-              fetch(`${SB_URL}/functions/v1/notificar-premio-fidelidade`, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
-                body: JSON.stringify({
-                  user_id:  userId,
-                  codigo:   fidData.codigo,
-                  validade: fidData.validade,
-                }),
-              }).catch(e => console.error('[asaas-webhook] Premio dispatch erro:', e));
-            }
-          }
-        }
-      } catch (fidEx) {
-        console.error('[asaas-webhook] Fidelidade exception:', fidEx);
-      }
-    }
+    // ── Gift Card ────────────────────────────────────────────
+    // Nada a fazer aqui: a contagem de compras válidas é DERIVADA dos
+    // pedidos pagos (gift_card_status), e o consumo do gift card já foi
+    // marcado em `pedidos.gift_card_aplicado` na criação do pedido. Ao
+    // virar 'pago' agora, o consumo passa a valer automaticamente; se for
+    // cancelado/estornado depois, o benefício é liberado de volta sozinho.
+    void pedidoSubtotal;
 
     // ── E-mail de confirmação ao cliente + admin ─────────────
     const SB_URL   = Deno.env.get('SUPABASE_URL');

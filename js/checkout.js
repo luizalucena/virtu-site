@@ -37,48 +37,79 @@ let freteCalculado        = false;          // flag: frete foi calculado com suc
 // ── ESTADO DO CUPOM ─────────────────────────────────────────
 let cupomAplicado = null; // { codigo, tipo, valor } ou null
 
-// ── DESCONTO AUTOMÁTICO VIRTÙ (pedidos acima de R$1.000) ────────
-let descontoFidelidade = 0;    // R$100 aplicado automaticamente quando subtotal ≥ R$1.000
+// ── GIFT CARD R$100 (clientes fiéis) ────────────────────────────
+// Elegibilidade decidida no BACKEND (gift_card_status). O frontend só
+// exibe o desconto quando o servidor confirma elegível + subtotal ≥ R$459.
+let descontoGiftCard   = 0;    // R$100 quando elegível e subtotal ≥ R$459
+let giftCardElegivel   = false;// resultado de gift_card_status
+let giftCardMinSubtotal= 459;  // mínimo para aplicar (vem do backend)
 let currentUserId      = null; // UUID do usuário autenticado
 
 // ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────
 // Edite aqui (e no processar-pagamento/index.ts) quando mudar as regras.
 //   PIX:    sem ajuste (valor cheio)
-//   Débito: +10% sobre o subtotal (acréscimo)
-//   Crédito:+10% sobre o subtotal (acréscimo) — parcelamento divide o total
+//   Débito: +5% (taxa de cartão) sobre o TOTAL (incluindo frete)
+//   Crédito:+5% (taxa de cartão) sobre o TOTAL — parcelamento divide o total
 const AJUSTE_METODO = {
   pix:     0,     // sem ajuste — PIX paga o valor cheio
-  debito:  0.10,  // 10% de ACRÉSCIMO
-  cartao:  0.10,  // 10% de ACRÉSCIMO
+  debito:  0.05,  // 5% de ACRÉSCIMO (taxa de cartão)
+  cartao:  0.05,  // 5% de ACRÉSCIMO (taxa de cartão)
 };
 
 /**
- * Calcula o preço final aplicando o ajuste do método de pagamento.
- * O ajuste incide sobre o subtotalLiquido (produtos − descontos).
- * O frete é somado depois, sem ajuste — ele é custo fixo de logística.
+ * Arredondamento estético: leva o valor ao múltiplo terminado em ",90"
+ * MAIS PRÓXIMO (empate → cima). resultado = round(valor − 0,90) + 0,90.
+ *   179,87 → 179,90 | 179,10 → 178,90 | 188,895 → 188,90
+ */
+function arredondar90(valor) {
+  const base  = valor - 0.90;
+  const arred = Math.floor(base + 0.5 + 1e-9); // half-up estável
+  return Math.round((arred + 0.90) * 100) / 100;
+}
+
+/**
+ * Divide um total em N parcelas com 2 casas; a ÚLTIMA absorve a sobra de
+ * centavos para a soma bater EXATAMENTE. NÃO arredonda em ",90".
+ *   188,90 em 12x → 11×15,74 + 1×15,76
+ * @returns {{ base:number, ultima:number, parcelas:number[] }}
+ */
+function dividirParcelas(total, n) {
+  const nn   = Math.max(1, Math.min(parseInt(n) || 1, 12));
+  const base = Math.floor((total / nn) * 100) / 100;      // trunca 2 casas
+  const ultima = Math.round((total - base * (nn - 1)) * 100) / 100;
+  const parcelas = Array(nn).fill(base);
+  parcelas[nn - 1] = ultima;
+  return { base, ultima, parcelas };
+}
+
+/**
+ * Pipeline de preço (ordem exata do spec):
+ *   baseTotal = (subtotalLiquido) + frete
+ *   PIX = baseTotal ; Cartão/Débito = baseTotal × (1+taxa)
+ *   → arredondamento estético ,90 no total a pagar.
+ * O subtotalLiquido já vem com cupom e gift card descontados.
  *
- * @param {number} subtotalLiquido  Subtotal após cupom e fidelidade
+ * @param {number} subtotalLiquido  Subtotal após cupom e gift card
  * @param {number} freteReal        Valor do frete selecionado
  * @param {'pix'|'debito'|'cartao'} metodo
  * @param {number} [parcelas]       Número de parcelas (cartão, 1..12)
- * @returns {{ valorFinal, diff, ehDesconto, pct, valorPorParcela }}
+ * @returns {{ valorFinal, baseTotal, diff, pct, temAjuste, valorPorParcela }}
  */
 function calcularPreco(subtotalLiquido, freteReal, metodo, parcelas = 1) {
-  const ajuste = AJUSTE_METODO[metodo] ?? 0;
-  const sub    = Math.max(0, subtotalLiquido);
-
-  // Subtotal ajustado arredondado para 2 casas
-  const subAjustado  = Math.round(sub * (1 + ajuste) * 100) / 100;
-  const valorFinal   = subAjustado + freteReal;
-  const diff         = +(subAjustado - sub).toFixed(2); // negativo = desconto
-  const n            = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
+  const ajuste    = AJUSTE_METODO[metodo] ?? 0;
+  const sub       = Math.max(0, subtotalLiquido);
+  const baseTotal = Math.round((sub + freteReal) * 100) / 100;
+  const valorFinal = arredondar90(baseTotal * (1 + ajuste));
+  const diff      = +(valorFinal - baseTotal).toFixed(2); // acréscimo da taxa+arred.
+  const n         = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
 
   return {
     valorFinal,
+    baseTotal,
     diff,
-    ehDesconto:     ajuste < 0,
     pct:            Math.abs(ajuste * 100),
-    valorPorParcela: metodo === 'cartao' ? +(valorFinal / n).toFixed(2) : null,
+    temAjuste:      ajuste > 0,
+    valorPorParcela: metodo === 'cartao' ? dividirParcelas(valorFinal, n).base : null,
   };
 }
 
@@ -204,19 +235,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!descontoLine) return;
 
     const cupomDesc = calcularDesconto(baseTotal);
-    const totalDesc = cupomDesc + descontoFidelidade;
+    const totalDesc = cupomDesc + descontoGiftCard;
 
     if (totalDesc > 0) {
       descontoLine.style.display = '';
       let label = '';
-      const temCupom      = cupomAplicado && cupomAplicado.tipo !== 'frete';
-      const temFidelidade = descontoFidelidade > 0;
-      if (temCupom && temFidelidade) {
-        label = `Descontos (${cupomAplicado.codigo} + Virtù ✦)`;
+      const temCupom     = cupomAplicado && cupomAplicado.tipo !== 'frete';
+      const temGiftCard  = descontoGiftCard > 0;
+      if (temCupom && temGiftCard) {
+        label = `Descontos (${cupomAplicado.codigo} + Gift Card ✦)`;
       } else if (temCupom) {
         label = `Desconto (${cupomAplicado.codigo})`;
-      } else if (temFidelidade) {
-        label = 'Desconto Virtù ✦';
+      } else if (temGiftCard) {
+        label = 'Gift Card Virtù ✦';
       }
       if (descontoLabel) descontoLabel.textContent = label;
       if (descontoEl)    descontoEl.textContent     = `−${formatCurrency(totalDesc)}`;
@@ -230,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     freteValorSelecionado = freteValor;
     const frete   = freteEfetivo();
     const desconto = calcularDesconto(baseTotal);
-    const totalBase = Math.max(0, baseTotal - desconto - descontoFidelidade) + frete;
+    const totalBase = Math.max(0, baseTotal - desconto - descontoGiftCard) + frete;
     const freteEl   = document.getElementById('checkoutFreteLabel');
     const totalEl   = document.getElementById('checkoutTotal');
 
@@ -250,11 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── ATUALIZA LINHA DE AJUSTE E TOTAL FINAL ────────────────
   // Chamada sempre que: frete muda, aba de pagamento muda, nº de parcelas muda.
-  // PIX → sem ajuste (valor cheio); Débito/Crédito → acréscimo laranja (+10%).
+  // PIX → sem ajuste (valor cheio); Débito/Crédito → acréscimo laranja (+5%).
   function atualizarTaxaETotal() {
     const descontoCupom   = calcularDesconto(baseTotal);
     const freteReal       = freteEfetivo();
-    const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoFidelidade);
+    const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoGiftCard);
 
     const totalEl   = document.getElementById('checkoutTotal');
     const taxaLine  = document.getElementById('checkoutTaxaLine');
@@ -273,8 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Linha de ajuste ──────────────────────────────────────
     // PIX não tem ajuste (valor cheio) → oculta a linha.
-    // Débito/Crédito mantêm o acréscimo de +10%.
-    if (preco.diff === 0) {
+    // Débito/Crédito mantêm o acréscimo de +5% (taxa de cartão).
+    if (!preco.temAjuste) {
       if (taxaLine) taxaLine.style.display = 'none';
     } else {
       if (taxaLine) taxaLine.style.display = '';
@@ -305,10 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const compareCardParc = document.getElementById('compareCardParc');
     const compareDebitoEl = document.getElementById('compareDebito');
     if (compareEl && subtotalLiquido > 0) {
-      const baseComFrete  = subtotalLiquido + freteReal;
-      const totalCard     = subtotalLiquido * 1.10 + freteReal;
-      const parcela12     = totalCard / 12;
-      const totalPix      = Math.round(subtotalLiquido * 100) / 100 + freteReal;
+      const totalPix   = calcularPreco(subtotalLiquido, freteReal, 'pix',    1).valorFinal;
+      const totalCard  = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
+      const parcela12  = dividirParcelas(totalCard, 12).base;
       if (comparePixEl)    comparePixEl.textContent    = formatCurrency(totalPix);
       if (compareCardEl)   compareCardEl.textContent   = formatCurrency(totalCard);
       if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(totalCard);
@@ -422,9 +452,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── PARCELAS DINÂMICAS (acréscimo fixo +10% sobre subtotal) ─
-  // O total com acréscimo é sempre subtotalLiquido×1,10 + frete,
-  // independente do número de parcelas — divide-se apenas pelo N.
+  // ── PARCELAS DINÂMICAS (acréscimo fixo +5% sobre o total) ─
+  // O total do cartão é (subtotalLiquido + frete)×1,05 arredondado em ",90";
+  // a parcela é esse total ÷ N (2 casas), com a última absorvendo a sobra.
   function updateInstallments(subtotalLiquido, freteReal) {
     const sel = document.getElementById('installments');
     if (!sel) return;
@@ -432,12 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalComAcrescimo = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
     sel.innerHTML = '';
     for (let i = 1; i <= 12; i++) {
-      const valParcela = +(totalComAcrescimo / i).toFixed(2);
+      const { base } = dividirParcelas(totalComAcrescimo, i);
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = i === 1
-        ? `1x de ${formatCurrency(totalComAcrescimo)} (+10%)`
-        : `${i}x de ${formatCurrency(valParcela)} (+10% = ${formatCurrency(totalComAcrescimo)})`;
+        ? `1x de ${formatCurrency(totalComAcrescimo)} (+5%)`
+        : `${i}x de ${formatCurrency(base)} (+5% = ${formatCurrency(totalComAcrescimo)})`;
       if (i === parcelaAtual) opt.selected = true;
       sel.appendChild(opt);
     }
@@ -453,63 +483,59 @@ document.addEventListener('DOMContentLoaded', () => {
     renderOrderSummary(getCart());
     await initCupom(); // campo de cupom no resumo do pedido
 
-    // ── DESCONTO AUTOMÁTICO: pedidos ≥ R$1.000 ganham R$100 ──────
+    // ── GIFT CARD R$100: elegibilidade validada no backend ──────
+    // Chama gift_card_status (SECURITY DEFINER). Só EXIBE o desconto quando
+    // o servidor confirma elegível E o subtotal atinge o mínimo (R$459).
+    // O processar-pagamento revalida e recomputa — o frontend nunca decide.
     try {
       if (typeof supabaseClient !== 'undefined') {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) currentUserId = user.id;
 
-        // Busca a configuração do desconto (valor_minimo_premio e valor_desconto)
-        const { data: fidCfg } = await supabaseClient
-          .from('config_fidelidade')
-          .select('valor_desconto, valor_minimo_premio, ativo')
-          .eq('id', 1)
-          .single();
+        if (user) {
+          const { data: gc } = await supabaseClient.rpc('gift_card_status', { p_user_id: user.id });
+          giftCardElegivel    = gc?.elegivel === true;
+          giftCardMinSubtotal = Number(gc?.min_subtotal ?? 459);
+          const GC_VALOR      = Number(gc?.valor ?? 100);
 
-        const FID_ATIVO   = fidCfg?.ativo ?? true;
-        const FID_MINIMO  = Number(fidCfg?.valor_minimo_premio ?? 1000);
-        const FID_DESCONTO= Number(fidCfg?.valor_desconto      ?? 100);
-
-        if (FID_ATIVO && baseTotal >= FID_MINIMO) {
-          descontoFidelidade = FID_DESCONTO;
-          updateTotalWithFrete(freteValorSelecionado);
-
-          // Banner informativo (desconto já aplicado)
           const summaryEl = document.getElementById('checkoutOrderSummary') ||
                             document.querySelector('.checkout-order-summary') ||
                             document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
-          if (summaryEl && !document.getElementById('fidelidadeBanner')) {
-            const banner = document.createElement('div');
-            banner.id = 'fidelidadeBanner';
-            banner.style.cssText = `
-              background:#D1FAE5;border:1px solid #6EE7B7;
-              border-radius:4px;padding:10px 14px;font-size:0.82rem;
-              color:#065F46;margin-bottom:12px;line-height:1.5;
-            `;
-            banner.innerHTML = `✦ Pedido acima de R$${FID_MINIMO.toLocaleString('pt-BR')} — <strong>R$${FID_DESCONTO.toFixed(0)} de desconto Virtù aplicado!</strong>`;
-            summaryEl.insertAdjacentElement('beforebegin', banner);
-          }
-        } else if (FID_ATIVO && baseTotal < FID_MINIMO) {
-          // Mostra quanto falta para ganhar o desconto
-          const summaryEl = document.getElementById('checkoutOrderSummary') ||
-                            document.querySelector('.checkout-order-summary') ||
-                            document.getElementById('checkoutItems')?.closest('section, .checkout-section, aside');
-          if (summaryEl && !document.getElementById('fidelidadeBanner')) {
-            const falta = (FID_MINIMO - baseTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-            const banner = document.createElement('div');
-            banner.id = 'fidelidadeBanner';
-            banner.style.cssText = `
-              background:#F5F2EE;border:1px solid #E2DDD7;
-              border-radius:4px;padding:10px 14px;font-size:0.82rem;
-              color:#6E6660;margin-bottom:12px;line-height:1.5;
-            `;
-            banner.innerHTML = `✦ Adicione mais <strong>R$&nbsp;${falta}</strong> em produtos e ganhe <strong>R$${FID_DESCONTO.toFixed(0)} de desconto automático</strong>.`;
-            summaryEl.insertAdjacentElement('beforebegin', banner);
+
+          if (giftCardElegivel && baseTotal >= giftCardMinSubtotal) {
+            descontoGiftCard = GC_VALOR;
+            updateTotalWithFrete(freteValorSelecionado);
+
+            if (summaryEl && !document.getElementById('giftCardBanner')) {
+              const banner = document.createElement('div');
+              banner.id = 'giftCardBanner';
+              banner.style.cssText = `
+                background:#D1FAE5;border:1px solid #6EE7B7;
+                border-radius:4px;padding:10px 14px;font-size:0.82rem;
+                color:#065F46;margin-bottom:12px;line-height:1.5;
+              `;
+              banner.innerHTML = `✦ Gift Card Virtù — <strong>R$${GC_VALOR.toFixed(0)} de desconto aplicado!</strong>`;
+              summaryEl.insertAdjacentElement('beforebegin', banner);
+            }
+          } else if (giftCardElegivel && baseTotal < giftCardMinSubtotal) {
+            // Elegível, mas ainda não atingiu o mínimo — mostra o incentivo.
+            if (summaryEl && !document.getElementById('giftCardBanner')) {
+              const falta = (giftCardMinSubtotal - baseTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+              const banner = document.createElement('div');
+              banner.id = 'giftCardBanner';
+              banner.style.cssText = `
+                background:#F5F2EE;border:1px solid #E2DDD7;
+                border-radius:4px;padding:10px 14px;font-size:0.82rem;
+                color:#6E6660;margin-bottom:12px;line-height:1.5;
+              `;
+              banner.innerHTML = `✦ Você tem um <strong>Gift Card de R$${GC_VALOR.toFixed(0)}</strong> — adicione mais <strong>R$&nbsp;${falta}</strong> para usá-lo.`;
+              summaryEl.insertAdjacentElement('beforebegin', banner);
+            }
           }
         }
       }
     } catch (e) {
-      window.VirtuLog?.capturar('desconto_virtù', e);
+      window.VirtuLog?.capturar('gift_card', e);
     }
 
     // Auto-aplica cupom validado no carrinho
@@ -814,8 +840,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── LISTENER: MUDANÇA DE PARCELAS ────────────────────────
-  // Quando a cliente troca o número de parcelas, recalcula a taxa
-  // (cada opção tem taxa diferente: 1x = 4,99%, 12x = 16,97% etc.)
+  // Quando a cliente troca o número de parcelas, recalcula a exibição
+  // (o total do cartão é fixo em +5%; muda só o valor de cada parcela).
   document.getElementById('installments')?.addEventListener('change', () => {
     if (metodoAtivo === 'cartao') atualizarTaxaETotal();
   });
@@ -991,8 +1017,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const freteReal       = freteEfetivo();
 
     // ── Calcula total final com ajuste por método ─────────
-    // PIX sem ajuste (valor cheio); Débito/Crédito +10% sobre o subtotalLiquido; frete sem ajuste.
-    const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoFidelidade);
+    // PIX sem ajuste; Débito/Crédito +5% sobre o total (subtotal − desconto + frete), arredondado ,90.
+    const subtotalLiquido = Math.max(0, baseTotal - descontoCupom - descontoGiftCard);
     const isDebito        = activeTab === 'debito';
     const metodoRepasse   = isPix ? 'pix' : isDebito ? 'debito' : 'cartao';
     const parcelasNum     = (isPix || isDebito) ? 1 : parseInt(document.getElementById('installments')?.value || '1', 10);
@@ -1072,7 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cliente,
       endereco,
       user_id:             currentUserId || null,
-      fidelidade_desconto: descontoFidelidade > 0,
+      gift_card_solicitado: descontoGiftCard > 0,
       idempotency_key:     idempotencyKey,
     };
 

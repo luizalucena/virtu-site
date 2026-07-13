@@ -7,7 +7,7 @@
 const CART_KEY    = 'virtu_cart';
 // Cupons validados via Supabase (não exponha códigos no frontend)
 
-let freeShippingThreshold = 699;  // default alinhado com banco (sobrescrito pelo Supabase — R$699 configurado pelo admin)
+let freeShippingThreshold = 799;  // frete grátis Brasil ≥ R$799 (regra fixa; ver processar-pagamento/calcular-frete)
 let discount              = 0;
 let appliedCoupon         = null;
 let appliedPct            = 0;    // % do cupom ativo (para recalcular ao remover item)
@@ -28,7 +28,7 @@ let giftWrapPrice         = 15;   // sobrescrito pelo Supabase
     if (!cfg) return;
 
     if (cfg.frete_gratis_acima != null) {
-      freeShippingThreshold = cfg.frete_gratis_acima != null ? parseFloat(cfg.frete_gratis_acima) : 699;
+      freeShippingThreshold = cfg.frete_gratis_acima != null ? parseFloat(cfg.frete_gratis_acima) : 799;
     }
     if (cfg.preco_embalagem_presente != null) {
       giftWrapPrice = parseFloat(cfg.preco_embalagem_presente) || 15;
@@ -278,7 +278,14 @@ function updateSummary() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('summarySubtotal',    formatCurrency(subtotal));
   set('summaryTotal',       formatCurrency(total));
-  const installmentUp = Math.ceil((total * 1.10) / 12 * 100) / 100;
+  // Prévia do parcelado no cartão: +5% (taxa) arredondado ,90, ÷12.
+  // Indicativo (sem frete — o frete é calculado no checkout).
+  const arredondar90 = v => {
+    const arred = Math.floor((v - 0.90) + 0.5 + 1e-9);
+    return Math.round((arred + 0.90) * 100) / 100;
+  };
+  const cardTotalCart = arredondar90(total * 1.05);
+  const installmentUp = Math.floor((cardTotalCart / 12) * 100) / 100;
   set('summaryInstallments', total > 0 ? `ou 12x de ${formatCurrency(installmentUp)} no cartão` : '');
 
   const discLine = document.getElementById('discountLine');

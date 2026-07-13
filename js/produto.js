@@ -66,6 +66,11 @@ async function carregarProduto(produtoId) {
 
     const fmt     = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const fmtParc = v => fmt(Math.ceil(v * 100) / 100); // arredonda parcela para cima
+    // Arredondamento estético ,90 (espelha checkout.js/processar-pagamento)
+    const arredondar90 = v => {
+      const arred = Math.floor((v - 0.90) + 0.5 + 1e-9);
+      return Math.round((arred + 0.90) * 100) / 100;
+    };
     const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
     const preco = p.preco_desconto ?? p.preco_original;
 
@@ -200,16 +205,17 @@ async function carregarProduto(produtoId) {
       precoOrigEl.style.display = 'none';
     }
 
-    // Parcelamento — usa preço do cartão (+10%) para evitar contradição com o strip
-    const parcela = (preco * 1.10) / 12;
+    // Parcelamento — usa preço do cartão (+5%, arredondado ,90) p/ bater com o strip
+    const cardPreco = arredondar90(preco * 1.05);
+    const parcela = cardPreco / 12;
     const parcelaEl = document.querySelector('.produto-parcelamento');
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} no cartão`;
 
     // ── Strip de formas de pagamento e valores ─────────────
-    // PIX = valor cheio (sem ajuste) | Crédito/Débito = +10% no checkout
+    // PIX = valor cheio (sem ajuste) | Crédito/Débito = +5% (taxa) no checkout
     const payStrip = document.getElementById('produtoPaymentStrip');
     if (payStrip && preco > 0) {
-      const cardPrice = preco * 1.10;
+      const cardPrice = cardPreco;
       const parcela12 = cardPrice / 12;
       const fmtV = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       payStrip.innerHTML = `

@@ -2,12 +2,14 @@
  * VIRTÙ — Edge Function: calcular-frete
  * Calcula as opções de entrega com base no CEP informado.
  *
- * Regiões atendidas:
+ * Regiões atendidas (todo o Brasil):
  *   Grande JP (Frete Grátis) — João Pessoa, Cabedelo, Santa Rita, Bayeux, Conde
  *   Nordeste (R$ 18,00)      — AL, BA, CE, MA, PB, PE, PI, RN, SE
- *   Fora do Nordeste         — Não atendido por enquanto
+ *   Norte / Centro-Oeste (R$ 19,90)
+ *   Sul / Sudeste (R$ 29,90)
+ *   Frete GRÁTIS em todo o Brasil quando o subtotal ≥ R$ 799,00.
  *
- * Input:  POST { cep: string, valor: number }
+ * Input:  POST { cep: string, valor: number }   (valor = subtotal dos produtos)
  * Output: { opcoes: Opcao[] }  |  { error: string }
  */
 
@@ -63,6 +65,24 @@ const NORDESTE_RANGES: { min: number; max: number }[] = [
   { min: 65000000, max: 65999999 }, // MA
 ];
 
+/** Norte + Centro-Oeste — CEP 66.000.000 a 79.999.999 (PA,AP,AM,RR,AC,RO,TO,DF,GO,MT,MS) */
+const NORTE_CO_RANGES: { min: number; max: number }[] = [
+  { min: 66000000, max: 79999999 },
+];
+
+/** Sul + Sudeste — Sudeste (01.000.000–39.999.999) e Sul (80.000.000–99.999.999) */
+const SUL_SUDESTE_RANGES: { min: number; max: number }[] = [
+  { min: 1000000,  max: 39999999 }, // SP, RJ, ES, MG
+  { min: 80000000, max: 99999999 }, // PR, SC, RS
+];
+
+/** Frete grátis em todo o Brasil quando o subtotal dos produtos atinge: */
+const FRETE_GRATIS_ACIMA = 799.00;
+
+function inRanges(cep: number, ranges: { min: number; max: number }[]): boolean {
+  return ranges.some(r => cep >= r.min && cep <= r.max);
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmtBRL(valor: number): string {
@@ -105,10 +125,12 @@ Deno.serve(async (req) => {
       return json({ error: 'CEP inválido. Informe os 8 dígitos.' }, 400);
     }
 
-    const cepNum = parseInt(cepRaw, 10);
+    const cepNum   = parseInt(cepRaw, 10);
+    const subtotal = Number(body.valor ?? 0);
+    const freteGratisBrasil = subtotal >= FRETE_GRATIS_ACIMA;
     const { match: grandeJP, cidade } = isGrandeJP(cepNum);
 
-    // ── Grande JP — Frete Grátis ──────────────────────────────────────────────
+    // ── Grande JP — Frete Grátis (sempre) ─────────────────────────────────────
     if (grandeJP) {
       const opcoes: Opcao[] = [];
 
@@ -139,27 +161,47 @@ Deno.serve(async (req) => {
       return json({ opcoes });
     }
 
-    // ── Nordeste — Frete Padrão R$ 18,00 ─────────────────────────────────────
+    // ── Demais regiões do Brasil — valor por região ──────────────────────────
+    let precoRegional: number | null = null;
+    let prazo = '';
     if (isNordeste(cepNum)) {
-      const opcoes: Opcao[] = [
-        {
-          id:             'nordeste',
-          nome:           'Entrega Padrão',
-          descricao:      'Transportadora parceira',
-          prazo:          '7-14 dias úteis',
-          preco:          18.00,
-          precoFormatado: 'R$ 18,00',
-          precoOriginal:  null,
-        },
-      ];
-      return json({ opcoes });
+      precoRegional = 18.00;  prazo = '7-14 dias úteis';
+    } else if (inRanges(cepNum, NORTE_CO_RANGES)) {
+      precoRegional = 19.90;  prazo = '10-18 dias úteis';
+    } else if (inRanges(cepNum, SUL_SUDESTE_RANGES)) {
+      precoRegional = 29.90;  prazo = '7-14 dias úteis';
     }
 
-    // ── Fora do Nordeste — não atendido ───────────────────────────────────────
-    return json(
-      { error: 'Ainda não realizamos entregas fora do Nordeste. Em breve expandiremos nossa área de cobertura!' },
-      200, // 200 para o front exibir a mensagem amigável
-    );
+    if (precoRegional === null) {
+      return json({ error: 'CEP inválido. Verifique e tente novamente.' }, 200);
+    }
+
+    // Frete grátis em todo o Brasil acima de R$799 → mostra o valor original riscado.
+    if (freteGratisBrasil) {
+      return json({
+        opcoes: [{
+          id:             'gratis-brasil',
+          nome:           'Entrega Grátis',
+          descricao:      '✦ Frete grátis acima de R$799',
+          prazo,
+          preco:          0,
+          precoFormatado: 'Grátis',
+          precoOriginal:  fmtBRL(precoRegional),
+        }],
+      });
+    }
+
+    return json({
+      opcoes: [{
+        id:             'padrao',
+        nome:           'Entrega Padrão',
+        descricao:      'Transportadora parceira',
+        prazo,
+        preco:          precoRegional,
+        precoFormatado: fmtBRL(precoRegional),
+        precoOriginal:  null,
+      }],
+    });
 
   } catch (err) {
     console.error('[calcular-frete]', err);

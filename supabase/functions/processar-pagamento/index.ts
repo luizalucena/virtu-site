@@ -6,7 +6,8 @@
  *   - Cartão: dados tokenizados via ASAAS (PCI-DSS) — nosso servidor repassa
  *             dados criptografados diretamente ao ASAAS, nunca os armazena
  *   - Preços: recalculados no servidor a partir do banco (anti-tampering)
- *   - Fidelidade: desconto de R$150 validado server-side
+ *   - Taxa de cartão (5%) e arredondamento ,90 aplicados server-side
+ *   - Gift Card R$100: elegibilidade validada server-side (gift_card_status)
  *
  * Variáveis de ambiente necessárias (Supabase Secrets):
  *   ASAAS_API_KEY        — access_token do ASAAS (nunca vai ao frontend)
@@ -37,14 +38,30 @@ const securityHeaders = {
 };
 
 // ── AJUSTE POR MÉTODO — espelho de AJUSTE_METODO no frontend ──
-// PIX: sem ajuste (valor cheio); Débito/Crédito: +10% (acréscimo).
-// O frete NÃO sofre ajuste — é custo fixo de logística.
-// Edite aqui E no checkout.js de forma sincronizada.
+// PIX: sem ajuste (valor cheio); Débito/Crédito: +5% (taxa de cartão).
+// A taxa incide sobre o TOTAL cobrado (subtotal − desconto + frete).
+// Edite aqui E no checkout.js/produto.js/carrinho.js de forma sincronizada.
 const AJUSTE_METODO: Record<string, number> = {
   pix:     0,     // sem ajuste — PIX paga o valor cheio
-  debito:  0.10,  // 10% de ACRÉSCIMO
-  cartao:  0.10,  // 10% de ACRÉSCIMO
+  debito:  0.05,  // 5% de ACRÉSCIMO (taxa de cartão)
+  cartao:  0.05,  // 5% de ACRÉSCIMO (taxa de cartão)
 };
+
+// Frete grátis para todo o Brasil quando o subtotal dos PRODUTOS atinge:
+const FRETE_GRATIS_ACIMA = 799.00;
+
+/**
+ * Arredondamento estético: leva o valor ao múltiplo terminado em ",90"
+ * MAIS PRÓXIMO. Empate arredonda para cima.
+ *   resultado = round(valor − 0,90) + 0,90
+ *   179,87 → 179,90 | 179,10 → 178,90 | 188,895 → 188,90
+ * (epsilon anti-ponto-flutuante no meio do arredondamento)
+ */
+function arredondar90(valor: number): number {
+  const base  = valor - 0.90;
+  const arred = Math.floor(base + 0.5 + 1e-9); // half-up estável
+  return Math.round((arred + 0.90) * 100) / 100;
+}
 
 // ── Helpers ──────────────────────────────────────────────────
 function sanitize(val: unknown, maxLen = 255): string {
@@ -54,28 +71,50 @@ function sanitize(val: unknown, maxLen = 255): string {
 /**
  * Fretes válidos para um CEP (anti-tampering do valor de frete).
  * Espelha supabase/functions/calcular-frete — MANTER SINCRONIZADO:
- *   Grande JP → grátis (+ motoboy R$15 só João Pessoa) · Nordeste → R$18
- *   Fora do Nordeste → não atendido (lista vazia).
+ *   Grande JP → grátis (+ motoboy R$15 só João Pessoa)
+ *   Nordeste (fora Grande JP) → R$18
+ *   Sul / Sudeste            → R$29,90
+ *   Norte / Centro-Oeste     → R$19,90
+ *   Frete grátis em TODO o Brasil quando subtotal ≥ R$799 (além de 0,
+ *   o valor regional continua válido caso o cliente já tivesse selecionado).
+ *
+ * @param cepRaw   CEP do cliente
+ * @param subtotal Subtotal dos PRODUTOS (base do frete grátis ≥ 799)
  */
-function fretesPermitidos(cepRaw: unknown): number[] {
+function fretesPermitidos(cepRaw: unknown, subtotal = 0): number[] {
   const digits = String(cepRaw ?? '').replace(/\D/g, '');
   if (digits.length !== 8) return [];
   const cep = parseInt(digits, 10);
+
   const jp = cep >= 58000000 && cep <= 58099999;                 // João Pessoa
   const grandeJP = jp
     || (cep >= 58102000 && cep <= 58109999)                       // Cabedelo
     || (cep >= 58300000 && cep <= 58339999)                       // Santa Rita
     || (cep >= 58400000 && cep <= 58419999)                       // Bayeux
     || (cep >= 58065000 && cep <= 58066999);                      // Conde
+
+  const freteGratisBrasil = Number(subtotal) >= FRETE_GRATIS_ACIMA;
+
+  // Grande JP: sempre grátis (+ motoboy só em JP).
   if (grandeJP) return jp ? [0, 15] : [0];
+
+  // Determina o valor regional base.
+  let regional: number | null = null;
   const nordeste =
-       (cep >= 40000000 && cep <= 48999999) || (cep >= 49000000 && cep <= 49999999)
-    || (cep >= 50000000 && cep <= 56999999) || (cep >= 57000000 && cep <= 57999999)
-    || (cep >= 58000000 && cep <= 58999999) || (cep >= 59000000 && cep <= 59999999)
-    || (cep >= 60000000 && cep <= 63999999) || (cep >= 64000000 && cep <= 64999999)
-    || (cep >= 65000000 && cep <= 65999999);
-  if (nordeste) return [18];
-  return [];
+       (cep >= 40000000 && cep <= 65999999);                      // NE (BA→MA)
+  const norteCentroOeste = (cep >= 66000000 && cep <= 79999999);  // Norte + C-Oeste
+  const sulSudeste =
+       (cep >= 1000000  && cep <= 39999999)                       // Sudeste (SP/RJ/ES/MG)
+    || (cep >= 80000000 && cep <= 99999999);                      // Sul (PR/SC/RS)
+
+  if (nordeste)              regional = 18.00;
+  else if (norteCentroOeste) regional = 19.90;
+  else if (sulSudeste)       regional = 29.90;
+
+  if (regional === null) return [];               // CEP inexistente/ inválido
+
+  // Acima de R$799 → frete grátis (0) também é válido para qualquer região.
+  return freteGratisBrasil ? [0, regional] : [regional];
 }
 
 function json(data: unknown, status = 200) {
@@ -203,12 +242,17 @@ Deno.serve(async (req) => {
       parcelas,           // number — 1..12
       // cupom
       cupom_codigo,
-      // fidelidade
+      // gift card R$100 (clientes fiéis) — o frontend só SOLICITA; a
+      // elegibilidade é decidida no servidor. `fidelidade_desconto` é
+      // aceito por retrocompatibilidade com clientes ainda em cache.
       user_id,
+      gift_card_solicitado: gift_card_solicitado_raw,
       fidelidade_desconto,
       // idempotência (anti cobrança dupla) — gerada no checkout.js
       idempotency_key,
     } = body;
+
+    const gift_card_solicitado = gift_card_solicitado_raw ?? fidelidade_desconto ?? false;
 
     // Chave de idempotência: string curta, opcional (retrocompatível).
     const idemKey = idempotency_key
@@ -302,8 +346,9 @@ Deno.serve(async (req) => {
     const freteNum = Number(frete ?? 0);
 
     // ── Valida o frete server-side (anti-tampering) ──────────
-    // O cliente escolhe a opção, mas o PREÇO é validado contra o CEP.
-    const fretesOk = fretesPermitidos(endereco?.cep);
+    // O cliente escolhe a opção, mas o PREÇO é validado contra o CEP e o
+    // subtotal (frete grátis ≥ R$799). Base do frete grátis = serverSubtotal.
+    const fretesOk = fretesPermitidos(endereco?.cep, serverSubtotal);
     if (!fretesOk.some((p) => Math.abs(p - freteNum) <= 0.01)) {
       console.warn(`[Frete] inválido: cep=${endereco?.cep} frete=${freteNum} permitidos=[${fretesOk}]`);
       return json({ erro: 'Opção de frete inválida para o endereço informado.' }, 400);
@@ -349,37 +394,43 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Desconto de Fidelidade (validação server-side) ───────
-    // R$150 com pedido mínimo de R$499 (serverSubtotal, sem frete)
-    let descontoFidelidade = 0;
-    if (fidelidade_desconto && confirmedUserId) {
-      const { data: perfil } = await supabase
-        .from('clientes_perfil')
-        .select('compras_pagas')
-        .eq('id', confirmedUserId)
-        .maybeSingle();
-
-      const comprasAtuais = perfil?.compras_pagas ?? 0;
-      if ((comprasAtuais + 1) % 10 === 0) {
-        if (serverSubtotal >= 499) {
-          descontoFidelidade = 150;
-          console.log(`[Fidelidade] Validada: ${comprasAtuais + 1}ª compra, subtotal=R$${serverSubtotal} → R$150`);
+    // ── Gift Card R$100 (validação server-side) ──────────────
+    // Elegível: cliente LOGADO com ≥6 compras válidas (1/dia) e gift card
+    // ainda não consumido. Benefício: −R$100 se subtotal ≥ R$459.
+    // A elegibilidade é decidida por gift_card_status (SECURITY DEFINER),
+    // NUNCA pelo frontend. Recomputamos tudo do zero aqui.
+    let descontoGiftCard = 0;
+    let giftCardAplicado = false;
+    if (gift_card_solicitado && confirmedUserId) {
+      try {
+        const { data: gc, error: gcErr } = await supabase
+          .rpc('gift_card_status', { p_user_id: confirmedUserId });
+        if (gcErr) {
+          console.error('[GiftCard] Erro RPC:', gcErr.message);
+        } else if (gc?.elegivel === true && serverSubtotal >= Number(gc.min_subtotal ?? 459)) {
+          descontoGiftCard = Number(gc.valor ?? 100);
+          giftCardAplicado = true;
+          console.log(`[GiftCard] Aplicado: user=${confirmedUserId} subtotal=R$${serverSubtotal} → −R$${descontoGiftCard}`);
         } else {
-          console.warn(`[Fidelidade] Mínimo não atingido: subtotal=R$${serverSubtotal} < R$499 — desconto não aplicado`);
+          console.warn(`[GiftCard] Não aplicado: elegivel=${gc?.elegivel} subtotal=R$${serverSubtotal}`);
         }
-      } else {
-        console.warn(`[Fidelidade] Rejeitada: comprasAtuais=${comprasAtuais}`);
+      } catch (gcEx) {
+        console.error('[GiftCard] Exceção:', gcEx);
       }
     }
 
-    // ── Calcula preço final com ajuste por método ───────────
-    // PIX sem ajuste (valor cheio); Débito/Crédito +10% sobre o subtotalLiquido.
-    // O frete não sofre ajuste — é custo fixo de logística.
-    const parcelasNum     = Math.max(1, Math.min(Number(parcelas) || 1, 12));
-    const ajuste          = AJUSTE_METODO[tipo] ?? 0;
-    const subtotalLiquido = Math.max(0, serverSubtotal - descontoNum - descontoFidelidade);
-    const subAjustado     = Math.round(subtotalLiquido * (1 + ajuste) * 100) / 100;
-    const serverTotal     = Math.max(0, subAjustado) + freteNum;
+    // ── Pipeline de cálculo (ordem exata) ────────────────────
+    //   subtotal → frete → desconto (cupom + gift card) →
+    //   baseTotal = (subtotal − desconto) + frete →
+    //   PIX = baseTotal ; Cartão/Débito = baseTotal × 1,05 (taxa sobre o
+    //   TOTAL, incluindo frete) → arredondamento estético ,90.
+    const parcelasNum   = Math.max(1, Math.min(Number(parcelas) || 1, 12));
+    const ajuste        = AJUSTE_METODO[tipo] ?? 0;
+    const descontoTotal = descontoNum + descontoGiftCard;
+    const subMenosDesc  = Math.max(0, serverSubtotal - descontoTotal);
+    const baseTotal     = Math.round((subMenosDesc + freteNum) * 100) / 100;
+    const totalBruto    = baseTotal * (1 + ajuste);
+    const serverTotal   = arredondar90(totalBruto);
 
     if (serverTotal <= 0) {
       return json({ erro: 'Valor do pedido inválido.' }, 400);
@@ -424,12 +475,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Cross-check ±2 centavos (tolerância para arredondamento client-side)
+    // Cross-check ±2 centavos (tolerância para arredondamento client-side).
+    // NÃO é bloqueante: o servidor SEMPRE cobra serverTotal (recomputado do
+    // zero). Divergência só é logada para auditoria de tentativa de fraude.
     const totalCliente = Number(body.total ?? 0);
     if (totalCliente > 0 && Math.abs(totalCliente - serverTotal) > 0.02) {
       console.warn(
         `[processar-pagamento] Divergência: cliente=${totalCliente} servidor=${serverTotal} ` +
-        `(subtotalLiq=${subtotalLiquido}, ajuste=${(ajuste * 100).toFixed(0)}%, frete=${freteNum})`,
+        `(baseTotal=${baseTotal}, ajuste=${(ajuste * 100).toFixed(0)}%, frete=${freteNum}, ` +
+        `descCupom=${descontoNum}, giftCard=${descontoGiftCard})`,
       );
     }
 
@@ -503,6 +557,15 @@ Deno.serve(async (req) => {
       externalReference: externalRef,
     };
 
+    // Crédito parcelado: informa o TOTAL e o nº de parcelas; o ASAAS divide
+    // e ajusta a última parcela para bater exatamente com serverTotal.
+    // (usa totalValue em vez de value+installmentValue para evitar sobra.)
+    if (tipo === 'cartao' && parcelasNum > 1) {
+      delete chargeBody.value;
+      chargeBody.installmentCount = parcelasNum;
+      chargeBody.totalValue       = serverTotal;
+    }
+
     // Dados de cartão (ASAAS cuida da tokenização PCI v3)
     if (tipo === 'cartao' || tipo === 'debito') {
       if (!card_number || !card_holder_name || !card_expiry_month || !card_expiry_year || !card_cvv) {
@@ -523,10 +586,7 @@ Deno.serve(async (req) => {
         postalCode: endereco?.cep ? String(endereco.cep).replace(/\D/g, '') : undefined,
         addressNumber: endereco?.numero ? String(endereco.numero) : undefined,
       };
-      if (tipo === 'cartao' && parcelasNum > 1) {
-        chargeBody.installmentCount = parcelasNum;
-        chargeBody.installmentValue = +(serverTotal / parcelasNum).toFixed(2);
-      }
+      // (installmentCount/totalValue já definidos acima para crédito parcelado)
       chargeBody.remoteIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0';
     }
 
@@ -607,8 +667,9 @@ Deno.serve(async (req) => {
         payment_status:     asaasStatus,
         subtotal:           serverSubtotal,
         frete:              freteNum,
-        desconto:           descontoNum + descontoFidelidade,
+        desconto:           descontoNum + descontoGiftCard,
         total:              serverTotal,
+        gift_card_aplicado: giftCardAplicado,
         user_id:            confirmedUserId || null,
         cep:                endereco?.cep,
         rua:                endereco?.rua,
@@ -647,36 +708,12 @@ Deno.serve(async (req) => {
     // NÃO chamar comprar_variacao aqui para evitar duplo débito.
     console.log('[processar-pagamento] Estoque: delegado ao trigger DB (trg_pedido_pago_baixa_estoque)');
 
-    // ── Fidelidade: incrementa contador se pagamento aprovado ──
-    // PIX pendente → incrementado no asaas-webhook quando RECEIVED
-    if (confirmedUserId && statusPedido === 'pago') {
-      supabase.rpc('registrar_compra_fidelidade', { p_user_id: confirmedUserId, p_total: serverSubtotal })
-        .then(async ({ data: fidData, error: fidErr }) => {
-          if (fidErr) {
-            console.error('[Fidelidade] Erro:', fidErr.message);
-            return;
-          }
-          console.log('[Fidelidade] Compra registrada:', fidData?.compras_pagas);
-
-          if (fidData?.desconto_100 === true && fidData?.codigo) {
-            const SB_URL  = Deno.env.get('SUPABASE_URL');
-            const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
-            if (SB_URL && ANON_KEY) {
-              fetch(`${SB_URL}/functions/v1/notificar-premio-fidelidade`, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
-                body: JSON.stringify({
-                  user_id:  confirmedUserId,
-                  codigo:   fidData.codigo,
-                  validade: fidData.validade,
-                  nome:     cliente?.nome  || null,
-                  email:    cliente?.email || null,
-                }),
-              }).catch(e => console.error('[Premio dispatch]', e));
-            }
-          }
-        });
-    }
+    // ── Gift Card: contagem de compras válidas é DERIVADA de `pedidos` ──
+    // (gift_card_status conta pedidos pagos distintos por dia). Não há
+    // contador a incrementar aqui — o antigo registrar_compra_fidelidade
+    // (prêmio a cada 10 compras) foi aposentado. O consumo do gift card é
+    // marcado por `gift_card_aplicado` no próprio pedido (revertido sozinho
+    // se o pedido for cancelado/estornado).
 
     // ── Notificações por e-mail (Resend via send-order-email) ──
     try {
@@ -694,7 +731,7 @@ Deno.serve(async (req) => {
             total:            serverTotal,
             subtotal:         serverSubtotal,
             frete:            freteNum,
-            desconto:         descontoNum + descontoFidelidade,
+            desconto:         descontoNum + descontoGiftCard,
             metodo_pagamento: tipo,
             parcelas,
             status:           statusPedido,
