@@ -87,21 +87,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   await verificarAuth();
 });
 
-// ── AUTH: VERIFICAR SESSÃO ──────────────────
+// ── AUTH: VERIFICAR SESSÃO E PAPEL ──────────
 async function verificarAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
-
-  if (session) {
-    mostrarAdmin();
-  } else {
-    mostrarLogin();
-  }
+  await roteiaPorPapel(session);
 
   // Escuta mudanças de estado de autenticação
-  supabaseClient.auth.onAuthStateChange((_event, session) => {
-    if (session) mostrarAdmin();
-    else mostrarLogin();
-  });
+  supabaseClient.auth.onAuthStateChange((_event, s) => { roteiaPorPapel(s); });
+}
+
+// Só o admin da loja (is_virtu_admin no banco) acessa o painel. O backend
+// (RLS + guard nas RPCs) já bloqueia os dados; esta é a barreira no frontend.
+async function ehAdmin() {
+  try {
+    const { data, error } = await supabaseClient.rpc('is_virtu_admin');
+    return !error && data === true;
+  } catch { return false; }
+}
+
+async function roteiaPorPapel(session) {
+  if (session && await ehAdmin()) {
+    mostrarAdmin();
+    return;
+  }
+  if (session) {
+    // Logada, mas não é admin → desloga, mostra login e avisa.
+    mostrarLogin();
+    const errEl = document.getElementById('loginError');
+    if (errEl) errEl.textContent = 'Acesso restrito ao administrador da loja.';
+    const btn = document.getElementById('loginBtn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Entrar'; }
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  mostrarLogin();
 }
 
 function mostrarLogin() {
@@ -150,13 +169,16 @@ function bindLoginEvents() {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
     if (error) {
-      errorEl.textContent = error.message.includes('Invalid login')
-        ? 'E-mail ou senha incorretos.'
-        : error.message;
+      const m = (error.message || '').toLowerCase();
+      errorEl.textContent =
+        m.includes('invalid login')      ? 'E-mail ou senha incorretos.' :
+        m.includes('email not confirmed') ? 'Confirme seu e-mail antes de entrar.' :
+        (m.includes('rate limit') || m.includes('for security')) ? 'Muitas tentativas. Aguarde e tente novamente.' :
+        'Não foi possível entrar. Tente novamente.';
       loginBtn.disabled = false;
       loginBtn.textContent = 'Entrar';
     }
-    // Se sucesso, onAuthStateChange cuida do resto automaticamente
+    // Se sucesso, onAuthStateChange (roteiaPorPapel) valida o papel de admin.
   });
 }
 
