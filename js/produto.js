@@ -429,16 +429,18 @@ async function renderPecasRelacionadas(currentId, categoria) {
         ? `<div class="product-card__placeholder" style="background:url('${p.imagem_url}') center/cover no-repeat;width:100%;height:100%;"></div>`
         : `<div class="product-card__placeholder is-ph${phVariant}"></div>`;
       return `
-        <article class="product-card">
-          <div class="product-card__image-wrap">
-            ${phHtml}
-            ${badge}
-            <button class="product-card__wishlist" data-wishlist-id="${p.id}" aria-label="Adicionar aos favoritos" aria-pressed="false">${heartSVG}</button>
-            <div class="product-card__quick-add"><button class="product-card__quick-btn">+ Adicionar ao carrinho</button></div>
-          </div>
+        <article class="product-card" data-id="${p.id}">
+          <a href="produto.html?id=${p.id}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
+            <div class="product-card__image-wrap">
+              ${phHtml}
+              ${badge}
+              <button class="product-card__wishlist" data-wishlist-id="${p.id}" aria-label="Adicionar aos favoritos" aria-pressed="false">${heartSVG}</button>
+              <div class="product-card__quick-add"><button class="product-card__quick-btn" data-id="${p.id}">+ Adicionar ao carrinho</button></div>
+            </div>
+          </a>
           <div class="product-card__info">
-            <p class="product-card__category">${cat}</p>
-            <h3 class="product-card__name"><a href="produto.html?id=${p.id}">${p.nome}</a></h3>
+            <p class="product-card__category">${escHtml(cat)}</p>
+            <h3 class="product-card__name"><a href="produto.html?id=${p.id}">${escHtml(p.nome)}</a></h3>
             <div class="product-card__price"><span class="product-card__price-current">${fmt(preco)}</span></div>
           </div>
         </article>`;
