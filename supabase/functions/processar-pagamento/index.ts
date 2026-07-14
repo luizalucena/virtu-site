@@ -396,7 +396,7 @@ Deno.serve(async (req) => {
 
     // ── Gift Card R$100 (validação server-side) ──────────────
     // Elegível: cliente LOGADO com ≥6 compras válidas (1/dia) e gift card
-    // ainda não consumido. Benefício: −R$100 se subtotal ≥ R$459.
+    // ainda não consumido. Benefício: −R$100 se subtotal ≥ R$499.
     // A elegibilidade é decidida por gift_card_status (SECURITY DEFINER),
     // NUNCA pelo frontend. Recomputamos tudo do zero aqui.
     let descontoGiftCard = 0;
@@ -407,7 +407,7 @@ Deno.serve(async (req) => {
           .rpc('gift_card_status', { p_user_id: confirmedUserId });
         if (gcErr) {
           console.error('[GiftCard] Erro RPC:', gcErr.message);
-        } else if (gc?.elegivel === true && serverSubtotal >= Number(gc.min_subtotal ?? 459)) {
+        } else if (gc?.elegivel === true && serverSubtotal >= Number(gc.min_subtotal ?? 499)) {
           descontoGiftCard = Number(gc.valor ?? 100);
           giftCardAplicado = true;
           console.log(`[GiftCard] Aplicado: user=${confirmedUserId} subtotal=R$${serverSubtotal} → −R$${descontoGiftCard}`);

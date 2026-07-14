@@ -39,10 +39,10 @@ let cupomAplicado = null; // { codigo, tipo, valor } ou null
 
 // ── GIFT CARD R$100 (clientes fiéis) ────────────────────────────
 // Elegibilidade decidida no BACKEND (gift_card_status). O frontend só
-// exibe o desconto quando o servidor confirma elegível + subtotal ≥ R$459.
-let descontoGiftCard   = 0;    // R$100 quando elegível e subtotal ≥ R$459
+// exibe o desconto quando o servidor confirma elegível + subtotal ≥ R$499.
+let descontoGiftCard   = 0;    // R$100 quando elegível e subtotal ≥ R$499
 let giftCardElegivel   = false;// resultado de gift_card_status
-let giftCardMinSubtotal= 459;  // mínimo para aplicar (vem do backend)
+let giftCardMinSubtotal= 499;  // mínimo para aplicar (vem do backend)
 let currentUserId      = null; // UUID do usuário autenticado
 
 // ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────
@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── GIFT CARD R$100: elegibilidade validada no backend ──────
     // Chama gift_card_status (SECURITY DEFINER). Só EXIBE o desconto quando
-    // o servidor confirma elegível E o subtotal atinge o mínimo (R$459).
+    // o servidor confirma elegível E o subtotal atinge o mínimo (R$499).
     // O processar-pagamento revalida e recomputa — o frontend nunca decide.
     try {
       if (typeof supabaseClient !== 'undefined') {
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
           const { data: gc } = await supabaseClient.rpc('gift_card_status', { p_user_id: user.id });
           giftCardElegivel    = gc?.elegivel === true;
-          giftCardMinSubtotal = Number(gc?.min_subtotal ?? 459);
+          giftCardMinSubtotal = Number(gc?.min_subtotal ?? 499);
           const GC_VALOR      = Number(gc?.valor ?? 100);
 
           // Mínimo do gift card é sobre o subtotal dos PRODUTOS (sem embalagem
