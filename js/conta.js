@@ -14,6 +14,29 @@ function escHtml(str) {
 }
 
 /**
+ * Traduz mensagens do Supabase Auth para pt-BR.
+ * Nenhuma mensagem crua em inglês deve chegar à cliente — fallback em português.
+ */
+function traduzirErroAuth(error) {
+  const m = (error?.message || '').toLowerCase();
+  if (m.includes('invalid login credentials'))                 return 'E-mail ou senha incorretos.';
+  if (m.includes('email not confirmed'))                       return 'Confirme seu e-mail antes de entrar — enviamos um link para você.';
+  if (m.includes('already registered') || m.includes('already been registered'))
+                                                               return 'Este e-mail já está cadastrado. Faça login.';
+  if (m.includes('password should be at least') || m.includes('at least 8') || m.includes('at least 6'))
+                                                               return 'A senha deve ter pelo menos 8 caracteres.';
+  if (m.includes('should be different') || m.includes('new password'))
+                                                               return 'A nova senha deve ser diferente da atual.';
+  if (m.includes('unable to validate email') || m.includes('invalid format') || m.includes('invalid email'))
+                                                               return 'E-mail inválido.';
+  if (m.includes('rate limit') || m.includes('for security purposes') || m.includes('you can only request'))
+                                                               return 'Muitas tentativas. Aguarde um instante e tente novamente.';
+  if (m.includes('link is invalid') || m.includes('token has expired') || m.includes('expired') || m.includes('otp'))
+                                                               return 'O link expirou ou é inválido. Solicite um novo.';
+  return 'Não foi possível concluir agora. Tente novamente.';
+}
+
+/**
  * LGPD — Mascara CPF para exibição: 123.***.***-00
  * Apenas os 3 primeiros e os 2 últimos dígitos ficam visíveis.
  */
@@ -24,6 +47,11 @@ function maskCpf(cpf) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Detecta chegada via link de e-mail (confirmação de cadastro / recuperação)
+  // ANTES que o supabase-js processe e limpe o hash da URL.
+  let authHashType = null;
+  try { authHashType = new URLSearchParams(location.hash.replace(/^#/, '')).get('type'); } catch { /* sem hash */ }
 
   // ── REFS ────────────────────────────────────────────────────
   const authSection    = document.getElementById('authSection');
@@ -73,6 +101,21 @@ document.addEventListener('DOMContentLoaded', () => {
     el.className     = `conta-form__msg conta-form__msg--${type}`;
     el.style.display = 'block';
   }
+  // Toast discreto (navy/cream, arredondado — tokens da marca). Auto-some.
+  function mostrarToast(texto) {
+    const t = document.createElement('div');
+    t.textContent = texto;
+    t.setAttribute('role', 'status');
+    t.style.cssText =
+      'position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);' +
+      'background:var(--color-navy);color:var(--color-cream);padding:12px 22px;' +
+      'border-radius:var(--radius-pill,999px);font-family:var(--font-body);font-size:0.85rem;' +
+      'box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:9999;opacity:0;max-width:90vw;text-align:center;' +
+      'transition:opacity .25s ease, transform .25s ease;';
+    document.body.appendChild(t);
+    requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; });
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(8px)'; setTimeout(() => t.remove(), 300); }, 4200);
+  }
   function hideMsg(el) {
     if (!el) return;
     el.style.display = 'none';
@@ -121,6 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       enterAccount(session.user);
       authDot?.classList.add('navbar__account-dot--visible');
+      // Feedback ao chegar pelo link do e-mail (confirmação / recuperação)
+      if (authHashType === 'signup') {
+        mostrarToast('E-mail confirmado! Sua conta está ativa.');
+        authHashType = null;
+      } else if (authHashType === 'recovery') {
+        mostrarToast('Defina uma nova senha em “Meus Dados”.');
+        authHashType = null;
+      }
     } else {
       showAuthSection();
       authDot?.classList.remove('navbar__account-dot--visible');
@@ -200,10 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
-        const msg = error.message?.includes('Invalid login credentials')
-          ? 'E-mail ou senha incorretos.'
-          : error.message;
-        showMsg(msgEl, msg, 'erro');
+        showMsg(msgEl, traduzirErroAuth(error), 'erro');
         btn.disabled = false;
         btn.textContent = 'Entrar';
       }
@@ -226,8 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     hideMsg(msgEl);
 
-    if (password.length < 6) {
-      showMsg(msgEl, 'A senha deve ter pelo menos 6 caracteres.', 'erro');
+    if (password.length < 8) {
+      showMsg(msgEl, 'A senha deve ter pelo menos 8 caracteres.', 'erro');
       return;
     }
 
@@ -237,14 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const { error } = await supabaseClient.auth.signUp({
       email,
       password,
-      options: { data: { nome } }
+      options: {
+        data: { nome },
+        emailRedirectTo: window.location.origin + '/conta.html'
+      }
     });
 
     if (error) {
-      const msg = error.message?.includes('already registered')
-        ? 'Este e-mail já está cadastrado. Faça login.'
-        : error.message;
-      showMsg(msgEl, msg, 'erro');
+      showMsg(msgEl, traduzirErroAuth(error), 'erro');
       btn.disabled = false;
       btn.textContent = 'Criar Conta';
     } else {
@@ -271,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (error) {
-      showMsg(msgEl, error.message, 'erro');
+      showMsg(msgEl, traduzirErroAuth(error), 'erro');
     } else {
       showMsg(msgEl, 'Link de redefinição enviado para ' + email, 'ok');
     }
@@ -676,8 +724,8 @@ document.addEventListener('DOMContentLoaded', () => {
       showMsg(dadosMsg, 'As senhas não coincidem.', 'erro');
       return;
     }
-    if (senha && senha.length < 6) {
-      showMsg(dadosMsg, 'A nova senha deve ter pelo menos 6 caracteres.', 'erro');
+    if (senha && senha.length < 8) {
+      showMsg(dadosMsg, 'A nova senha deve ter pelo menos 8 caracteres.', 'erro');
       return;
     }
 
@@ -698,7 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const { error } = await supabaseClient.auth.updateUser(updates);
 
       if (error) {
-        showMsg(dadosMsg, error.message, 'erro');
+        showMsg(dadosMsg, traduzirErroAuth(error), 'erro');
       } else {
         // Salva CPF e WhatsApp em clientes_perfil
         // Se o campo CPF estiver vazio, usa o valor original armazenado (LGPD: campo mostra mascarado)
