@@ -474,9 +474,11 @@
 .checkout-order-item__img {
   width: 56px;
   height: 68px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
-  background: var(--color-gold-light);
+  background: var(--color-off-white);
+  background-size: cover;
+  background-position: center;
 }
 .checkout-order-item__info { flex: 1; }
 .checkout-order-item__name {
