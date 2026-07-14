@@ -126,6 +126,26 @@ Toda tarefa segue estas etapas, nesta ordem:
 
 ## 8. Pendências / riscos conhecidos
 
+### Correções pré-lançamento — 14/07/2026
+
+**✅ Aplicado (repo = banco = produção, tudo em `staging` pushado):**
+- **BUG 1 — CORS**: allowlist compartilhada em `supabase/functions/_shared/cors.ts` (produção + `localhost` + `*.github.io` + `*.vercel.app`), refletindo a Origin nas 2 functions do navegador (`calcular-frete`, `processar-pagamento`) e `buildCorsHeaders(null)` nas 5 server-to-server. Staging (Vercel) desbloqueado.
+- **BUG 2/3 — conta**: `emailRedirectTo` no signUp; senha mín. 8; `traduzirErroAuth()` central (sem inglês cru). ⚠️ Falta no dashboard: **Site URL = wearvirtu.com** + redirect allowlist.
+- **BUG 4 — produto**: cards de Peças Relacionadas clicáveis (`data-id` + imagem em `<a>`).
+- **Sweep A — admin**: `admin.js` exige `is_virtu_admin()` no frontend (cliente logada não-admin é deslogada); backend já tinha guard nas RPCs.
+- **Sweep B**: `search_path` fixo nas 3 funções de timestamp. `pg_net` NÃO movido (em uso por 2 funções).
+- **Gift card R$100 (rollout de julho)**: migrations `20260713_gift_card_100` + `20260714_gift_card_min_499` aplicadas (coluna `pedidos.gift_card_aplicado`, RPC `gift_card_status` anon-revogada, fidelidade antiga desativada, **mínimo R$499**). Isto DESTRAVOU o checkout — as functions já estavam live sem a migration → o INSERT do pedido quebrava.
+- **Frete (b)**: NE R$18, Sul/Sudeste R$19,90, Norte/CO R$29,90, grátis ≥R$799. `calcular-frete` (oferta) e `processar-pagamento` (anti-tamper) alinhados.
+- **Quantidade**: rejeita qty negativa/zero/fracionária (inteiro 1–50).
+
+**⚠️ Pendente para o go-live:**
+- **Teste de pagamento em SANDBOX**: bloqueado porque a `ASAAS_API_KEY` é de produção mas `ASAAS_SANDBOX=true` (a API sandbox rejeita → 502 "erro ao registrar cliente"). Ação: usar chave do `sandbox.asaas.com` para testar; trocar para chave de PRODUÇÃO + `ASAAS_SANDBOX=false` no go-live. Rodar os testes do `DEPLOY-PRECIFICACAO-2026-07.md` (PIX/crédito parcelado `totalValue`+`installmentCount`/débito/gift card).
+- **CSP**: `<meta>` sendo adicionada por página (a Luíza começou); no `checkout.html` incluir `https://viacep.com.br` no `connect-src`.
+- **Publicar frontend**: merge `staging` → `main` após os testes.
+- **Coordenação**: deploys de function só a partir do repo (fonte única) — houve colisão por deploy/edição em paralelo.
+
+**⏳ Opcionais (não bloqueiam):** BUG 5 (redesign do carrinho), Sweep C (inline styles do checkout → tokens), aba "Fidelidade" da conta reflete programa antigo (avaliar trocar pelo gift card).
+
 ### Re-auditoria de lançamento — 13/07/2026 (veredito: GO)
 
 Re-verificação completa com foco em pagamento. **Nenhum bloqueador Crítico/Alto.**
