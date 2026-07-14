@@ -32,7 +32,7 @@
 /* ── STEPS ───────────────────────────────── */
 .checkout-steps {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 0;
   padding: 1.25rem 2rem;
@@ -42,8 +42,10 @@
 }
 .checkout-step {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  text-align: center;
+  gap: 0.4rem;
   font-family: var(--font-body);
   font-size: 0.78rem;
   color: var(--color-text-light);
@@ -79,7 +81,8 @@
   max-width: 80px;
   height: 1px;
   background: var(--color-border);
-  margin: 0 0.75rem;
+  /* alinha ao centro vertical do círculo (24px) já que .checkout-steps usa flex-start */
+  margin: 12px 0.75rem 0;
 }
 
 /* ── MAIN LAYOUT ─────────────────────────── */
@@ -783,7 +786,7 @@
   .checkout-steps { padding: 1rem; gap: 0; }
   .checkout-step__label { display: none; }
   .checkout-steps__line { max-width: 40px; }
-  .checkout-container { padding: 0 1rem; }
+  .checkout-container { padding: 0 1.5rem; }
   .form-row--2 { grid-template-columns: 1fr; }
   .form-group--small { width: 100%; }
   .form-group--half { max-width: 100%; }
@@ -798,7 +801,7 @@
   .checkout-navbar__security { display: none; }
 
   /* Container sem margens laterais */
-  .checkout-container { padding: 0 0.75rem; }
+  .checkout-container { padding: 0 1.25rem; }
 
   /* Abas PIX/Cartão em coluna no mobile */
   .payment-tabs {
@@ -920,6 +923,7 @@
   .checkout-steps__line {
     max-width: 40px;
     min-width: 20px;
+    margin-top: 10px; /* centro do círculo de 20px no mobile */
   }
 }
 
