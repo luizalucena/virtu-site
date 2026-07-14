@@ -66,8 +66,8 @@
   transition: background 0.2s;
 }
 
-.cart-item:first-of-type { border-radius: 8px 8px 0 0; }
-.cart-item:last-of-type  { border-radius: 0 0 8px 8px; }
+.cart-item:first-of-type { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.cart-item:last-of-type  { border-radius: 0 0 var(--radius-md) var(--radius-md); border-bottom: none; }
 
 .cart-item__image {
   display: block;
@@ -76,8 +76,8 @@
 .cart-item__img-placeholder {
   width: 100px;
   height: 120px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, var(--color-gold-light), var(--color-nude));
+  border-radius: var(--radius-sm);
+  background: var(--color-off-white);
   overflow: hidden;
 }
 
@@ -114,17 +114,12 @@
   margin-top: 5px;
 }
 .cart-item__stock-badge--urgente {
-  color: #b71c1c;
-  background: #fdecea;
-  animation: virtu-cart-pulse 1.6s ease-in-out infinite;
+  color: var(--color-gold);
+  background: var(--color-gold-pale);
 }
 .cart-item__stock-badge--esgotado {
-  color: #757575;
-  background: #f5f5f5;
-}
-@keyframes virtu-cart-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.65; }
+  color: var(--color-text-light);
+  background: var(--color-off-white);
 }
 
 .cart-item__price-mobile { display: none; }
@@ -148,7 +143,7 @@
   align-items: center;
   gap: 0;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   overflow: hidden;
   width: 120px;
   justify-self: center;
@@ -193,7 +188,7 @@
   cursor: pointer;
   color: var(--color-text-light);
   padding: 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: color 0.2s, background 0.2s;
   display: flex;
   align-items: center;
@@ -225,21 +220,20 @@
 
 /* ── CUPOM ───────────────────────────────── */
 .cart-coupon {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
+  margin-top: var(--space-5);
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 .cart-coupon__label {
   display: block;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-navy);
-  margin-bottom: 0.75rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-2);
 }
 .cart-coupon__row {
   display: flex;
@@ -249,7 +243,7 @@
   flex: 1;
   height: 44px;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 0 1rem;
   font-family: var(--font-body);
   font-size: 0.9rem;
@@ -275,7 +269,7 @@
 /* ── RESUMO ──────────────────────────────── */
 .cart-summary {
   background: #fff;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   padding: 2rem;
   position: -webkit-sticky;
