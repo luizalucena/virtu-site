@@ -21,7 +21,9 @@ export function isAllowedOrigin(origin: string | null): boolean {
   try {
     const u = new URL(origin);
     if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') return true;      // dev local
-    if (u.protocol === 'https:' && u.hostname.endsWith('.github.io')) return true;  // staging
+    // staging: GitHub Pages (*.github.io) e previews do Vercel (*.vercel.app)
+    if (u.protocol === 'https:' &&
+        (u.hostname.endsWith('.github.io') || u.hostname.endsWith('.vercel.app'))) return true;
   } catch {
     /* origin malformada → não permitida */
   }
