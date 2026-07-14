@@ -18,16 +18,11 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { buildCorsHeaders } from '../_shared/cors.ts';
 
 // ── CORS / Security ─────────────────────────────────────────
-const ALLOWED_ORIGIN = 'https://wearvirtu.com';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  ALLOWED_ORIGIN,
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Max-Age':       '86400',
-};
+// corsHeaders é montado por requisição (reflete a Origin permitida) no
+// handler; ver supabase/functions/_shared/cors.ts.
 
 const securityHeaders = {
   'X-Content-Type-Options':    'nosniff',
@@ -115,13 +110,6 @@ function fretesPermitidos(cepRaw: unknown, subtotal = 0): number[] {
 
   // Acima de R$799 → frete grátis (0) também é válido para qualquer região.
   return freteGratisBrasil ? [0, regional] : [regional];
-}
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
-  });
 }
 
 /** Base URL da API ASAAS (sandbox ou produção) */
@@ -219,6 +207,13 @@ async function upsertAsaasCustomer(params: {
 
 // ── Handler principal ────────────────────────────────────────
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req.headers.get('Origin'));
+  const json = (data: unknown, status = 200) =>
+    new Response(JSON.stringify(data), {
+      status,
+      headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
+    });
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

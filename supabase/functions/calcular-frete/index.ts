@@ -13,6 +13,8 @@
  * Output: { opcoes: Opcao[] }  |  { error: string }
  */
 
+import { buildCorsHeaders } from '../_shared/cors.ts';
+
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
 interface Opcao {
@@ -26,12 +28,8 @@ interface Opcao {
 }
 
 // ── CORS / Security ───────────────────────────────────────────────────────────
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  'https://wearvirtu.com',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// corsHeaders é montado por requisição (reflete a Origin permitida) dentro do
+// handler; ver supabase/functions/_shared/cors.ts.
 
 const securityHeaders = {
   'X-Content-Type-Options':    'nosniff',
@@ -103,16 +101,16 @@ function isNordeste(cepNum: number): boolean {
   return NORDESTE_RANGES.some(r => cepNum >= r.min && cepNum <= r.max);
 }
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
-  });
-}
-
 // ── Handler principal ─────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req.headers.get('Origin'));
+  const json = (data: unknown, status = 200) =>
+    new Response(JSON.stringify(data), {
+      status,
+      headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
+    });
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

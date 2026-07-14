@@ -13,13 +13,11 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { buildCorsHeaders } from '../_shared/cors.ts';
 
-// Chamado apenas server-to-server (processar-pagamento / asaas-webhook); CORS restrito.
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  'https://wearvirtu.com',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Chamado apenas server-to-server (processar-pagamento / asaas-webhook); origin
+// é null → cai na produção. Allowlist centralizada em _shared/cors.ts.
+const corsHeaders = buildCorsHeaders(null);
 
 const securityHeaders = {
   'X-Content-Type-Options':    'nosniff',

@@ -4,11 +4,10 @@
  * (Z-API não é autorizado pelo WhatsApp/Meta; risco de banimento da conta)
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  'https://wearvirtu.com',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { buildCorsHeaders } from '../_shared/cors.ts';
+
+// Server-to-server → origin null cai na produção. Allowlist em _shared/cors.ts.
+const corsHeaders = buildCorsHeaders(null);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
