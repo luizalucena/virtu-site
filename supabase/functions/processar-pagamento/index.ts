@@ -66,7 +66,7 @@ function sanitize(val: unknown, maxLen = 255): string {
 /**
  * Fretes válidos para um CEP (anti-tampering do valor de frete).
  * Espelha supabase/functions/calcular-frete — MANTER SINCRONIZADO:
- *   Grande JP → grátis (+ motoboy R$15 só João Pessoa)
+ *   Grande JP → grátis (entrega padrão)
  *   Nordeste (fora Grande JP) → R$18
  *   Sul / Sudeste            → R$19,90
  *   Norte / Centro-Oeste     → R$29,90
@@ -90,8 +90,8 @@ function fretesPermitidos(cepRaw: unknown, subtotal = 0): number[] {
 
   const freteGratisBrasil = Number(subtotal) >= FRETE_GRATIS_ACIMA;
 
-  // Grande JP: sempre grátis (+ motoboy só em JP).
-  if (grandeJP) return jp ? [0, 15] : [0];
+  // Grande JP: sempre grátis (entrega padrão).
+  if (grandeJP) return [0];
 
   // Determina o valor regional base.
   let regional: number | null = null;

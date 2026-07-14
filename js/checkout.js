@@ -11,7 +11,6 @@ const EDGE_FUNCTION_URL = 'https://oxivtnuxnghpddwawfdr.supabase.co/functions/v1
 // Valores de referência (cálculo real feito pelo Edge Function calcular-frete)
 const FRETE_STANDARD  = 0;     // Grande JP: grátis
 const FRETE_NORDESTE  = 18.00; // Restante do Nordeste
-const FRETE_MOTOBOY   = 15.00; // Motoboy expresso em João Pessoa
 
 // Grande JP — frete grátis: João Pessoa, Cabedelo, Santa Rita, Bayeux, Conde
 const GRANDE_JP_RANGES = [

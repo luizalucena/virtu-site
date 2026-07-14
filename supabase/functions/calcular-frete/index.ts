@@ -128,35 +128,19 @@ Deno.serve(async (req) => {
     const freteGratisBrasil = subtotal >= FRETE_GRATIS_ACIMA;
     const { match: grandeJP, cidade } = isGrandeJP(cepNum);
 
-    // ── Grande JP — Frete Grátis (sempre) ─────────────────────────────────────
+    // ── Grande JP — Frete Grátis (entrega padrão, sempre) ─────────────────────
     if (grandeJP) {
-      const opcoes: Opcao[] = [];
-
-      // Opção 1: Entrega Grátis padrão (disponível para todas as cidades Grande JP)
-      opcoes.push({
-        id:             'gratis',
-        nome:           'Entrega Grátis',
-        descricao:      `Grande João Pessoa · ${cidade}`,
-        prazo:          '2-5 dias úteis',
-        preco:          0,
-        precoFormatado: 'Grátis',
-        precoOriginal:  null,
-      });
-
-      // Opção 2: Motoboy (disponível apenas para João Pessoa)
-      if (cepNum >= 58000000 && cepNum <= 58099999) {
-        opcoes.push({
-          id:             'motoboy',
-          nome:           'Motoboy Expresso',
-          descricao:      'Entrega em João Pessoa',
-          prazo:          'Hoje ou amanhã',
-          preco:          15.00,
-          precoFormatado: 'R$ 15,00',
+      return json({
+        opcoes: [{
+          id:             'gratis',
+          nome:           'Entrega Grátis',
+          descricao:      `Grande João Pessoa · ${cidade}`,
+          prazo:          '1-5 dias úteis',
+          preco:          0,
+          precoFormatado: 'Grátis',
           precoOriginal:  null,
-        });
-      }
-
-      return json({ opcoes });
+        }],
+      });
     }
 
     // ── Demais regiões do Brasil — valor por região ──────────────────────────
