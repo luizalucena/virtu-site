@@ -1,8 +1,21 @@
 # Deploy — Precificação 2026-07 (taxa 5%, ,90, frete nacional, gift card R$100)
 
 > Mudanças commitadas no branch **staging** (commits `44c9767` + `cd35538`).
-> **Nada foi aplicado em produção.** Este é o passo-a-passo para publicar
-> quando a Luíza autorizar. Projeto Supabase de produção: `oxivtnuxnghpddwawfdr`.
+> Projeto Supabase de produção: `oxivtnuxnghpddwawfdr`.
+>
+> ## STATUS (atualizado 14/07/2026)
+> - ✅ **Migration `20260713_gift_card_100.sql` APLICADA** (autorizada pela Luíza).
+>   Coluna `pedidos.gift_card_aplicado`, RPC `gift_card_status` (anon revogado),
+>   fidelidade antiga desativada, `frete_gratis_acima = 799`. Verificado.
+> - ✅ **Edge Functions já no ar** (`processar-pagamento`, `calcular-frete`,
+>   `asaas-webhook`) — foram deployadas junto com a correção de CORS.
+>   **Motivo da urgência:** as funções já estavam live sem a migration, então o
+>   INSERT do pedido (que grava `gift_card_aplicado`) estava falhando → checkout
+>   quebrado. Aplicar a migration destravou.
+> - ⚠️ **PENDENTE — testes de sandbox (abaixo) NÃO foram feitos.** Especialmente
+>   o ponto do ASAAS parcelado (`totalValue`/`installmentCount`). Rodar antes de
+>   cobrança real. Conferir `ASAAS_SANDBOX` no painel.
+> - ⏳ Publicar frontend (merge `staging`→`main`) segue pendente de `git push`.
 
 ## Ordem de execução (importante: banco antes das funções)
 
