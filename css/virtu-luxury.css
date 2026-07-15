@@ -909,17 +909,17 @@ footer {
   box-shadow: -8px 0 40px rgba(26,45,61,0.12);
 }
 
-.cart-item,
-.carrinho-item,
-[class*="cart-item"] {
+/* NOTA: o item da PÁGINA do carrinho (.cart-item) é estilizado só em
+   css/carrinho.css. O curinga [class*="cart-item"] foi removido daqui porque
+   aplicava border-bottom + padding lateral zero a TODOS os sub-elementos
+   (info, preço, qty, badge), deixando a foto colada e a linha desalinhada. */
+.carrinho-item {
   border-bottom: 1px solid var(--lux-ice-border);
-  padding: 16px 0;
+  padding-block: 16px;
 }
 
-/* Imagem no carrinho: aspect ratio 1:1 limpo */
-.cart-item__img,
-.carrinho-item__img,
-[class*="cart-item-img"] {
+/* Imagem no carrinho legado */
+.carrinho-item__img {
   border-radius: 0;
   aspect-ratio: 1 / 1;
   object-fit: cover;

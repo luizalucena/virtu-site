@@ -77,7 +77,7 @@ function showFeedback(msg, type) {
 function renderCartItem(item, index) {
   const imgStyle = item.imagem_url
     ? `background:url('${escHtml(item.imagem_url)}') center/cover no-repeat`
-    : `background:${item.imagem_placeholder || 'linear-gradient(160deg,#F4F1EA,#EAE4D9)'}`;
+    : `background:${item.imagem_placeholder || 'var(--color-off-white)'}`;
 
   const metaParts = [
     item.tamanho  ? `Tam: ${escHtml(item.tamanho)}`  : '',
