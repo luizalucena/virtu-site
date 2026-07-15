@@ -32,36 +32,44 @@
 /* ── STEPS ───────────────────────────────── */
 .checkout-steps {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 1.25rem 2rem;
+  padding: 1.25rem 2rem 2.25rem; /* espaço extra p/ o nome (absoluto) abaixo do círculo */
   margin-top: 64px;
   background: #fff;
   border-bottom: 1px solid var(--color-border);
 }
 .checkout-step {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 0.4rem;
+  justify-content: center;
   font-family: var(--font-body);
   font-size: 0.78rem;
   color: var(--color-text-light);
   transition: color 0.3s;
 }
 .checkout-step__num {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: 1.5px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  line-height: 1;
+  font-size: 0.72rem;
   font-weight: 600;
   transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+/* Nome flutua abaixo do círculo, centralizado nele (não afeta o alinhamento). */
+.checkout-step__label {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 .checkout-step--active {
   color: var(--color-navy);
@@ -81,8 +89,7 @@
   max-width: 80px;
   height: 1px;
   background: var(--color-border);
-  /* alinha ao centro vertical do círculo (24px) já que .checkout-steps usa flex-start */
-  margin: 12px 0.75rem 0;
+  margin: 0 0.75rem; /* centralizado com os círculos via align-items:center */
 }
 
 /* ── MAIN LAYOUT ─────────────────────────── */
@@ -923,7 +930,6 @@
   .checkout-steps__line {
     max-width: 40px;
     min-width: 20px;
-    margin-top: 10px; /* centro do círculo de 20px no mobile */
   }
 }
 
