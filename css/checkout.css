@@ -101,7 +101,7 @@
 .checkout-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 var(--space-8);
+  padding: 0 clamp(var(--space-5), 4vw, var(--space-16)); /* 20→64px: respiro lateral (taste-skill) */
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 2.5rem;
