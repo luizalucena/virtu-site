@@ -12,6 +12,20 @@ let editandoId  = null;
 // Conjunto de IDs de produtos com operação em curso — previne race conditions
 const _productOps = new Set();
 
+// ── RECUPERAÇÃO DE SENHA — detecção do token ────────────────
+// Lido de forma síncrona, antes de o supabase-js limpar a URL. Cobre o fluxo
+// implícito (#type=recovery), PKCE (?code) e link expirado (#error=).
+const _admHp = (() => { try { return new URLSearchParams(location.hash.replace(/^#/, '')); } catch { return new URLSearchParams(); } })();
+const _admQp = (() => { try { return new URLSearchParams(location.search); } catch { return new URLSearchParams(); } })();
+const _admRecoveryError = _admHp.get('error') || _admQp.get('error');
+let   _admRecoveryFlow  = _admHp.get('type') === 'recovery' || _admQp.get('type') === 'recovery' || !!_admRecoveryError;
+let   _admRecoveryDone  = false;
+const ADMIN_RECOVERY_REDIRECT = window.location.origin + '/admin/index.html';
+// PKCE defensivo: troca o code por sessão (o evento decide a ação).
+if (_admQp.get('code')) {
+  try { supabaseClient.auth.exchangeCodeForSession(window.location.href).catch(() => {}); } catch { /* ignore */ }
+}
+
 // ── CONVERTE URL DO GOOGLE DRIVE ────────────
 // Usa lh3.googleusercontent.com/d/{ID} — único formato que funciona
 // como CSS background-image sem redirect/CORS
@@ -89,11 +103,113 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── AUTH: VERIFICAR SESSÃO E PAPEL ──────────
 async function verificarAuth() {
+  // Fluxo de recuperação tem prioridade: mostra a tela de nova senha (ou o
+  // bloco de link expirado) e NÃO entra no painel automaticamente.
+  if (_admRecoveryError)     { mostrarRecovery(true);  bindRecoveryEvents(); }
+  else if (_admRecoveryFlow) { mostrarRecovery(false); bindRecoveryEvents(); }
+
   const { data: { session } } = await supabaseClient.auth.getSession();
-  await roteiaPorPapel(session);
+  if (!_admRecoveryFlow) await roteiaPorPapel(session);
 
   // Escuta mudanças de estado de autenticação
-  supabaseClient.auth.onAuthStateChange((_event, s) => { roteiaPorPapel(s); });
+  supabaseClient.auth.onAuthStateChange((event, s) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      _admRecoveryFlow = true;
+      mostrarRecovery(false);
+      bindRecoveryEvents();
+      return;
+    }
+    if (_admRecoveryFlow && !_admRecoveryDone) {
+      mostrarRecovery(!!_admRecoveryError);
+      bindRecoveryEvents();
+      return;
+    }
+    roteiaPorPapel(s);
+  });
+}
+
+// ── RECUPERAÇÃO: tela de nova senha ─────────
+function mostrarRecovery(expirado) {
+  const login = document.getElementById('loginScreen');
+  const rec   = document.getElementById('recoveryScreen');
+  if (login) { login.classList.add('login-screen--hidden'); login.style.display = 'none'; }
+  if (rec)   { rec.style.display = ''; rec.classList.remove('login-screen--hidden'); }
+  const form    = document.getElementById('recoveryForm');
+  const expired = document.getElementById('recoveryExpired');
+  if (expirado) {
+    if (form)    form.style.display = 'none';
+    if (expired) expired.style.display = '';
+  } else {
+    if (form)    form.style.display = '';
+    if (expired) expired.style.display = 'none';
+    document.getElementById('recoveryPassword')?.focus();
+  }
+}
+
+let _recoveryEventsBound = false;
+function bindRecoveryEvents() {
+  if (_recoveryEventsBound) return;
+  _recoveryEventsBound = true;
+
+  // Salvar nova senha
+  document.getElementById('recoveryForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const p1  = document.getElementById('recoveryPassword')?.value || '';
+    const p2  = document.getElementById('recoveryPasswordConf')?.value || '';
+    const err = document.getElementById('recoveryError');
+    const btn = document.getElementById('recoveryBtn');
+    if (err) err.textContent = '';
+
+    if (p1.length < 8) { if (err) err.textContent = 'A senha deve ter pelo menos 8 caracteres.'; return; }
+    if (p1 !== p2)     { if (err) err.textContent = 'As senhas não coincidem.'; return; }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+    let error = null;
+    try { ({ error } = await supabaseClient.auth.updateUser({ password: p1 })); }
+    catch (ex) { error = ex; }
+
+    if (error) {
+      const m = (error.message || '').toLowerCase();
+      if (m.includes('session') || m.includes('expired') || m.includes('jwt') ||
+          m.includes('token') || m.includes('not authenticated') || m.includes('auth session')) {
+        mostrarRecovery(true);
+      } else if (err) {
+        err.textContent = 'Não foi possível salvar. Tente novamente.';
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Salvar nova senha'; }
+      return;
+    }
+
+    // Sucesso: encerra o recovery e entra no painel (revalidando o papel).
+    _admRecoveryDone = true;
+    if (btn) btn.textContent = 'Senha salva ✓';
+    try { history.replaceState(null, '', location.pathname); } catch { /* ignore */ }
+    const rec = document.getElementById('recoveryScreen');
+    setTimeout(async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (rec) { rec.style.display = 'none'; rec.classList.add('login-screen--hidden'); }
+      await roteiaPorPapel(session);
+    }, 1200);
+  });
+
+  // Reenviar link (bloco expirado)
+  document.getElementById('recoveryResendForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('recoveryResendEmail')?.value.trim();
+    const msg   = document.getElementById('recoveryResendMsg');
+    const btn   = document.getElementById('recoveryResendBtn');
+    if (msg) msg.textContent = '';
+    if (!email) { if (msg) msg.textContent = 'Digite seu e-mail.'; return; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: ADMIN_RECOVERY_REDIRECT });
+    if (btn) { btn.disabled = false; btn.textContent = 'Enviar novo link'; }
+    if (msg) {
+      msg.style.color = error ? '' : '#2e7d32';
+      msg.textContent = error
+        ? 'Não foi possível enviar. Tente novamente.'
+        : 'Enviamos um novo link para ' + email + '. Verifique a caixa de entrada (e o spam).';
+    }
+  });
 }
 
 // Só o admin da loja (is_virtu_admin no banco) acessa o painel. O backend
@@ -151,6 +267,28 @@ function bindLoginEvents() {
   const form     = document.getElementById('loginForm');
   const errorEl  = document.getElementById('loginError');
   const loginBtn = document.getElementById('loginBtn');
+
+  // ── Esqueci minha senha ──────────────────
+  document.getElementById('btnForgotAdmin')?.addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail')?.value.trim();
+    if (!email) {
+      errorEl.style.color = '';
+      errorEl.textContent = 'Digite seu e-mail acima para redefinir a senha.';
+      return;
+    }
+    const btn = document.getElementById('btnForgotAdmin');
+    const _t  = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: ADMIN_RECOVERY_REDIRECT });
+    if (btn) { btn.disabled = false; btn.textContent = _t || 'Esqueci minha senha'; }
+    if (error) {
+      errorEl.style.color = '';
+      errorEl.textContent = 'Não foi possível enviar. Tente novamente.';
+    } else {
+      errorEl.style.color = '#2e7d32';
+      errorEl.textContent = 'Link de redefinição enviado para ' + email + '. Verifique a caixa de entrada (e o spam).';
+    }
+  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();

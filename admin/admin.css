@@ -691,6 +691,23 @@ body {
   cursor: not-allowed;
 }
 
+/* Link "Esqueci minha senha" — discreto, abaixo do botão Entrar */
+.login-forgot {
+  display: block;
+  width: 100%;
+  margin-top: 0.85rem;
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.login-forgot:hover { color: var(--gold, #b8943f); }
+
 /* ── LOGOUT BUTTON ───────────────────────── */
 .admin-logout-btn {
   display: flex;

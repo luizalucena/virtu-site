@@ -1249,7 +1249,45 @@
         </div>
         <p class="login-error" id="loginError"></p>
         <button type="submit" class="login-btn" id="loginBtn">Entrar</button>
+        <button type="button" class="login-forgot" id="btnForgotAdmin">Esqueci minha senha</button>
       </form>
+    </div>
+  </div>
+
+  <!-- TELA DE REDEFINIR SENHA (fluxo de recuperação) -->
+  <div id="recoveryScreen" class="login-screen login-screen--hidden" style="display:none">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="login-logo__virtu">VIRTÙ</span>
+        <span class="login-logo__tag">Admin</span>
+      </div>
+      <h2 class="login-title">Definir nova senha</h2>
+      <p class="login-subtitle">Escolha uma nova senha para o painel.</p>
+      <form id="recoveryForm" class="login-form" novalidate>
+        <div class="login-field">
+          <label for="recoveryPassword">Nova senha</label>
+          <input type="password" id="recoveryPassword" class="login-input" placeholder="Mínimo 8 caracteres" required minlength="8" autocomplete="new-password" />
+        </div>
+        <div class="login-field">
+          <label for="recoveryPasswordConf">Confirmar nova senha</label>
+          <input type="password" id="recoveryPasswordConf" class="login-input" placeholder="Repita a nova senha" required minlength="8" autocomplete="new-password" />
+        </div>
+        <p class="login-error" id="recoveryError"></p>
+        <button type="submit" class="login-btn" id="recoveryBtn">Salvar nova senha</button>
+      </form>
+
+      <!-- Link expirado / inválido -->
+      <div id="recoveryExpired" style="display:none">
+        <p class="login-error" style="display:block">Este link expirou ou já foi usado. Solicite um novo abaixo.</p>
+        <form id="recoveryResendForm" class="login-form" novalidate>
+          <div class="login-field">
+            <label for="recoveryResendEmail">E-mail</label>
+            <input type="email" id="recoveryResendEmail" class="login-input" placeholder="wearvirtu@gmail.com" required autocomplete="email" />
+          </div>
+          <p class="login-error" id="recoveryResendMsg"></p>
+          <button type="submit" class="login-btn" id="recoveryResendBtn">Enviar novo link</button>
+        </form>
+      </div>
     </div>
   </div>
 
