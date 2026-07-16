@@ -486,8 +486,19 @@ select:focus-visible { outline: none !important; }
 /* Swatch de cor: círculo perfeito + anel navy limpo (sem brackets) */
 .color-btn,
 .color-swatch,
-.produto-cor {
+.produto-cor,
+.product-card__swatch,
+.qa-chip__swatch {
   border-radius: 50% !important;
+  /* Impede o flex/grid de achatar o swatch (causava oval): largura = altura,
+     nunca encolhe. O `min-height:0` anula o `button{min-height:44px}` mobile
+     do virtu-luxury, que esticava o swatch (28px largura × 44px altura = oval).
+     A área de toque de ~44px é reposta pelo ::before abaixo (sem deformar). */
+  flex: 0 0 auto !important;
+  aspect-ratio: 1 / 1 !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
 }
 .color-btn:focus-visible,
 .color-swatch:focus-visible,
@@ -504,8 +515,42 @@ select:focus-visible { outline: none !important; }
               0 0 0 4px var(--color-navy) !important;
 }
 .color-btn--active::after,
-.color-swatch--active::after {
-  content: none !important;   /* remove o anel ::after quadrado/duplicado */
+.color-swatch--active::after,
+.produto-cor--active::after,
+.produto-cor.active::after {
+  content: none !important;   /* remove o anel ::after quadrado/duplicado (fica só o anel box-shadow, sempre circular) */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ESTABILIDADE DE CARROSSÉIS NO TOQUE (anti-jitter)
+   Em telas sem hover real (celular/tablet), o :hover fica "grudado"
+   após o toque e dispara zoom/troca de foto DURANTE o arraste — é o
+   que fazia os carrosséis "sambarem". Aqui neutralizamos os efeitos de
+   hover dos cards no toque (eles são refinamentos de desktop) e mantemos
+   a foto principal estável. Vale para TODOS os carrosséis do site.
+   ────────────────────────────────────────────────────────────── */
+@media (hover: none) {
+  .product-card:hover,
+  .product-card:hover .product-card__image-wrap,
+  .product-card:hover .product-card__image-wrap img,
+  .product-card:hover .product-card__img,
+  .product-card:hover .product-card__img:first-of-type,
+  .product-card:not(:has(.product-card__img--hover)):hover .product-card__img {
+    transform: none !important;
+  }
+  /* mantém a 1ª foto visível e esconde a 2ª (sem crossfade no toque) */
+  .product-card:hover .product-card__img:first-of-type { opacity: 1 !important; }
+  .product-card:hover .product-card__img--hover        { opacity: 0 !important; }
+}
+
+/* Qualquer trilho horizontal com scroll ganha momentum nativo e overscroll
+   contido — evita o "vazamento" pro scroll da página e o tranco no fim. */
+.products-carousel,
+.produtos-carrossel,
+[data-carousel],
+.scroll-x {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 /* Slider de preço — trilho fino, thumb navy com sombra sutil */

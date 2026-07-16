@@ -246,9 +246,24 @@
   .diferencial__sep { display: none; }
   .diferencial__stat { font-size: var(--text-md); }  /* 18px no mobile */
 }
-/* Celular pequeno: 1 coluna empilhada */
+/* Celular pequeno: MANTÉM 2×2 (mais limpo e compacto que empilhar).
+   Divisórias finas entre as células e respiro equilibrado.
+   Os .diferencial__sep ficam display:none (não geram célula); os 4
+   .diferencial ocupam a grade na ordem do DOM (nth-child 1,3,5,7). */
 @media (max-width: 460px) {
-  .diferenciais__grid { grid-template-columns: 1fr; }
+  .diferenciais__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+  }
+  .diferencial {
+    padding: var(--space-5) var(--space-4);
+  }
+  .diferencial:nth-child(1),
+  .diferencial:nth-child(5) { border-right: 1px solid var(--color-gray-200); }  /* coluna esquerda */
+  .diferencial:nth-child(1),
+  .diferencial:nth-child(3) { border-bottom: 1px solid var(--color-gray-200); } /* primeira fileira */
+  .diferencial__stat  { font-size: var(--text-md); }
+  .diferencial__label { font-size: 0.68rem; letter-spacing: 1px; line-height: 1.45; }
 }
 
 /* Manifesto Virtù — primeira letra maiúscula (texto vem do Supabase) */

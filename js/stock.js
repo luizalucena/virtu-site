@@ -507,6 +507,14 @@ const VirtuStock = (() => {
     const CART_KEY = 'virtu_cart';
     const nome  = document.querySelector('[data-produto-nome]')?.textContent?.trim() || 'Produto';
     const preco = parseFloat(document.querySelector('[data-preco]')?.getAttribute('data-preco') || 0);
+    // Imagem REAL da peça (mesma lógica do produto.js): dataset.currentUrl do
+    // #mainImg, senão a <img> interna, senão o background-image. NUNCA usar o
+    // #mainPlaceholder (bloco vazio) como imagem — só como cor de fallback.
+    const _mainImg = document.getElementById('mainImg');
+    const imgUrl = _mainImg?.dataset?.currentUrl
+                || document.querySelector('#mainImg img')?.getAttribute('src')
+                || (_mainImg?.style?.backgroundImage || '').replace(/^url\(['"]?|['"]?\)$/g, '')
+                || '';
     const imgBg = document.getElementById('mainPlaceholder')?.style?.background || '';
     const estoque = Number(variacao.estoque) || 0;
 
@@ -540,6 +548,7 @@ const VirtuStock = (() => {
         cor_nome:           variacao.cor_nome,
         cor_hex:            variacao.cor_hex || '',
         preco,
+        imagem_url:         imgUrl,
         imagem_placeholder: imgBg,
         qty:                1
       });

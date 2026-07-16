@@ -91,9 +91,13 @@ function showFeedback(msg, type) {
 
 /* ── RENDER DE ITEM ────────────────────────────────────────── */
 function renderCartItem(item, index) {
-  const imgStyle = item.imagem_url
+  const temImg = !!item.imagem_url;
+  // Com foto: usa a imagem real. Sem foto: fallback elegante da marca
+  // (creme + wordmark serif), NUNCA um bloco bege vazio.
+  const imgStyle = temImg
     ? `background:url('${escHtml(item.imagem_url)}') center/cover no-repeat`
-    : `background:${item.imagem_placeholder || 'var(--color-off-white)'}`;
+    : '';
+  const imgInner = temImg ? '' : '<span class="cart-item__ph-mark">Virtù</span>';
 
   const metaParts = [
     item.tamanho  ? `Tam: ${escHtml(item.tamanho)}`  : '',
@@ -113,7 +117,7 @@ function renderCartItem(item, index) {
   return `
     <div class="cart-item" data-index="${index}" data-price="${preco}">
       <a class="cart-item__image" href="produto.html?id=${escHtml(item.id)}" aria-label="${escHtml(item.nome)}">
-        <div class="cart-item__img-placeholder" style="${imgStyle}"></div>
+        <div class="cart-item__img-placeholder${temImg ? '' : ' cart-item__img-placeholder--empty'}" style="${imgStyle}">${imgInner}</div>
       </a>
       <div class="cart-item__info">
         <a href="produto.html?id=${escHtml(item.id)}" class="cart-item__name">${escHtml(item.nome)}</a>

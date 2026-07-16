@@ -821,16 +821,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (stickyBar && productActions) {
     // Em telas ≤900px a barra fica sempre visível (CSS); no desktop só ao rolar.
-    let scrolledPast = false;
+    let scrolledPast  = false;
+    let actionsVisible = true;
     const mqMobile   = window.matchMedia('(max-width: 900px)');
-    // Eleva o botão flutuante do WhatsApp sempre que a barra puder cobrir o CTA.
+    // Eleva o botão flutuante do WhatsApp sempre que o CTA principal estiver
+    // na tela (visível OU já passamos por ele, e sempre no mobile) — assim o
+    // FAB nunca cobre "Adicionar ao carrinho" / "Comprar agora".
     const syncWhatsApp = () => {
-      const barraVisivel = scrolledPast || mqMobile.matches;
-      document.body.classList.toggle('sticky-bar-visible', barraVisivel);
+      const elevarWhats = scrolledPast || actionsVisible || mqMobile.matches;
+      document.body.classList.toggle('sticky-bar-visible', elevarWhats);
     };
     const stickyObs = new IntersectionObserver(entries => {
       entries.forEach(e => {
-        scrolledPast = !e.isIntersecting;
+        scrolledPast   = !e.isIntersecting;
+        actionsVisible = e.isIntersecting;
         stickyBar.classList.toggle('visible', scrolledPast);
         syncWhatsApp();
       });

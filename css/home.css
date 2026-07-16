@@ -334,7 +334,13 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  scroll-behavior: smooth;
+  /* Scroll horizontal ESTÁVEL (sem jitter):
+     - momentum nativo no iOS;
+     - overscroll contido p/ não "vazar" pro scroll da página;
+     - SEM scroll-behavior:smooth aqui (brigava com o arraste do dedo);
+       as setas usam scrollBy({behavior:'smooth'}) só no clique. */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   flex: 1;
 }
 
@@ -342,6 +348,8 @@
 
 .products-carousel .product-card {
   scroll-snap-align: start;
+  /* Hint de GPU: estabiliza o compositor durante o scroll (sem clipar badges). */
+  transform: translateZ(0);
 }
 
 .carousel-arrow {

@@ -785,10 +785,9 @@
 
 .sticky-buy-bar.visible { display: flex; }
 
-/* Quando a barra de compra fixa está visível, eleva o botão flutuante do
-   WhatsApp para que ele nunca cubra/corte o CTA "Adicionar ao carrinho".
-   (a barra tem z-index 90; o WhatsApp 9990 — empilhar não basta, é preciso
-   tirá-lo de cima da barra) */
+/* Sempre que o CTA principal está na tela (classe adicionada por produto.js),
+   eleva o botão flutuante do WhatsApp para que ele nunca cubra/corte o CTA
+   "Adicionar ao carrinho" / "Comprar agora". */
 body.sticky-bar-visible #vt-wa-btn { bottom: 96px; }
 body.sticky-bar-visible #vt-wa-tip { bottom: 160px; }
 
