@@ -21,6 +21,7 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://oxivtnuxnghpddwawfdr.supabase.co https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://oxivtnuxnghpddwawfdr.supabase.co wss://oxivtnuxnghpddwawfdr.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <script src="js/recovery-catcher.js"></script>
   <script src="js/error-logger.js"></script>
   <link rel="stylesheet" href="css/virtu-refinements.css?v=2" />
   <link rel="stylesheet" href="css/virtu-luxury.css?v=6" />
@@ -214,6 +215,59 @@
           <p id="signupMsg" class="conta-form__msg" style="display:none;"></p>
           <button type="submit" class="conta-form__submit">Criar Conta</button>
         </form>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================================================
+       SEÇÃO REDEFINIR SENHA — fluxo de recuperação
+  ==================================================== -->
+  <main class="conta-main conta-auth" id="recoverySection" hidden>
+
+    <!-- Painel esquerdo decorativo -->
+    <div class="conta-auth__panel">
+      <div class="conta-auth__panel-inner">
+        <img src="images/logo-concha.png" alt="" class="conta-auth__panel-logo" aria-hidden="true" />
+        <p class="conta-auth__panel-brand">VIRTÙ</p>
+        <p class="conta-auth__panel-tagline">Sua conta,<br>protegida.</p>
+      </div>
+    </div>
+
+    <!-- Formulário de nova senha -->
+    <div class="conta-auth__form-area">
+      <div class="conta-auth__box">
+
+        <h1 class="conta-auth__title">Definir nova senha</h1>
+        <p class="conta-auth__desc">Escolha uma nova senha para acessar sua conta.</p>
+
+        <form id="formRecovery" class="conta-form" novalidate>
+          <div class="conta-form__group">
+            <label class="conta-form__label" for="recoveryPassword">Nova senha</label>
+            <input type="password" id="recoveryPassword" class="conta-form__input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required minlength="8" />
+          </div>
+          <div class="conta-form__group">
+            <label class="conta-form__label" for="recoveryPasswordConf">Confirmar nova senha</label>
+            <input type="password" id="recoveryPasswordConf" class="conta-form__input" placeholder="Repita a nova senha" autocomplete="new-password" required minlength="8" />
+          </div>
+          <p id="recoveryMsg" class="conta-form__msg" style="display:none;"></p>
+          <button type="submit" class="conta-form__submit">Salvar nova senha</button>
+        </form>
+
+        <!-- Bloco de link expirado / inválido -->
+        <div id="recoveryExpired" hidden>
+          <p class="conta-form__msg conta-form__msg--erro" style="display:block;">
+            Este link de redefinição expirou ou já foi usado. Solicite um novo abaixo.
+          </p>
+          <form id="formResendRecovery" class="conta-form" novalidate>
+            <div class="conta-form__group">
+              <label class="conta-form__label" for="recoveryResendEmail">E-mail</label>
+              <input type="email" id="recoveryResendEmail" class="conta-form__input" placeholder="seu@email.com" autocomplete="email" required />
+            </div>
+            <p id="recoveryResendMsg" class="conta-form__msg" style="display:none;"></p>
+            <button type="submit" class="conta-form__submit">Enviar novo link</button>
+          </form>
+        </div>
 
       </div>
     </div>

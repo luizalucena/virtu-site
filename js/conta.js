@@ -53,9 +53,35 @@ document.addEventListener('DOMContentLoaded', () => {
   let authHashType = null;
   try { authHashType = new URLSearchParams(location.hash.replace(/^#/, '')).get('type'); } catch { /* sem hash */ }
 
+  // ── DETECÇÃO ROBUSTA DO FLUXO DE RECUPERAÇÃO DE SENHA ───────
+  // Cobre os dois fluxos do Supabase (implícito no #hash e PKCE no ?code) e
+  // o caso de link expirado (#error=...). Lido de forma síncrona, antes de o
+  // supabase-js limpar a URL. O recovery-catcher.js (em todas as páginas) já
+  // pode ter marcado sessionStorage.vt_recovery ao redirecionar para cá.
+  const _hp = (() => { try { return new URLSearchParams(location.hash.replace(/^#/, '')); } catch { return new URLSearchParams(); } })();
+  const _qp = (() => { try { return new URLSearchParams(location.search); } catch { return new URLSearchParams(); } })();
+  const _recoveryError = _hp.get('error') || _qp.get('error');
+  let   recoveryDone   = false;   // vira true após redefinir com sucesso
+  // Flag de backup do redirect (recovery-catcher) — CONSUMIDO uma vez para não
+  // "grudar" e mostrar a tela de recovery em visitas futuras na mesma aba.
+  let   _flagRecovery = false;
+  try { _flagRecovery = sessionStorage.getItem('vt_recovery') === '1'; sessionStorage.removeItem('vt_recovery'); } catch { /* ignore */ }
+  let   isRecoveryFlow =
+        _hp.get('type') === 'recovery' ||
+        _qp.get('type') === 'recovery' ||
+        !!_recoveryError ||
+        _flagRecovery;
+  // PKCE defensivo: se veio um ?code=, troca por sessão (o evento
+  // PASSWORD_RECOVERY vs SIGNED_IN decide a ação). Sem efeito no fluxo
+  // implícito (que o detectSessionInUrl já resolve pelo #hash).
+  if (_qp.get('code')) {
+    try { supabaseClient.auth.exchangeCodeForSession(window.location.href).catch(() => {}); } catch { /* ignore */ }
+  }
+
   // ── REFS ────────────────────────────────────────────────────
-  const authSection    = document.getElementById('authSection');
-  const accountSection = document.getElementById('accountSection');
+  const authSection     = document.getElementById('authSection');
+  const accountSection  = document.getElementById('accountSection');
+  const recoverySection = document.getElementById('recoverySection');
 
   // Auth forms
   const tabLogin   = document.getElementById('tabLogin');
@@ -137,7 +163,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loadingEl) loadingEl.style.display = 'none';
   }
 
+  // ── TELA DE REDEFINIÇÃO DE SENHA ────────────────────────────
+  // Mostra a seção dedicada (form de nova senha) ou o bloco de link expirado.
+  function mostrarTelaRecovery(expirado) {
+    hideLoading();
+    authSection?.setAttribute('hidden', '');
+    accountSection?.setAttribute('hidden', '');
+    recoverySection?.removeAttribute('hidden');
+    const form    = document.getElementById('formRecovery');
+    const expired = document.getElementById('recoveryExpired');
+    if (expirado) {
+      form?.setAttribute('hidden', '');
+      expired?.removeAttribute('hidden');
+    } else {
+      form?.removeAttribute('hidden');
+      expired?.setAttribute('hidden', '');
+      document.getElementById('recoveryPassword')?.focus();
+    }
+  }
+
   async function checkAuth() {
+    // Fluxo de recuperação tem prioridade: abre a tela de nova senha (ou o
+    // bloco de link expirado) e NÃO entra na conta automaticamente.
+    if (_recoveryError) { mostrarTelaRecovery(true);  return; }
+    if (isRecoveryFlow && !recoveryDone) { mostrarTelaRecovery(false); return; }
+
     const { data: { session } } = await supabaseClient.auth.getSession();
     hideLoading();
     if (session) {
@@ -152,6 +202,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
     hideLoading();
+
+    // Evento canônico do Supabase para recuperação de senha.
+    if (event === 'PASSWORD_RECOVERY') {
+      isRecoveryFlow = true;
+      mostrarTelaRecovery(false);
+      return;
+    }
+    // Enquanto o fluxo de recuperação não foi concluído, a sessão de recovery
+    // NÃO deve entrar na conta — mantém a tela de nova senha aberta (ou o
+    // bloco de link expirado, se o token veio com erro).
+    if (isRecoveryFlow && !recoveryDone) {
+      mostrarTelaRecovery(!!_recoveryError);
+      return;
+    }
+
     if (session) {
       // Se acabou de fazer login e há uma URL de redirecionamento → vai direto
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && redirectAfterLogin) {
@@ -164,12 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       enterAccount(session.user);
       authDot?.classList.add('navbar__account-dot--visible');
-      // Feedback ao chegar pelo link do e-mail (confirmação / recuperação)
+      // Feedback ao chegar pelo link do e-mail (confirmação de cadastro)
       if (authHashType === 'signup') {
         mostrarToast('E-mail confirmado! Sua conta está ativa.');
-        authHashType = null;
-      } else if (authHashType === 'recovery') {
-        mostrarToast('Defina uma nova senha em “Meus Dados”.');
         authHashType = null;
       }
     } else {
@@ -314,14 +376,106 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const btn = document.getElementById('btnEsqueciSenha');
+    const _txt = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + '/conta.html'
     });
 
+    if (btn) { btn.disabled = false; btn.textContent = _txt || 'Esqueci minha senha'; }
+
     if (error) {
       showMsg(msgEl, traduzirErroAuth(error), 'erro');
     } else {
-      showMsg(msgEl, 'Link de redefinição enviado para ' + email, 'ok');
+      showMsg(msgEl,
+        'Enviamos um link de redefinição para ' + email + '. Verifique sua caixa de entrada (e o spam).',
+        'ok');
+    }
+  });
+
+  // ── REDEFINIR SENHA (tela dedicada do fluxo de recuperação) ──
+  document.getElementById('formRecovery')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const p1  = document.getElementById('recoveryPassword')?.value || '';
+    const p2  = document.getElementById('recoveryPasswordConf')?.value || '';
+    const msg = document.getElementById('recoveryMsg');
+    const btn = e.target.querySelector('.conta-form__submit');
+    hideMsg(msg);
+
+    if (p1.length < 8) {
+      showMsg(msg, 'A senha deve ter pelo menos 8 caracteres.', 'erro');
+      return;
+    }
+    if (p1 !== p2) {
+      showMsg(msg, 'As senhas não coincidem.', 'erro');
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+
+    let error = null;
+    try {
+      ({ error } = await supabaseClient.auth.updateUser({ password: p1 }));
+    } catch (err) {
+      error = err;
+    }
+
+    if (error) {
+      const m = (error.message || '').toLowerCase();
+      // Sessão de recuperação ausente/expirada → mostra bloco de link expirado.
+      if (m.includes('session') || m.includes('expired') || m.includes('jwt') ||
+          m.includes('token') || m.includes('not authenticated') || m.includes('auth session')) {
+        mostrarTelaRecovery(true);
+      } else {
+        showMsg(msg, traduzirErroAuth(error), 'erro');
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Salvar nova senha'; }
+      return;
+    }
+
+    // Sucesso: encerra o fluxo de recuperação e entra na conta.
+    recoveryDone = true;
+    try { sessionStorage.removeItem('vt_recovery'); } catch { /* ignore */ }
+    showMsg(msg, 'Senha redefinida com sucesso!', 'ok');
+    // Limpa o token da URL (não deixa vestígio do recovery).
+    try { history.replaceState(null, '', location.pathname); } catch { /* ignore */ }
+    if (btn) btn.textContent = 'Senha salva ✓';
+
+    setTimeout(async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      recoverySection?.setAttribute('hidden', '');
+      if (session) {
+        enterAccount(session.user);
+        authDot?.classList.add('navbar__account-dot--visible');
+      } else {
+        showAuthSection();
+      }
+    }, 1300);
+  });
+
+  // Reenviar link (bloco de link expirado)
+  document.getElementById('formResendRecovery')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('recoveryResendEmail')?.value.trim();
+    const msg   = document.getElementById('recoveryResendMsg');
+    const btn   = e.target.querySelector('.conta-form__submit');
+    hideMsg(msg);
+    if (!email) { showMsg(msg, 'Digite seu e-mail.', 'erro'); return; }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/conta.html'
+    });
+    if (btn) { btn.disabled = false; btn.textContent = 'Enviar novo link'; }
+
+    if (error) {
+      showMsg(msg, traduzirErroAuth(error), 'erro');
+    } else {
+      showMsg(msg,
+        'Enviamos um novo link para ' + email + '. Verifique a caixa de entrada (e o spam).',
+        'ok');
     }
   });
 
