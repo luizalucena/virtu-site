@@ -57,6 +57,22 @@ function updateCartBadge() {
   if (badge) { badge.textContent = total; badge.hidden = total === 0; }
 }
 
+/* ── ESTOQUE REAL POR ITEM (autoridade: Supabase) ──────────────
+   O backend (reservar_estoque_pedido) é a autoridade final; aqui
+   espelhamos o estoque REAL de cada variação (produto + tamanho + cor)
+   para não deixar o cliente pedir mais do que existe.               */
+let _estoqueMap = {};   // chave do item → estoque (número). Ausente = desconhecido.
+
+function _itemKey(item) {
+  return `${item.id ?? item.produto_id ?? ''}|${item.tamanho ?? ''}|${item.cor_nome ?? ''}`;
+}
+
+// Limite de quantidade do item: estoque real se conhecido, senão 10 (fallback).
+function _capDoItem(item) {
+  const e = _estoqueMap[_itemKey(item)];
+  return (typeof e === 'number') ? e : 10;
+}
+
 /* ── UTILITÁRIOS ───────────────────────────────────────────── */
 function formatCurrency(value) {
   return `R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -90,6 +106,9 @@ function renderCartItem(item, index) {
   const preco      = item.preco || 0;
   const qty        = item.qty   || 1;
   const itemTotal  = preco * qty;
+  const cap        = _capDoItem(item);
+  const maxAttr    = cap > 0 ? cap : 1;
+  const atMax      = qty >= maxAttr;
 
   return `
     <div class="cart-item" data-index="${index}" data-price="${preco}">
@@ -104,8 +123,8 @@ function renderCartItem(item, index) {
       <div class="cart-item__price">${formatCurrency(preco)}</div>
       <div class="cart-item__qty">
         <button class="qty-btn qty-btn--minus" aria-label="Diminuir quantidade">−</button>
-        <input class="qty-input" type="number" value="${qty}" min="1" max="10" aria-label="Quantidade" />
-        <button class="qty-btn qty-btn--plus" aria-label="Aumentar quantidade">+</button>
+        <input class="qty-input" type="number" value="${qty}" min="1" max="${maxAttr}" aria-label="Quantidade" />
+        <button class="qty-btn qty-btn--plus" aria-label="Aumentar quantidade"${atMax ? ' disabled' : ''}>+</button>
       </div>
       <div class="cart-item__total">${formatCurrency(itemTotal)}</div>
       <button class="cart-item__remove" aria-label="Remover ${escHtml(item.nome)}">
@@ -128,9 +147,14 @@ function bindItemEvents() {
     minus?.addEventListener('click', () => changeQty(index, -1));
     plus?.addEventListener('click',  () => changeQty(index,  1));
     input?.addEventListener('change', () => {
+      const items = getCart();
+      const cap = Math.max(1, _capDoItem(items[index] || {}));
       let v = parseInt(input.value);
       if (isNaN(v) || v < 1) v = 1;
-      if (v > 10) v = 10;
+      if (v > cap) {
+        v = cap;
+        _toastCarrinho(`Só temos ${cap} unidade${cap > 1 ? 's' : ''} deste tamanho.`);
+      }
       input.value = v;
       setQty(index, v);
     });
@@ -141,7 +165,12 @@ function bindItemEvents() {
 function changeQty(index, delta) {
   const items = getCart();
   if (!items[index]) return;
-  items[index].qty = Math.min(10, Math.max(1, (items[index].qty || 1) + delta));
+  const cap = Math.max(1, _capDoItem(items[index]));
+  const alvo = (items[index].qty || 1) + delta;
+  if (delta > 0 && alvo > cap) {
+    _toastCarrinho(`Só temos ${cap} unidade${cap > 1 ? 's' : ''} deste tamanho.`);
+  }
+  items[index].qty = Math.min(cap, Math.max(1, alvo));
   saveCart(items);
   renderCartItems();
 }
@@ -149,9 +178,10 @@ function changeQty(index, delta) {
 function setQty(index, qty) {
   const items = getCart();
   if (!items[index]) return;
-  items[index].qty = qty;
+  const cap = Math.max(1, _capDoItem(items[index]));
+  items[index].qty = Math.min(cap, Math.max(1, qty));
   saveCart(items);
-  updateSummary();
+  renderCartItems();
 }
 
 function removeItem(itemEl, index) {
@@ -203,48 +233,138 @@ function renderCartItems() {
   updateSummary();
 }
 
-/* ── VERIFICAÇÃO DE ESTOQUE BAIXO NO CARRINHO ───────────────── */
+/* ── SINCRONIZAÇÃO DE ESTOQUE DO CARRINHO (autoridade: Supabase) ──
+   Busca o estoque REAL de cada variação (por produto + tamanho + cor,
+   cobrindo também itens sem variacao_id), auto-ajusta quantidades que
+   passaram do disponível, mostra badges e bloqueia o checkout quando
+   algum item está esgotado ou acima do estoque.                      */
 async function _verificarEstoqueBaixoNoCarrinho(items) {
-  if (typeof supabaseClient === 'undefined') return;
-  const variacaoIds = items
-    .map((item, idx) => ({ idx, id: item.variacao_id }))
-    .filter(x => x.id);
-  if (!variacaoIds.length) return;
+  if (typeof supabaseClient === 'undefined' || !items.length) return;
 
+  const produtoIds = [...new Set(items.map(i => i.id || i.produto_id).filter(Boolean))];
+  if (!produtoIds.length) return;
+
+  let data;
   try {
-    const { data } = await supabaseClient
+    const res = await supabaseClient
       .from('variacoes')
-      .select('id, estoque')
-      .in('id', variacaoIds.map(x => x.id));
+      .select('id, produto_id, tamanho, cor_nome, estoque, ativo')
+      .in('produto_id', produtoIds);
+    data = res.data;
+  } catch { return; /* silencioso — não prejudica o carrinho */ }
+  if (!data) return;
 
-    if (!data) return;
+  // Resolve o estoque de cada item (exato por variacao_id; senão por
+  // produto + tamanho + cor, com fallback para produto sem tamanho/cor).
+  const novoMap = {};
+  items.forEach(item => {
+    const pid = item.id || item.produto_id;
+    const tam = item.tamanho || '';
+    const cor = item.cor_nome || '';
+    const variacoesDoProduto = data.filter(v => v.produto_id === pid);
 
-    const estoqueMap = {};
-    data.forEach(v => { estoqueMap[v.id] = v.estoque; });
+    let row = null;
+    if (item.variacao_id) row = variacoesDoProduto.find(v => v.id === item.variacao_id);
+    if (!row) {
+      row = variacoesDoProduto.find(v => v.ativo !== false
+        && (String(v.tamanho || '') === tam || !tam)
+        && (String(v.cor_nome || '') === cor || !cor));
+    }
 
-    variacaoIds.forEach(({ idx, id }) => {
-      const estoque = estoqueMap[id];
-      if (estoque == null) return;
+    if (row) {
+      novoMap[_itemKey(item)] = Number(row.estoque) || 0;
+    } else if (variacoesDoProduto.length) {
+      // produto tem variações, mas a combinação pedida não existe/está inativa
+      novoMap[_itemKey(item)] = 0;
+    }
+    // produto sem variações no banco → desconhecido (não bloqueia; backend decide)
+  });
+  _estoqueMap = novoMap;
 
-      const itemEl = document.querySelector(`.cart-item[data-index="${idx}"]`);
-      if (!itemEl) return;
+  // Auto-ajuste: reduz quantidade que passou do estoque real.
+  let mudou = false;
+  const atuais = getCart();
+  atuais.forEach(item => {
+    const e = _estoqueMap[_itemKey(item)];
+    if (typeof e === 'number' && e > 0 && (item.qty || 1) > e) {
+      item.qty = e;
+      mudou = true;
+    }
+  });
+  if (mudou) {
+    saveCart(atuais);
+    _toastCarrinho('Ajustamos a quantidade ao estoque disponível.');
+    renderCartItems(); // re-render corrige valores; nova sync converge sem mudar nada
+    return;
+  }
 
-      // Remove badge anterior se houver
-      itemEl.querySelector('.cart-item__stock-badge')?.remove();
+  _aplicarEstadoEstoqueUI(getCart());
+}
 
-      if (estoque === 0) {
-        const badge = document.createElement('p');
-        badge.className = 'cart-item__stock-badge cart-item__stock-badge--esgotado';
-        badge.textContent = 'Esgotado — remova ou troque';
-        itemEl.querySelector('.cart-item__info')?.appendChild(badge);
-      } else if (estoque <= 3) {
-        const badge = document.createElement('p');
-        badge.className = 'cart-item__stock-badge cart-item__stock-badge--urgente';
-        badge.textContent = `Últimas ${estoque} unidade${estoque > 1 ? 's' : ''}!`;
-        itemEl.querySelector('.cart-item__info')?.appendChild(badge);
-      }
-    });
-  } catch { /* silencioso — não prejudica o carrinho */ }
+/* Aplica badges por item + limites do seletor + estado do botão de checkout. */
+function _aplicarEstadoEstoqueUI(items) {
+  let bloquear = false;
+
+  items.forEach((item, idx) => {
+    const itemEl = document.querySelector(`.cart-item[data-index="${idx}"]`);
+    if (!itemEl) return;
+    itemEl.querySelector('.cart-item__stock-badge')?.remove();
+
+    const e = _estoqueMap[_itemKey(item)];
+    const info  = itemEl.querySelector('.cart-item__info');
+    const input = itemEl.querySelector('.qty-input');
+    const plus  = itemEl.querySelector('.qty-btn--plus');
+    if (typeof e !== 'number') return; // desconhecido → não interfere
+
+    // Atualiza limites do seletor conforme o estoque real.
+    if (input) input.max = e > 0 ? e : 1;
+    if (plus)  plus.disabled = (item.qty || 1) >= e;
+
+    if (e === 0) {
+      bloquear = true;
+      itemEl.classList.add('cart-item--indisponivel');
+      const b = document.createElement('p');
+      b.className = 'cart-item__stock-badge cart-item__stock-badge--esgotado';
+      b.textContent = 'Esgotado — remova para continuar';
+      info?.appendChild(b);
+    } else if ((item.qty || 1) > e) {
+      bloquear = true;
+      const b = document.createElement('p');
+      b.className = 'cart-item__stock-badge cart-item__stock-badge--esgotado';
+      b.textContent = `Só há ${e} em estoque — ajuste a quantidade`;
+      info?.appendChild(b);
+    } else if (e <= 3) {
+      const b = document.createElement('p');
+      b.className = 'cart-item__stock-badge cart-item__stock-badge--urgente';
+      b.textContent = `Últimas ${e} unidade${e > 1 ? 's' : ''}!`;
+      info?.appendChild(b);
+    }
+  });
+
+  _setCheckoutBloqueado(bloquear);
+}
+
+/* Habilita/bloqueia o botão "Finalizar Compra" conforme o estoque. */
+function _setCheckoutBloqueado(bloquear) {
+  const btn = document.getElementById('checkoutBtn');
+  if (!btn) return;
+  btn.dataset.bloqueado = bloquear ? '1' : '0';
+  btn.classList.toggle('is-disabled', bloquear);
+  btn.setAttribute('aria-disabled', bloquear ? 'true' : 'false');
+
+  let aviso = document.getElementById('checkoutEstoqueAviso');
+  if (bloquear) {
+    if (!aviso) {
+      aviso = document.createElement('p');
+      aviso.id = 'checkoutEstoqueAviso';
+      aviso.className = 'cart-item__stock-badge cart-item__stock-badge--esgotado';
+      aviso.style.cssText = 'margin-top:10px;text-align:center';
+      aviso.textContent = 'Ajuste os itens sem estoque para finalizar a compra.';
+      btn.insertAdjacentElement('afterend', aviso);
+    }
+  } else if (aviso) {
+    aviso.remove();
+  }
 }
 
 /* ── RESUMO DO PEDIDO ──────────────────────────────────────── */
@@ -637,6 +757,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', async (e) => {
       e.preventDefault();
+      // Bloqueio por estoque: algum item esgotado ou acima do disponível.
+      if (checkoutBtn.dataset.bloqueado === '1') {
+        _toastCarrinho('Ajuste os itens sem estoque antes de finalizar.');
+        document.getElementById('checkoutEstoqueAviso')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {

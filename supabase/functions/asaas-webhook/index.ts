@@ -41,6 +41,17 @@ const EVENTOS_PAGAMENTO_CONFIRMADO = new Set([
   'PAYMENT_RECEIVED',
 ]);
 
+// Eventos que DEVOLVEM o estoque reservado (pedido não vai adiante):
+// PIX/boleto vencido, estorno, chargeback, exclusão, reversão.
+const EVENTOS_RESTAURA_ESTOQUE = new Set([
+  'PAYMENT_OVERDUE',
+  'PAYMENT_REFUNDED',
+  'PAYMENT_DELETED',
+  'PAYMENT_REVERSED',
+  'PAYMENT_CHARGEBACK_REQUESTED',
+  'PAYMENT_REFUND_IN_PROGRESS',
+]);
+
 Deno.serve(async (req) => {
   // Webhook é POST server-to-server; sem CORS necessário
   if (req.method === 'OPTIONS') {
@@ -73,6 +84,27 @@ Deno.serve(async (req) => {
     const paymentObj = body.payment as Record<string, unknown> | undefined;
 
     console.log(`[asaas-webhook] Evento recebido: ${evento}`);
+
+    // ── Restauração de estoque (vencido/estorno/chargeback/exclusão) ──
+    // RPC atômica devolve o estoque reservado UMA vez (idempotente por flag).
+    if (EVENTOS_RESTAURA_ESTOQUE.has(evento)) {
+      const pid = String(paymentObj?.id ?? '');
+      if (!pid) return json({ erro: 'payload inválido' }, 400);
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+      // status permitido pela constraint pedidos_status_check
+      const novoStatus = 'cancelado';
+      const { data: res, error: resErr } = await supabase
+        .rpc('restaurar_estoque_por_payment', { p_payment_id: pid, p_status: novoStatus });
+      if (resErr) {
+        console.error('[asaas-webhook] Erro na restauração de estoque:', resErr.message);
+        return json({ erro: 'Falha ao restaurar estoque' }, 500);
+      }
+      console.log(`[asaas-webhook] ${evento}:`, JSON.stringify(res));
+      return json({ ok: true, ...(res as Record<string, unknown>) });
+    }
 
     // ── Filtra apenas eventos de confirmação de pagamento ────
     if (!EVENTOS_PAGAMENTO_CONFIRMADO.has(evento)) {

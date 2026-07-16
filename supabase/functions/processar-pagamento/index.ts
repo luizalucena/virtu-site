@@ -438,44 +438,9 @@ Deno.serve(async (req) => {
       return json({ erro: 'Valor do pedido inválido.' }, 400);
     }
 
-    // ── Valida estoque ANTES de cobrar (reduz oversell) ──────
-    // Não é reserva atômica: resta uma pequena janela até o trigger debitar,
-    // mas evita aceitar pagamento de item claramente esgotado.
-    {
-      const { data: vars } = await supabase
-        .from('variacoes')
-        .select('produto_id, tamanho, cor_nome, estoque')
-        .in('produto_id', productIds);
-
-      for (const item of itens as any[]) {
-        const qty       = Number(item.qty) || 1;
-        const doProduto = (vars ?? []).filter((v) => v.produto_id === item.id);
-        let estoqueDisp: number;
-
-        const exata = doProduto.find((v) =>
-          (item.tamanho  == null || v.tamanho  === item.tamanho) &&
-          (item.cor_nome == null || v.cor_nome === item.cor_nome),
-        );
-        if (exata) {
-          estoqueDisp = Number(exata.estoque) || 0;
-        } else if (doProduto.length > 0) {
-          // espelha o fallback do trigger: qualquer variação do produto
-          estoqueDisp = doProduto.reduce((m, v) => Math.max(m, Number(v.estoque) || 0), 0);
-        } else {
-          // produto sem variação cadastrada → usa produtos.estoque
-          const { data: prod } = await supabase
-            .from('produtos').select('estoque').eq('id', item.id).maybeSingle();
-          estoqueDisp = Number(prod?.estoque) || 0;
-        }
-
-        if (estoqueDisp < qty) {
-          return json(
-            { erro: `Estoque insuficiente para "${sanitize(item?.nome || 'item', 80)}". Disponível: ${estoqueDisp}.` },
-            409,
-          );
-        }
-      }
-    }
+    // ── Estoque ──────────────────────────────────────────────
+    // A RESERVA de estoque é ATÔMICA e fail-closed (por variação), feita
+    // logo ANTES de cobrar no ASAAS — ver reservar_estoque_pedido() adiante.
 
     // Cross-check ±2 centavos (tolerância para arredondamento client-side).
     // NÃO é bloqueante: o servidor SEMPRE cobra serverTotal (recomputado do
@@ -542,6 +507,25 @@ Deno.serve(async (req) => {
       return json({ erro: 'Erro ao registrar cliente no gateway. Tente novamente.' }, 502);
     }
 
+    // ── RESERVA ATÔMICA de estoque (fail-closed, por variação) ──
+    // Trava as linhas, revalida por tamanho+cor e baixa TUDO OU NADA ANTES de
+    // cobrar. Falhou → não cobra (409). Se a cobrança falhar depois, restaura.
+    let estoqueReservado = false;
+    {
+      const { data: rev, error: revErr } = await supabase
+        .rpc('reservar_estoque_pedido', { p_itens: itens ?? [] });
+      if (revErr || (rev as any)?.sucesso !== true) {
+        const disp = (rev as any)?.disponivel;
+        const tam  = (rev as any)?.tamanho;
+        const msg = (disp !== undefined && disp !== null)
+          ? `Estoque insuficiente. Só temos ${disp} unidade${disp === 1 ? '' : 's'}${tam ? ` no tamanho ${tam}` : ''}.`
+          : 'Um item do carrinho está sem estoque. Atualize a página e tente novamente.';
+        console.warn('[Estoque] Reserva recusada:', JSON.stringify(rev ?? revErr?.message));
+        return json({ erro: msg }, 409);
+      }
+      estoqueReservado = true;
+    }
+
     // ── Monta cobrança ASAAS ─────────────────────────────────
     // Vencimento: hoje + 1 dia (PIX) ou hoje + 7 dias (cartão/débito)
     const dueDate = new Date();
@@ -604,6 +588,13 @@ Deno.serve(async (req) => {
     if (!chargeRes.ok) {
       console.error('[ASAAS Cobrança]', JSON.stringify({ errors: chargeData.errors, status: chargeRes.status }));
 
+      // Cobrança falhou → devolve o estoque que foi reservado (sem pedido pago).
+      if (estoqueReservado) {
+        await supabase.rpc('restaurar_estoque_pedido', { p_itens: itens ?? [] })
+          .then(() => console.log('[Estoque] Reserva devolvida (cobrança falhou).'))
+          .catch((e) => console.error('[Estoque] Falha ao restaurar:', e));
+      }
+
       // Traduz erros comuns do ASAAS para português
       const errDesc = chargeData.errors?.[0]?.description || chargeData.error || '';
       const errMap: Record<string, string> = {
@@ -658,6 +649,17 @@ Deno.serve(async (req) => {
       ['DECLINED',  'REFUND_REQUESTED', 'REFUNDED'].includes(asaasStatus) ? 'recusado' :
       'pendente';
 
+    // Cobrança criada mas já recusada/estornada na origem (DECLINED/REFUNDED
+    // síncrono): devolve o estoque reservado — o pedido não vai adiante e um
+    // DECLINED de criação pode não gerar webhook de restauração. Assim o
+    // pedido é gravado com estoque_baixado=false (nada preso, sem duplo restore).
+    if (statusPedido === 'recusado' && estoqueReservado) {
+      await supabase.rpc('restaurar_estoque_pedido', { p_itens: itens ?? [] })
+        .then(() => console.log('[Estoque] Reserva devolvida (pedido recusado na criação).'))
+        .catch((e) => console.error('[Estoque] Falha ao restaurar (recusado):', e));
+      estoqueReservado = false;
+    }
+
     // ── Salva pedido no Supabase ─────────────────────────────
     const { data: pedido, error: dbError } = await supabase
       .from('pedidos')
@@ -672,6 +674,7 @@ Deno.serve(async (req) => {
         desconto:           descontoNum + descontoGiftCard,
         total:              serverTotal,
         gift_card_aplicado: giftCardAplicado,
+        estoque_baixado:    estoqueReservado,
         user_id:            confirmedUserId || null,
         cep:                endereco?.cep,
         rua:                endereco?.rua,
@@ -698,7 +701,14 @@ Deno.serve(async (req) => {
       .select('id')
       .single();
 
-    if (dbError) throw new Error('[DB Insert] ' + dbError.message);
+    if (dbError) {
+      // Insert falhou após a cobrança: devolve o estoque reservado para não
+      // ficar preso sem pedido (caso raro; a cobrança ASAAS vira caso manual).
+      if (estoqueReservado) {
+        await supabase.rpc('restaurar_estoque_pedido', { p_itens: itens ?? [] }).catch(() => {});
+      }
+      throw new Error('[DB Insert] ' + dbError.message);
+    }
 
     // Nota: o uso do cupom (cupom_usos_cliente + cupons.usos) é registrado
     // automaticamente pelo trigger trg_registrar_uso_cupom em `pedidos`

@@ -408,6 +408,23 @@ const VirtuStock = (() => {
     });
   }
 
+  /* ── AVISO DE LIMITE DE ESTOQUE (ao tentar passar do disponível) ── */
+  function _avisarLimiteEstoque(msg) {
+    let el = document.getElementById('avisoLimiteEstoque');
+    if (!msg) { if (el) el.textContent = ''; return; }
+    if (!el) {
+      const acoes = document.querySelector('.produto-acoes');
+      if (!acoes) return;
+      el = document.createElement('p');
+      el.id = 'avisoLimiteEstoque';
+      el.className = 'stock-info stock-info--urgente';
+      el.setAttribute('role', 'status');
+      el.style.cssText = 'margin-top:8px';
+      acoes.appendChild(el);
+    }
+    el.textContent = msg;
+  }
+
   /* ── 7. INICIALIZAÇÃO COMPLETA ──────────────────────────── */
   /**
    * Ponto de entrada principal — chamada única na página de produto.
@@ -463,7 +480,14 @@ const VirtuStock = (() => {
 
           // Adiciona ao carrinho local (localStorage) imediatamente.
           // O decremento real do stock ocorre apenas na finalização do pedido.
-          adicionarAoCarrinhoLocal(variacao, produtoId);
+          const res = adicionarAoCarrinhoLocal(variacao, produtoId);
+
+          // Bateu o limite de estoque da variação → avisa e não adiciona.
+          if (!res.sucesso) {
+            _avisarLimiteEstoque(res.motivo);
+            return;
+          }
+          _avisarLimiteEstoque('');
 
           if (typeof onCompra === 'function') onCompra({ sucesso: true }, variacao);
         });
@@ -476,11 +500,15 @@ const VirtuStock = (() => {
   }
 
   /* ── 8. INTEGRAÇÃO COM CARRINHO (localStorage) ──────────── */
+  // Retorna { sucesso, motivo? }. Nunca deixa a quantidade no carrinho
+  // ultrapassar o estoque REAL da variação (tamanho + cor). O backend
+  // (reservar_estoque_pedido) é a autoridade final; isto é só UX honesta.
   function adicionarAoCarrinhoLocal(variacao, produtoId) {
     const CART_KEY = 'virtu_cart';
     const nome  = document.querySelector('[data-produto-nome]')?.textContent?.trim() || 'Produto';
     const preco = parseFloat(document.querySelector('[data-preco]')?.getAttribute('data-preco') || 0);
     const imgBg = document.getElementById('mainPlaceholder')?.style?.background || '';
+    const estoque = Number(variacao.estoque) || 0;
 
     let cart = [];
     try { cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch {}
@@ -488,8 +516,21 @@ const VirtuStock = (() => {
     const idx = cart.findIndex(i =>
       i.id === produtoId && i.tamanho === variacao.tamanho && i.cor_nome === variacao.cor_nome
     );
+    const qtdAtual = idx >= 0 ? (cart[idx].qty || 1) : 0;
+
+    // Trava: não permite pedir mais do que existe nesta variação.
+    if (estoque <= 0) {
+      return { sucesso: false, motivo: 'Tamanho esgotado.' };
+    }
+    if (qtdAtual >= estoque) {
+      return {
+        sucesso: false,
+        motivo: `Você já tem ${qtdAtual} no carrinho — é todo o estoque disponível deste tamanho (${estoque}).`
+      };
+    }
+
     if (idx >= 0) {
-      cart[idx].qty = (cart[idx].qty || 1) + 1;
+      cart[idx].qty = qtdAtual + 1;
     } else {
       cart.push({
         id:                 produtoId,
@@ -516,6 +557,7 @@ const VirtuStock = (() => {
       badge.classList.add('pulse');
       setTimeout(() => badge.classList.remove('pulse'), 600);
     }
+    return { sucesso: true };
   }
 
   /* ── API PÚBLICA ────────────────────────────────────────── */

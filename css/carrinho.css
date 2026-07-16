@@ -121,8 +121,16 @@
   background: var(--color-gold-pale);
 }
 .cart-item__stock-badge--esgotado {
-  color: var(--color-text-light);
-  background: var(--color-off-white);
+  color: #9a3324;
+  background: #f7ecea;
+}
+
+/* Item sem estoque suficiente — atenua e sinaliza que precisa de ação. */
+.cart-item--indisponivel {
+  opacity: 0.7;
+}
+.cart-item--indisponivel .cart-item__img-placeholder {
+  filter: grayscale(0.5);
 }
 
 .cart-item__price-mobile { display: none; }
@@ -382,6 +390,12 @@
   text-align: center;
   padding: 1rem;
   font-size: 0.9rem;
+}
+
+/* Checkout bloqueado por estoque — clicável (mostra aviso) mas atenuado. */
+.cart-summary__cta.is-disabled {
+  opacity: 0.55;
+  filter: grayscale(0.3);
 }
 
 .cart-summary__security {
