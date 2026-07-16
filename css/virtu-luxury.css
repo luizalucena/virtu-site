@@ -493,9 +493,12 @@ p, li, td, th, label,
   background: var(--lux-white);
 }
 
-/* Steps indicator: minimalista ao extremo */
+/* Steps indicator: minimalista ao extremo.
+   IMPORTANTE: só o CONTÊINER da barra de etapas. O seletor amplo
+   [class*="checkout-step"] pegava também .checkout-step__num e
+   .checkout-steps__line — distorcia os círculos (viravam elipses) e as
+   linhas conectoras (viravam quadrados). */
 .checkout-steps,
-[class*="checkout-step"],
 .step-indicator {
   border-bottom: 1px solid var(--lux-ice-border);
   padding-bottom: 20px;
@@ -955,8 +958,9 @@ hr,
     letter-spacing: -0.015em;
   }
 
-  /* Checkout: padding reduzido mas mantém respiro */
-  [class*="checkout-step"],
+  /* Checkout: padding reduzido mas mantém respiro.
+     Escopado ao contêiner de etapas (não ao __num/__line, que quebravam). */
+  .checkout-steps,
   [class*="checkout-section"] {
     padding: 24px 16px;
   }

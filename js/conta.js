@@ -820,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const metodoPagto = m => ({
         pix:    'PIX',
         cartao: 'Cartão',
-        boleto: 'Boleto',
+        debito: 'Débito',
       }[m] || (m || '—'));
 
       let cicloCount = 0;

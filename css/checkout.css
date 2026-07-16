@@ -418,29 +418,6 @@
   color: var(--color-navy);
 }
 
-/* ── BOLETO INFO ─────────────────────────── */
-.boleto-info { padding: 1rem 0; }
-.boleto-info__text {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--color-text);
-  margin-bottom: 1rem;
-  line-height: 1.7;
-}
-.boleto-info__steps {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.boleto-info__steps li {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: var(--color-text-light);
-}
-
 .checkout-terms {
   font-family: var(--font-body);
   font-size: 0.75rem;

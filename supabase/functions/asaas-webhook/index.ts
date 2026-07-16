@@ -15,7 +15,7 @@
  *
  * Eventos tratados:
  *   PAYMENT_CONFIRMED — cartão/débito aprovado imediatamente
- *   PAYMENT_RECEIVED  — PIX ou boleto compensado
+ *   PAYMENT_RECEIVED  — PIX compensado
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -42,7 +42,7 @@ const EVENTOS_PAGAMENTO_CONFIRMADO = new Set([
 ]);
 
 // Eventos que DEVOLVEM o estoque reservado (pedido não vai adiante):
-// PIX/boleto vencido, estorno, chargeback, exclusão, reversão.
+// PIX vencido, estorno, chargeback, exclusão, reversão.
 const EVENTOS_RESTAURA_ESTOQUE = new Set([
   'PAYMENT_OVERDUE',
   'PAYMENT_REFUNDED',

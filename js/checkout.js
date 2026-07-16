@@ -976,12 +976,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Boleto não implementado — bloqueia
-    if (activeTab === 'boleto') {
-      showCheckoutMsg('Pagamento por boleto ainda não está disponível. Por favor, escolha PIX ou cartão de crédito.', 'aviso');
-      return;
-    }
-
     // Validação cartão crédito
     if (activeTab === 'cartao') {
       const num  = document.getElementById('cardNumber')?.value.trim();

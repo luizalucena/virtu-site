@@ -831,3 +831,26 @@ img[data-fallback] {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
+
+/* ──────────────────────────────────────────────────────────────
+   STEPPER DO CHECKOUT — número perfeitamente centrado no círculo
+   Regra canônica (arquivo carregado por último) para blindar o
+   alinhamento contra qualquer padding herdado. Círculo de tamanho
+   fixo, quadrado (aspect-ratio 1/1), com o número centrado via flex.
+   ────────────────────────────────────────────────────────────── */
+.checkout-step__num {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  aspect-ratio: 1 / 1;
+  flex: 0 0 auto;
+  padding: 0 !important;      /* anula o padding herdado dos seletores amplos */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border-radius: 50%;
+}
+@media (max-width: 600px) {
+  .checkout-step__num { width: 24px; height: 24px; }
+}
