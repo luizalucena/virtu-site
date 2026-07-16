@@ -320,6 +320,126 @@ function updateSummary() {
   }
 }
 
+/* ── QUICK-ADD MODAL (sugestões: tamanho + cor + qtd sem sair) ─ */
+function _fecharQa() {
+  const m = document.getElementById('qaModal');
+  if (m) { m.hidden = true; document.body.style.overflow = ''; }
+}
+function _qaError(msg) {
+  const e = document.getElementById('qaError');
+  if (!e) return;
+  if (msg) { e.textContent = msg; e.hidden = false; } else { e.hidden = true; }
+}
+function _toastCarrinho(texto) {
+  const t = document.createElement('div');
+  t.textContent = texto;
+  t.setAttribute('role', 'status');
+  t.style.cssText =
+    'position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);' +
+    'background:var(--color-navy);color:var(--color-off-white);padding:12px 22px;border-radius:999px;' +
+    'font-family:var(--font-body);font-size:0.85rem;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:1300;' +
+    'opacity:0;max-width:90vw;text-align:center;transition:opacity .25s ease, transform .25s ease;';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; });
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(8px)'; setTimeout(() => t.remove(), 300); }, 2600);
+}
+function _garantirQaModal() {
+  let modal = document.getElementById('qaModal');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.className = 'qa-modal';
+  modal.id = 'qaModal';
+  modal.hidden = true;
+  modal.innerHTML =
+    '<div class="qa-modal__overlay" data-qa-close></div>' +
+    '<div class="qa-modal__panel" role="dialog" aria-modal="true" aria-labelledby="qaName">' +
+      '<button class="qa-modal__close" data-qa-close aria-label="Fechar">&times;</button>' +
+      '<div class="qa-modal__head"><div class="qa-modal__img" id="qaImg"></div>' +
+        '<div><p class="qa-modal__name" id="qaName"></p><p class="qa-modal__price" id="qaPrice"></p></div></div>' +
+      '<div class="qa-modal__field" id="qaSizesField"><span class="qa-modal__label">Tamanho</span>' +
+        '<div class="qa-modal__chips" id="qaSizes"></div></div>' +
+      '<div class="qa-modal__field" id="qaColorsField" hidden><span class="qa-modal__label">Cor</span>' +
+        '<div class="qa-modal__chips" id="qaColors"></div></div>' +
+      '<div class="qa-modal__field"><span class="qa-modal__label">Quantidade</span>' +
+        '<div class="qa-modal__qty"><button type="button" id="qaMinus" aria-label="Diminuir">&minus;</button>' +
+        '<span id="qaQty">1</span><button type="button" id="qaPlus" aria-label="Aumentar">+</button></div></div>' +
+      '<p class="qa-modal__error" id="qaError" hidden></p>' +
+      '<button class="btn btn--primary qa-modal__add" id="qaAdd">Adicionar ao carrinho</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+  modal.querySelectorAll('[data-qa-close]').forEach(el => el.addEventListener('click', _fecharQa));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') _fecharQa(); });
+  return modal;
+}
+function abrirQuickAdd(product) {
+  const modal = _garantirQaModal();
+  const preco = product.preco_desconto ?? product.preco_original;
+  const sizes = product.tamanhos || [];
+  const cores = product.cores || [];
+  const state = { size: sizes.length ? null : '', cor: cores.length > 1 ? null : (cores[0] || null), qty: 1 };
+
+  const imgEl = modal.querySelector('#qaImg');
+  imgEl.style.background = product.imagem_url
+    ? `url('${product.imagem_url}') center/cover no-repeat`
+    : 'var(--color-off-white)';
+  modal.querySelector('#qaName').textContent  = product.nome || 'Produto';
+  modal.querySelector('#qaPrice').textContent = formatCurrency(preco);
+
+  // Tamanhos
+  const sizesWrap = modal.querySelector('#qaSizes');
+  sizesWrap.innerHTML = '';
+  modal.querySelector('#qaSizesField').hidden = sizes.length === 0;
+  sizes.forEach(t => {
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'qa-chip'; chip.textContent = t;
+    chip.addEventListener('click', () => {
+      sizesWrap.querySelectorAll('.qa-chip').forEach(c => c.classList.remove('qa-chip--active'));
+      chip.classList.add('qa-chip--active'); state.size = t; _qaError(null);
+    });
+    sizesWrap.appendChild(chip);
+  });
+
+  // Cores (só se houver mais de uma; cor única é automática)
+  const coresWrap = modal.querySelector('#qaColors');
+  coresWrap.innerHTML = '';
+  modal.querySelector('#qaColorsField').hidden = cores.length <= 1;
+  if (cores.length > 1) {
+    cores.forEach(c => {
+      const chip = document.createElement('button');
+      chip.type = 'button'; chip.className = 'qa-chip qa-chip--color';
+      chip.innerHTML = `<span class="qa-chip__swatch" style="background:${escHtml(c.hex || '#ccc')}"></span>${escHtml(c.nome || '')}`;
+      chip.addEventListener('click', () => {
+        coresWrap.querySelectorAll('.qa-chip').forEach(x => x.classList.remove('qa-chip--active'));
+        chip.classList.add('qa-chip--active'); state.cor = c; _qaError(null);
+      });
+      coresWrap.appendChild(chip);
+    });
+  }
+
+  // Quantidade
+  const qtyEl = modal.querySelector('#qaQty'); qtyEl.textContent = '1'; state.qty = 1;
+  modal.querySelector('#qaMinus').onclick = () => { state.qty = Math.max(1, state.qty - 1); qtyEl.textContent = state.qty; };
+  modal.querySelector('#qaPlus').onclick  = () => { state.qty = Math.min(10, state.qty + 1); qtyEl.textContent = state.qty; };
+
+  // Adicionar
+  modal.querySelector('#qaAdd').onclick = () => {
+    if (sizes.length && !state.size)     { _qaError('Selecione um tamanho.'); return; }
+    if (cores.length > 1 && !state.cor)  { _qaError('Selecione uma cor.');    return; }
+    const cor = state.cor || {};
+    for (let i = 0; i < state.qty; i++) {
+      VirtuCart.add(product, state.size || '', cor.nome || '', cor.hex || '', null);
+    }
+    _fecharQa();
+    renderCartItems();
+    updateCartBadge();
+    _toastCarrinho('Adicionado ao carrinho ✓');
+  };
+
+  _qaError(null);
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
 /* ── SUGESTÕES (Supabase) ──────────────────────────────────── */
 async function loadSuggestions() {
   const grid = document.getElementById('suggestionsGrid');
@@ -336,16 +456,16 @@ async function loadSuggestions() {
 
     grid.innerHTML = shuffled.map(p => VirtuProducts.renderCard(p)).join('');
 
+    const _sugMap = {};
+    shuffled.forEach(p => { _sugMap[p.id] = p; });
+
     grid.querySelectorAll('.product-card__quick-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
-        // Redireciona para a página do produto para selecionar tamanho/cor
         const prodId = btn.dataset.id || btn.closest('[data-id]')?.dataset.id;
-        if (prodId) { window.location.href = `produto.html?id=${prodId}`; return; }
-        const orig = btn.innerHTML;
-        btn.innerHTML = '✓ Adicionado!';
-        btn.style.cssText = 'background:var(--color-navy);color:white;';
-        setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1400);
+        const prod = _sugMap[prodId];
+        if (prod) { abrirQuickAdd(prod); return; }               // seleção inline (tamanho/qtd)
+        if (prodId) window.location.href = `produto.html?id=${prodId}`; // fallback
       });
     });
     // wishlist.js gerencia os corações via event delegation global
