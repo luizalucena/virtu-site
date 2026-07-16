@@ -647,6 +647,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.classList.add('produto-cor--active');
     selectedColor = btn.getAttribute('aria-label') || btn.dataset.cor || '';
     if (selectedColorLabel) selectedColorLabel.textContent = selectedColor;
+    const _sa = document.getElementById('sizeAlert');
+    if (_sa) _sa.hidden = true;   // some com o alerta "selecione uma cor"
   });
 
   // ── SELETOR DE TAMANHOS (event delegation) ─
@@ -687,20 +689,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cartBadge    = document.getElementById('cartBadge');
   if (cartBadge && cartCount > 0) cartBadge.textContent = cartCount;
   const addToCartBtn = document.getElementById('btnComprar');
-  const buyNowBtn    = document.getElementById('buyNowBtn');
   const stickyAddBtn = document.getElementById('stickyAddBtn');
+
+  // Mostra o alerta (reusa o #sizeAlert como padrão visual) com o texto certo.
+  function _alerta(texto) {
+    if (!sizeAlert) return;
+    sizeAlert.textContent = texto;
+    sizeAlert.hidden = false;
+    sizeAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    sizeAlert.animate([
+      { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' },
+      { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' },
+      { transform: 'translateX(0)' }
+    ], { duration: 400, easing: 'ease' });
+  }
 
   function validateAndAdd(redirect = false) {
     if (!selectedSize) {
-      if (sizeAlert) {
-        sizeAlert.hidden = false;
-        sizeAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        sizeAlert.animate([
-          { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' },
-          { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' },
-          { transform: 'translateX(0)' }
-        ], { duration: 400, easing: 'ease' });
-      }
+      _alerta('Por favor, selecione um tamanho.');
+      return false;
+    }
+
+    // Cor obrigatória SE o produto tiver cores para escolher.
+    const temCores = document.querySelectorAll('#coresContainer .produto-cor').length > 0;
+    const corAtiva = document.querySelector('#coresContainer .produto-cor--active')
+                       ?.getAttribute('aria-label') || selectedColor || '';
+    if (temCores && !corAtiva) {
+      _alerta('Por favor, selecione uma cor.');
       return false;
     }
 
@@ -708,8 +723,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const CART_KEY = 'virtu_cart';
     const nome  = document.querySelector('[data-produto-nome]')?.textContent?.trim() || '';
     const preco = parseFloat(document.querySelector('[data-preco]')?.dataset?.preco) || 0;
-    const cor   = document.querySelector('#coresContainer .produto-cor--active')
-                    ?.getAttribute('aria-label') || selectedColor || '';
+    const cor   = corAtiva;
     const imgBg  = document.getElementById('mainPlaceholder')?.style?.background || '';
     // #mainImg é um <div> com background-image — lemos a URL do dataset.currentUrl
     const imgUrl = mainImg?.dataset?.currentUrl
@@ -771,14 +785,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (_stockAtivo()) return;
     validateAndAdd(false);
   });
-  buyNowBtn?.addEventListener('click', () => {
-    if (_stockAtivo()) return;
-    validateAndAdd(true);
-  });
-  stickyAddBtn?.addEventListener('click', () => {
-    if (_stockAtivo()) return;
-    validateAndAdd(true);
-  });
+
+  // Botão sticky (mobile): é um espelho do #btnComprar — mesma validação,
+  // mesmo rótulo dinâmico e mesmo estado (desabilitado / esgotado). A ação é
+  // delegada ao botão principal, cobrindo tanto o VirtuStock quanto o fallback.
+  if (stickyAddBtn && addToCartBtn) {
+    stickyAddBtn.addEventListener('click', () => {
+      if (addToCartBtn.disabled) return;
+      addToCartBtn.click();
+    });
+    const _syncSticky = () => {
+      const txt = (addToCartBtn.textContent || '').trim();
+      if (txt) stickyAddBtn.textContent = txt;
+      stickyAddBtn.disabled = addToCartBtn.disabled;
+      stickyAddBtn.classList.toggle('esgotado', addToCartBtn.classList.contains('esgotado'));
+    };
+    new MutationObserver(_syncSticky).observe(addToCartBtn, {
+      childList: true, characterData: true, subtree: true,
+      attributes: true, attributeFilter: ['disabled', 'class']
+    });
+    _syncSticky();
+  }
 
   // wishlist.js gerencia o coração via event delegation global
 
@@ -826,7 +853,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mqMobile   = window.matchMedia('(max-width: 900px)');
     // Eleva o botão flutuante do WhatsApp sempre que o CTA principal estiver
     // na tela (visível OU já passamos por ele, e sempre no mobile) — assim o
-    // FAB nunca cobre "Adicionar ao carrinho" / "Comprar agora".
+    // FAB nunca cobre o CTA "Adicionar ao carrinho".
     const syncWhatsApp = () => {
       const elevarWhats = scrolledPast || actionsVisible || mqMobile.matches;
       document.body.classList.toggle('sticky-bar-visible', elevarWhats);
@@ -895,19 +922,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lista = [...coresMap.entries()].map(([nome, hex]) => ({ nome, hex }));
         _renderCores(lista);
 
-        // Pré-seleciona a primeira cor no VirtuStock
-        if (lista.length > 0) {
+        // Cor única → pré-seleciona (aceitável). Várias cores → NÃO pré-seleciona:
+        // o cliente precisa escolher (o #btnComprar fica "Selecione tamanho e cor").
+        if (lista.length === 1) {
           selectedColor = lista[0].nome;
           if (selectedColorLabel) selectedColorLabel.textContent = lista[0].nome;
           VirtuStock.selecionarCor(lista[0].nome);
+        } else if (lista.length > 1) {
+          selectedColor = '';
+          if (selectedColorLabel) selectedColorLabel.textContent = 'Selecione';
         }
       } else {
         // Fallback: p.cores do produto (produto sem gestão de stock)
         const fallback = _produtoCarregado?.cores || [];
         _renderCores(fallback);
-        if (fallback.length > 0) {
+        // Cor única → pré-seleciona; várias → cliente escolhe (validado no clique).
+        if (fallback.length === 1) {
           selectedColor = fallback[0].nome;
           if (selectedColorLabel) selectedColorLabel.textContent = fallback[0].nome;
+        } else if (fallback.length > 1) {
+          selectedColor = '';
+          if (selectedColorLabel) selectedColorLabel.textContent = 'Selecione';
         }
       }
 
