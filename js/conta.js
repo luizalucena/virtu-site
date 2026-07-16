@@ -295,7 +295,51 @@ document.addEventListener('DOMContentLoaded', () => {
     tabLogin?.classList.remove('conta-tab--active');
     formSignup?.removeAttribute('hidden');
     formLogin?.setAttribute('hidden', '');
+    _limparReenvio();
   });
+
+  // ── REENVIO DE E-MAIL DE CONFIRMAÇÃO ────────────────────────
+  // O projeto exige confirmação de e-mail. Uma conta não confirmada pode
+  // devolver "Email not confirmed" OU "Invalid login credentials" (proteção
+  // anti-enumeração) — por isso oferecemos o reenvio nos dois casos.
+  function _limparReenvio() { document.getElementById('loginResendWrap')?.remove(); }
+
+  async function _reenviarConfirmacao(email) {
+    const btn = document.getElementById('loginResendBtn');
+    const fb  = document.getElementById('loginResendMsg');
+    if (!email) { if (fb) fb.textContent = 'Digite seu e-mail acima.'; return; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+    let error = null;
+    try { ({ error } = await supabaseClient.auth.resend({ type: 'signup', email })); }
+    catch (ex) { error = ex; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Reenviar e-mail de confirmação'; }
+    if (!fb) return;
+    if (error) {
+      const m = (error.message || '').toLowerCase();
+      fb.style.color = '';
+      fb.textContent = (m.includes('rate') || m.includes('security') || m.includes('only request'))
+        ? 'Aguarde um instante antes de pedir outro e-mail.'
+        : 'Não foi possível reenviar agora. Tente novamente.';
+    } else {
+      fb.style.color = '#2e7d32';
+      fb.textContent = 'Enviamos um novo link de confirmação para ' + email + '. Verifique também o spam.';
+    }
+  }
+
+  function _mostrarBotaoReenvio(email, textoAntes) {
+    _limparReenvio();
+    const anchor = document.getElementById('loginMsg');
+    if (!anchor) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'loginResendWrap';
+    wrap.style.cssText = 'margin-top:10px';
+    wrap.innerHTML =
+      (textoAntes ? `<p style="font-size:0.8rem;color:var(--color-text-light);margin:0 0 6px">${textoAntes}</p>` : '') +
+      '<button type="button" class="conta-form__link" id="loginResendBtn" style="text-align:left">Reenviar e-mail de confirmação</button>' +
+      '<p id="loginResendMsg" class="conta-form__msg" style="display:block;margin-top:6px;min-height:1em"></p>';
+    anchor.insertAdjacentElement('afterend', wrap);
+    document.getElementById('loginResendBtn')?.addEventListener('click', () => _reenviarConfirmacao(email));
+  }
 
   // ── LOGIN ───────────────────────────────────────────────────
   formLogin?.addEventListener('submit', async e => {
@@ -306,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn      = formLogin.querySelector('.conta-form__submit');
 
     hideMsg(msgEl);
+    _limparReenvio();
     btn.disabled = true;
     btn.textContent = 'Entrando…';
 
@@ -313,7 +358,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
+        const m = (error.message || '').toLowerCase();
         showMsg(msgEl, traduzirErroAuth(error), 'erro');
+        if (m.includes('email not confirmed') || m.includes('not confirmed')) {
+          // Conta não confirmada (mensagem já explica) → botão de reenvio.
+          _mostrarBotaoReenvio(email, '');
+        } else if (m.includes('invalid login credentials')) {
+          // Pode ser senha errada OU conta não confirmada — oferece reenvio
+          // como opção secundária, sem afirmar que a conta existe.
+          _mostrarBotaoReenvio(email, 'Ainda não confirmou o e-mail do cadastro?');
+        }
         btn.disabled = false;
         btn.textContent = 'Entrar';
       }
