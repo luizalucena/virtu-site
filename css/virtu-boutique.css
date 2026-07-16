@@ -682,6 +682,12 @@ img[data-fallback] {
 .product-card__image-wrap.is-ph > .product-card__wishlist,
 .product-card__image-wrap.is-ph > .product-card__quick-add { z-index: 1; }
 
+/* Wishlist e quick-add acima da imagem de crossfade do hover (z-index: 2),
+   senão o botão "Adicionar" fica escondido atrás da 2ª foto nos cards COM
+   imagem (só aparecia nos placeholders). Vale para todos os cards. */
+.product-card__wishlist,
+.product-card__quick-add { z-index: 3; }
+
 /* Card relacionado / compre-junto que usa .product-card__placeholder como filler */
 .product-card__placeholder.is-ph,
 .galeria-main__placeholder.is-ph { width: 100%; height: 100%; }
