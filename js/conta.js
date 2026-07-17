@@ -182,6 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Há um token de autenticação chegando pela URL (confirmação de cadastro,
+  // link de login, PKCE)? Nesse caso o supabase-js ainda vai processá-lo de
+  // forma ASSÍNCRONA e disparar SIGNED_IN — não devemos mostrar o login antes.
+  const _temTokenPendente =
+    authHashType === 'signup' ||
+    /access_token=/.test(location.hash) ||
+    !!_qp.get('code');
+
   async function checkAuth() {
     // Fluxo de recuperação tem prioridade: abre a tela de nova senha (ou o
     // bloco de link expirado) e NÃO entra na conta automaticamente.
@@ -189,12 +197,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isRecoveryFlow && !recoveryDone) { mostrarTelaRecovery(false); return; }
 
     const { data: { session } } = await supabaseClient.auth.getSession();
-    hideLoading();
     if (session) {
+      hideLoading();
       enterAccount(session.user);
-    } else {
-      showAuthSection();
+      return;
     }
+    // Sem sessão AINDA, mas há token na URL sendo processado → aguarda o
+    // evento (SIGNED_IN) em vez de piscar/prender no login. Fallback de 6s
+    // caso o token seja inválido/expirado (aí mostra o login normalmente).
+    if (_temTokenPendente) {
+      setTimeout(async () => {
+        const { data: { session: s2 } } = await supabaseClient.auth.getSession();
+        hideLoading();
+        if (!s2) showAuthSection();   // token inválido/expirado → login normal
+      }, 6000);
+      return;
+    }
+    hideLoading();
+    showAuthSection();
   }
 
   // Parâmetro de redirecionamento pós-login (ex: vindo do checkout)
