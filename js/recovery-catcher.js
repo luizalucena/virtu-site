@@ -1,9 +1,10 @@
 /* ============================================================
    VIRTÙ — recovery-catcher.js
    ------------------------------------------------------------
-   Garante que o link de REDEFINIÇÃO DE SENHA do Supabase sempre
-   abra a tela de "Definir nova senha" em /conta.html, mesmo que
-   a configuração de redirect do projeto leve o cliente para outra
+   Garante que os links de AUTENTICAÇÃO por e-mail do Supabase
+   (redefinição de senha E confirmação de cadastro) sempre abram
+   em /conta.html — com a tela/mensagem certa — mesmo que a
+   configuração de redirect do projeto leve o cliente para outra
    página (ex.: a home / Site URL).
 
    Deve ser o PRIMEIRO script do <head> de TODAS as páginas — roda
@@ -11,10 +12,10 @@
    e limpa o token da URL. Puro JS, sem dependências.
 
    O que detecta na URL:
-     • implícito:  #...&type=recovery
-     • query:      ?type=recovery
-     • erro:       #error=...&error_code=otp_expired (link expirado)
-     • PKCE:       ?code=... (troca de código; a conta decide a ação)
+     • recuperação: #type=recovery / ?type=recovery
+     • cadastro:    #type=signup   / ?type=signup   (confirmação de e-mail)
+     • erro:        #error=...&error_code=otp_expired (link expirado)
+     • PKCE:        ?code=... (troca de código; a conta decide a ação)
    ============================================================ */
 (function () {
   try {
@@ -25,6 +26,13 @@
     var isRecovery =
       /(^|&)type=recovery(&|$)/.test(hp) ||
       /(^|[?&])type=recovery(&|$)/.test(search);
+
+    // Confirmação de cadastro (o link cai no Site URL/home se o redirect
+    // pedido não estiver na allowlist) → encaminha p/ conta.html, onde o
+    // conta.js mostra "E-mail confirmado!" e já entra logada.
+    var isSignup =
+      /(^|&)type=signup(&|$)/.test(hp) ||
+      /(^|[?&])type=signup(&|$)/.test(search);
 
     // Erro de token de recuperação (ex.: link expirado/otp) → também abrir a
     // tela em /conta.html para permitir reenviar.
@@ -37,12 +45,12 @@
     // aqui só garantimos que ele chegue à /conta.html.
     var hasCode = /(^|[?&])code=/.test(search);
 
-    if (!isRecovery && !isRecoveryError && !hasCode) return;
+    if (!isRecovery && !isSignup && !isRecoveryError && !hasCode) return;
 
     var naConta = /\/conta\.html$/i.test(window.location.pathname);
 
-    // Marca o fluxo de recuperação (não para ?code puro, que pode ser
-    // confirmação de cadastro — nesse caso quem decide é o evento).
+    // Marca o fluxo de recuperação (não para signup/?code, que não abrem a
+    // tela de nova senha — quem decide é o tipo/evento na conta.js).
     if (isRecovery || isRecoveryError) {
       try { sessionStorage.setItem('vt_recovery', '1'); } catch (e) {}
     }
