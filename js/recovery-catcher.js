@@ -59,6 +59,13 @@
 
     // Redireciona preservando o token (query + hash).
     var dest = window.location.origin + '/conta.html' + search + hash;
+
+    // IMPORTANTE (corrida de token single-use): limpa o token da URL da página
+    // ATUAL antes de qualquer outro script (supabase-config/detectSessionInUrl)
+    // rodar aqui e "gastar" o token. Assim ele chega intacto e é processado
+    // uma única vez em /conta.html. O `dest` já capturou o token acima.
+    try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
+
     window.location.replace(dest);
   } catch (e) { /* silencioso — nunca deve quebrar a navegação */ }
 })();
