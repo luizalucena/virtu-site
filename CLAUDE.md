@@ -126,6 +126,20 @@ Toda tarefa segue estas etapas, nesta ordem:
 
 ## 8. Pendências / riscos conhecidos
 
+### Estado atual — pós go-live (17/07/2026)
+
+**Site PUBLICADO e no ar** (`wearvirtu.com`, GitHub Pages). `main` == `staging`. Fluxos verificados ao vivo (console limpo em todas as páginas). Foram ao ar: estoque atômico por variação + restauração no cancelamento (trigger `trg_pedido_cancelado_restaura`), refino mobile, reset de senha (cliente + admin, com `recovery-catcher.js`), remoção do boleto (só crédito/débito/pix), stepper do checkout, precificação 2026-07, e reenvio de confirmação no login. Hardening: EXECUTE das funções de trigger revogado (lints 0028/0029).
+
+**⚠️ AÇÕES DA LUÍZA (painel/infra — NÃO dá por código):**
+1. **Supabase → Authentication → URL Configuration** (destrava cadastro novo + reset de senha — hoje o link de confirmação cai em localhost):
+   - **Site URL** = `https://wearvirtu.com`
+   - **Redirect URLs** (allow list): `https://wearvirtu.com/conta.html`, `https://wearvirtu.com/admin/index.html` (+ preview Vercel da staging, e `http://localhost:3000/conta.html` se testar local).
+   - Confirmar **"Confirm email" = ON** e o template "Confirm signup"/"Reset password" usando `{{ .ConfirmationURL }}`.
+2. **ASAAS**: validar um **PIX real** (conferir chave PIX na conta — teste antigo veio com QR nulo) + **1 pedido em cartão real** (crédito parcelado + débito) de valor baixo.
+3. **Financeiro no cancelamento** = decisão dela: "deixar manual" (não há estorno automático no `fluxo_caixa`; ela ajusta à mão).
+
+**Deferido de propósito (não é risco real):** `pg_net` no schema public (em uso); políticas de INSERT públicas em contato/newsletter/carrinhos_abandonados/logs (por design — mitigação seria rate-limit, opcional); CSP/headers em produção (GitHub Pages ignora `_headers`; migrar p/ Cloudflare/Netlify ou `<meta>` CSP com teste cuidadoso — não fazer no automático em site de pagamento); leaked-password protection (só plano Pro).
+
 ### Correções pré-lançamento — 14/07/2026
 
 **✅ Aplicado (repo = banco = produção, tudo em `staging` pushado):**
