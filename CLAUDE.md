@@ -131,10 +131,11 @@ Toda tarefa segue estas etapas, nesta ordem:
 **Site PUBLICADO e no ar** (`wearvirtu.com`, GitHub Pages). `main` == `staging`. Fluxos verificados ao vivo (console limpo em todas as páginas). Foram ao ar: estoque atômico por variação + restauração no cancelamento (trigger `trg_pedido_cancelado_restaura`), refino mobile, reset de senha (cliente + admin, com `recovery-catcher.js`), remoção do boleto (só crédito/débito/pix), stepper do checkout, precificação 2026-07, e reenvio de confirmação no login. Hardening: EXECUTE das funções de trigger revogado (lints 0028/0029).
 
 **⚠️ AÇÕES DA LUÍZA (painel/infra — NÃO dá por código):**
-1. **Supabase → Authentication → URL Configuration** (destrava cadastro novo + reset de senha — hoje o link de confirmação cai em localhost):
-   - **Site URL** = `https://wearvirtu.com`
-   - **Redirect URLs** (allow list): `https://wearvirtu.com/conta.html`, `https://wearvirtu.com/admin/index.html` (+ preview Vercel da staging, e `http://localhost:3000/conta.html` se testar local).
+1. **Supabase → Authentication → URL Configuration.** ⚠️ O domínio CANÔNICO é **`www.wearvirtu.com`** (o apex `wearvirtu.com` faz 308 → `www`). Como o cliente real fica em `www`, o `window.location.origin` do site é `https://www.wearvirtu.com`, então o `emailRedirectTo` gerado é COM `www`. A config precisa bater com isso:
+   - **Site URL** = `https://www.wearvirtu.com`
+   - **Redirect URLs** (allow list): `https://www.wearvirtu.com/conta.html`, `https://www.wearvirtu.com/admin/index.html` (as versões SEM www não batem com o que o cliente real manda). (+ preview Vercel da staging se testar lá.)
    - Confirmar **"Confirm email" = ON** e o template "Confirm signup"/"Reset password" usando `{{ .ConfirmationURL }}`.
+   - Status 17/07: Luíza registrou as entradas `www.`; falta só o teste final de confirmação (estava bloqueado por rate-limit de e-mail do meu bombardeio de testes).
 2. **ASAAS**: validar um **PIX real** (conferir chave PIX na conta — teste antigo veio com QR nulo) + **1 pedido em cartão real** (crédito parcelado + débito) de valor baixo.
 3. **Financeiro no cancelamento** = decisão dela: "deixar manual" (não há estorno automático no `fluxo_caixa`; ela ajusta à mão).
 
