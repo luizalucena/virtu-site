@@ -257,6 +257,19 @@ function mostrarAdmin() {
   setStatus('info', '⏳ Conectando ao banco de dados…');
   carregarDados();
   if (!_eventsBound) { bindEvents(); _eventsBound = true; }
+  abrirViewPeloHash();
+}
+
+// Abre a view correspondente ao #hash (ex.: index.html#pedidos vindo de outra
+// página do admin). Só aceita hash "simples" (uma palavra) — nunca tokens de
+// auth (#type=recovery, #access_token, que têm '=').
+function abrirViewPeloHash() {
+  try {
+    const h = (location.hash || '').replace(/^#/, '');
+    if (!/^[a-z]+$/.test(h)) return;
+    const btn = document.querySelector(`.admin-nav-btn[data-view="${h}"]`);
+    if (btn) btn.click();
+  } catch { /* ignore */ }
 }
 
 // ── AUTH: EVENTOS DE LOGIN ──────────────────
