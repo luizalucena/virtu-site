@@ -40,6 +40,14 @@
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // Número humano do pedido: WV + sequencial (WV1004). Fallback para
+  // pedidos antigos sem numero_pedido (não deve ocorrer — backfill feito).
+  function numeroWV(p) {
+    return p && p.numero_pedido
+      ? `WV${p.numero_pedido}`
+      : `WV${String(p?.id ?? '').slice(-6).toUpperCase()}`;
+  }
+
   function fmtDate(s) {
     if (!s) return '—';
     return new Date(s).toLocaleString('pt-BR', {
@@ -84,7 +92,7 @@
     try {
       let query = supabaseClient
         .from('pedidos')
-        .select('id,nome_cliente,email_cliente,status,payment_method,total,criado_em,codigo_rastreio', { count: 'exact' })
+        .select('id,numero_pedido,nome_cliente,email_cliente,status,payment_method,total,criado_em,codigo_rastreio', { count: 'exact' })
         .order('criado_em', { ascending: false })
         .range((_page - 1) * PAGE_SIZE, _page * PAGE_SIZE - 1);
 
@@ -105,7 +113,7 @@
     if (tbody) {
       tbody.innerHTML = data.map(p => `
         <tr style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#faf9f7'" onmouseout="this.style.background=''" onclick="window._pedidosAbrirModal('${escHtml(p.id)}')">
-          <td style="padding:10px 12px;font-size:13px;font-weight:600;color:#1A2744">#${escHtml(String(p.id).slice(-6).toUpperCase())}</td>
+          <td style="padding:10px 12px;font-size:13px;font-weight:600;color:#1A2744">${escHtml(numeroWV(p))}</td>
           <td style="padding:10px 12px;font-size:13px">${escHtml(p.nome_cliente) || '—'}</td>
           <td style="padding:10px 12px;font-size:13px;color:#666">${escHtml(p.email_cliente) || '—'}</td>
           <td style="padding:10px 12px">${statusBadge(p.status)}</td>
@@ -166,7 +174,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
           <div>
             <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Pedido</p>
-            <p style="margin:0;font-size:20px;font-weight:700;color:#1A2744">#${escHtml(String(p.id).slice(-6).toUpperCase())}</p>
+            <p style="margin:0;font-size:20px;font-weight:700;color:#1A2744">${escHtml(numeroWV(p))}</p>
             <p style="margin:4px 0 0;font-size:12px;color:#999">${fmtDate(p.criado_em)}</p>
           </div>
           <div style="text-align:right">${statusBadge(p.status)}<p style="margin:8px 0 0;font-size:18px;font-weight:700;color:#C4934A">${fmt(p.total)}</p><p style="margin:2px 0 0;font-size:12px;color:#888">${p.payment_method==='cartao'&&p.parcelas>1?`Cartão ${p.parcelas}x`:metodoPagto(p)}</p></div>
@@ -322,7 +330,7 @@
           const filtroStatus = document.getElementById('pedidosFiltroStatus')?.value || '';
           let query = supabaseClient
             .from('pedidos')
-            .select('id,nome_cliente,email_cliente,telefone,total,status,payment_method,codigo_rastreio,criado_em,itens')
+            .select('id,numero_pedido,nome_cliente,email_cliente,telefone,total,status,payment_method,codigo_rastreio,criado_em,itens')
             .order('criado_em', { ascending: false });
           if (filtroStatus) query = query.eq('status', filtroStatus);
 
@@ -334,8 +342,9 @@
             const s = String(v ?? '').replace(/"/g, '""');
             return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
           };
-          const header = ['ID','Nome','E-mail','Telefone','Total','Status','Pagamento','Rastreio','Data'];
+          const header = ['Pedido','ID','Nome','E-mail','Telefone','Total','Status','Pagamento','Rastreio','Data'];
           const rows = (data || []).map(p => [
+            numeroWV(p),
             p.id,
             p.nome_cliente || '',
             p.email_cliente || '',
