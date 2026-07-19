@@ -378,9 +378,8 @@
         <a href="#como-funciona"    class="pol-nav__link">Como funciona</a>
         <a href="#trocas"           class="pol-nav__link">Trocas e devoluções</a>
         <a href="#tamanhos"         class="pol-nav__link">Guia de tamanhos</a>
-        <a href="#rastreio"         class="pol-nav__link">Rastreio de pedido</a>
+        <a href="#rastreio"         class="pol-nav__link">Envio e prazos</a>
         <a href="#sustentabilidade" class="pol-nav__link">Sustentabilidade</a>
-        <a href="#trabalhe-conosco" class="pol-nav__link">Trabalhe conosco</a>
         <a href="#privacidade"      class="pol-nav__link">Política de privacidade</a>
       </nav>
 
@@ -449,14 +448,14 @@ Para solicitar troca ou devolução, entre em contato pelo WhatsApp ou pelo form
           </div>
         </section>
 
-        <!-- RASTREIO -->
+        <!-- ENVIO E PRAZOS -->
         <section class="pol-section" id="rastreio">
           <div class="pol-section__head"><div class="pol-section__icon">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          </div><h2 class="pol-section__title">Rastreio de pedido</h2></div>
-          <div class="pol-section__body" id="txtRastreio">Após a confirmação do pagamento, seu pedido é preparado e enviado em até 2 dias úteis. Realizamos entregas para todo o Nordeste — o prazo varia de 2 a 10 dias úteis conforme a sua localidade. Você receberá uma mensagem de confirmação quando o pedido sair para entrega.
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M20 7 12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4"/><path d="M12 21V11"/></svg>
+          </div><h2 class="pol-section__title">Envio e prazos</h2></div>
+          <div class="pol-section__body" id="txtRastreio">Preparamos e enviamos seu pedido em até 2 dias úteis após a confirmação do pagamento. Entregamos para todo o Brasil — o prazo de entrega varia conforme a sua região (Correios/transportadora). Na Grande João Pessoa, a entrega é expressa. Você recebe a confirmação por e-mail assim que o pedido é despachado.
 
-Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-mail informando o número do pedido recebido na confirmação de compra.</div>
+Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-mail informando o número do pedido (WV) recebido na confirmação de compra.</div>
           <div class="pol-cta">
             <a href="contato.html" class="ghost">Falar sobre meu pedido</a>
           </div>
@@ -468,17 +467,6 @@ Em caso de dúvidas sobre seu pedido, entre em contato pelo WhatsApp ou pelo e-m
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9z"/><path d="M12 22c0-4.97-4.03-9-9-9 0 4.97 4.03 9 9 9z"/><path d="M12 2a9 9 0 0 1 0 18"/></svg>
           </div><h2 class="pol-section__title">Sustentabilidade</h2></div>
           <div class="pol-section__body" id="txtSustentabilidade">A Virtù acredita em moda com propósito. Trabalhamos com fornecedores que respeitam os trabalhadores e o meio ambiente, priorizamos tecidos naturais e duráveis, e apostamos em peças atemporais em vez de tendências descartáveis. Embalagens reutilizáveis e sem plástico desnecessário fazem parte do nosso compromisso.</div>
-        </section>
-
-        <!-- TRABALHE CONOSCO -->
-        <section class="pol-section" id="trabalhe-conosco">
-          <div class="pol-section__head"><div class="pol-section__icon">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div><h2 class="pol-section__title">Trabalhe conosco</h2></div>
-          <div class="pol-section__body" id="txtTrabalheConosco">A Virtù é uma marca em crescimento e adoramos conhecer pessoas apaixonadas por moda. Se você tem interesse em fazer parte do nosso time — seja como produtora, fotógrafa, atendente ou em outra função — nos envie uma mensagem pelo WhatsApp ou e-mail com seu nome, área de interesse e um pouco sobre você.</div>
-          <div class="pol-cta">
-            <a href="contato.html" class="primary">Entrar em contato →</a>
-          </div>
         </section>
 
         <!-- TERMOS DE USO -->
@@ -555,7 +543,6 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
             <a href="politicas.html#como-funciona" class="footer__link">Como funciona</a>
             <a href="politicas.html#trocas" class="footer__link">Trocas e devoluções</a>
             <a href="politicas.html#tamanhos" class="footer__link">Guia de tamanhos</a>
-            <a href="politicas.html#rastreio" class="footer__link">Rastreio de pedido</a>
             <a href="contato.html" class="footer__link">Fale conosco</a>
           </nav>
         </div>
@@ -640,7 +627,7 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
       try {
         const { data: cfg } = await supabaseClient
           .from('configuracoes')
-          .select('pol_como_funciona, pol_trocas, pol_rastreio, pol_termos, pol_privacidade, pol_trabalhe_conosco, pol_sustentabilidade, guia_tamanhos, guia_tamanhos_obs')
+          .select('pol_como_funciona, pol_trocas, pol_rastreio, pol_termos, pol_privacidade, pol_sustentabilidade, guia_tamanhos, guia_tamanhos_obs')
           .eq('id', 1)
           .maybeSingle();
         if (!cfg) return;
@@ -652,7 +639,6 @@ Você pode solicitar a exclusão dos seus dados a qualquer momento pelo e-mail o
           txtRastreio:         cfg.pol_rastreio,
           txtTermos:           cfg.pol_termos,
           txtPrivacidade:      cfg.pol_privacidade,
-          txtTrabalheConosco:  cfg.pol_trabalhe_conosco,
           txtSustentabilidade: cfg.pol_sustentabilidade,
           txtGuiaTamanhoObs:   cfg.guia_tamanhos_obs,
         };

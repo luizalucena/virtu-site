@@ -999,7 +999,6 @@ function populateConfig() {
   set('cfgPolTermos',          cfg.pol_termos);
   set('cfgPolPrivacidade',     cfg.pol_privacidade);
   set('cfgPolSustentabilidade',cfg.pol_sustentabilidade);
-  set('cfgPolTrabalheConosco', cfg.pol_trabalhe_conosco);
 
   // Pop-up de Saída
   const popAtivo = document.getElementById('cfgPopupSaidaAtivo');
@@ -1156,7 +1155,6 @@ async function saveConfig() {
     pol_termos:           document.getElementById('cfgPolTermos')?.value.trim()           || null,
     pol_privacidade:      document.getElementById('cfgPolPrivacidade')?.value.trim()      || null,
     pol_sustentabilidade: document.getElementById('cfgPolSustentabilidade')?.value.trim() || null,
-    pol_trabalhe_conosco: document.getElementById('cfgPolTrabalheConosco')?.value.trim()  || null,
     // Pop-up de Saída
     popup_saida_ativo:      document.getElementById('cfgPopupSaidaAtivo')?.checked ?? true,
     popup_saida_titulo:     document.getElementById('cfgPopupSaidaTitulo')?.value.trim()    || 'Espera! Não vá de mãos vazias.',
