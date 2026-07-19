@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
     // Se só veio pedido_id (chamada do asaas-webhook), busca tudo no banco.
     let {
       pedido_id,
+      numero_pedido,
       cliente,
       endereco,
       itens,
@@ -79,6 +80,7 @@ Deno.serve(async (req) => {
       }
 
       // Mapeia colunas do banco para o formato esperado pelo template
+      numero_pedido     = pedido.numero_pedido ?? numero_pedido;
       itens             = pedido.itens || [];
       total             = pedido.total;
       subtotal          = pedido.subtotal;
@@ -123,7 +125,11 @@ Deno.serve(async (req) => {
       return [linha1, linha2, cep].filter(Boolean).join(' · ');
     }
 
-    const pedidoNum = pedido_id ? String(pedido_id).slice(-6) : '------';
+    // Número humano do pedido: WV + sequencial (WV1004). Fallback defensivo
+    // para pedidos antigos sem numero_pedido (não deve ocorrer — backfill feito).
+    const pedidoNum = numero_pedido
+      ? `WV${numero_pedido}`
+      : (pedido_id ? `WV${String(pedido_id).slice(-6).toUpperCase()}` : 'WV------');
 
     const metodoPagto =
       metodo_pagamento === 'pix'    ? 'PIX' :
@@ -132,7 +138,6 @@ Deno.serve(async (req) => {
       metodo_pagamento || '—';
 
     const primeiroNome = (cliente?.nome || 'Cliente').split(' ')[0];
-    const rastreioUrl  = `${SITE_URL}/rastreio.html?id=${pedido_id}`;
 
     // ── 1. E-mail premium para o cliente ────────────────────────────
     const itensHtmlCliente = (itens ?? []).map((it: Record<string, unknown>) => `
@@ -188,7 +193,7 @@ Deno.serve(async (req) => {
           ✓
         </div>
         <p style="margin:0;font-size:22px;color:#fff;letter-spacing:2.5px;font-weight:normal">Pedido Confirmado</p>
-        <p style="margin:10px 0 0;font-size:13px;color:#C4934A;letter-spacing:2px">#${pedidoNum}</p>
+        <p style="margin:10px 0 0;font-size:13px;color:#C4934A;letter-spacing:2px">${pedidoNum}</p>
       </div>
 
       <!-- Saudação -->
@@ -196,7 +201,7 @@ Deno.serve(async (req) => {
         <p style="margin:0 0 6px;font-size:17px;color:#1A2744;font-weight:normal">Olá, ${primeiroNome}!</p>
         <p style="margin:0;font-size:14px;color:#666;line-height:1.75">
           Recebemos o seu pedido e já estamos preparando tudo com muito cuidado para você.
-          Assim que o seu pedido for enviado, você receberá o código de rastreio.
+          Avisaremos por e-mail assim que ele for despachado.
         </p>
       </div>
 
@@ -262,20 +267,14 @@ Deno.serve(async (req) => {
         </table>
       </div>
 
-      <!-- Divisor pré-CTA -->
+      <!-- Divisor pré-fecho -->
       <div style="height:1px;background:#f0ebe4;margin:0 40px"></div>
 
-      <!-- CTA Rastreio -->
+      <!-- Mensagem de fecho -->
       <div style="padding:32px 40px;text-align:center">
-        <p style="margin:0 0 20px;font-size:13px;color:#888;line-height:1.6">
-          Acompanhe o status do seu pedido em tempo real clicando no botão abaixo.
-        </p>
-        <a href="${rastreioUrl}"
-           style="display:inline-block;background:#1A2744;color:#fff;text-decoration:none;padding:15px 36px;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;border-radius:1px;font-family:Helvetica,Arial,sans-serif">
-          Rastrear meu pedido →
-        </a>
-        <p style="margin:14px 0 0;font-size:11px;color:#ccc">
-          ou: <a href="${rastreioUrl}" style="color:#C4934A;text-decoration:none">${rastreioUrl}</a>
+        <p style="margin:0;font-size:13px;color:#888;line-height:1.7">
+          Seu pedido já está sendo preparado com todo o cuidado.<br>
+          Você receberá um novo e-mail assim que ele for enviado. ✨
         </p>
       </div>
 
@@ -328,7 +327,7 @@ Deno.serve(async (req) => {
     <!-- Info principal -->
     <div style="padding:26px 32px 0">
       <div style="background:#f9f6f2;border-radius:2px;padding:14px 16px;margin-bottom:20px">
-        <p style="margin:0;font-size:18px;color:#1A2744;font-weight:bold">Pedido #${pedidoNum}</p>
+        <p style="margin:0;font-size:18px;color:#1A2744;font-weight:bold">Pedido ${pedidoNum}</p>
         <p style="margin:4px 0 0;font-size:13px;color:#C4934A;font-weight:600">${fmtBRL(Number(total))} · ${metodoPagto}</p>
       </div>
 
@@ -386,7 +385,8 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from:    FROM_EMAIL,
           to:      [cliente.email],
-          subject: `✅ Pedido #${pedidoNum} confirmado — Obrigada por comprar na Virtù!`,
+          subject: `✅ Pedido ${pedidoNum} confirmado — Obrigada por comprar na Virtù!`,
+        reply_to: STORE_EMAIL,
           html:    htmlCliente,
         }),
       }));
@@ -404,7 +404,8 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from:    FROM_EMAIL,
           to:      [STORE_EMAIL],
-          subject: `🛍️ Novo pedido #${pedidoNum} — ${fmtBRL(Number(total))} (${metodoPagto})`,
+          subject: `🛍️ Novo pedido ${pedidoNum} — ${fmtBRL(Number(total))} (${metodoPagto})`,
+        reply_to: STORE_EMAIL,
           html:    htmlLoja,
         }),
       }));

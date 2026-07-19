@@ -698,7 +698,7 @@ Deno.serve(async (req) => {
         pix_expires_at:     pixExpiresAt    || null,
         idempotency_key:    idemKey,
       })
-      .select('id')
+      .select('id, numero_pedido')
       .single();
 
     if (dbError) {
@@ -737,6 +737,7 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
           body: JSON.stringify({
             pedido_id:        pedido.id,
+            numero_pedido:    pedido.numero_pedido,
             cliente,
             endereco,
             itens,
