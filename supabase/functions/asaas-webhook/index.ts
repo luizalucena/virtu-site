@@ -130,7 +130,6 @@ Deno.serve(async (req) => {
       .update({
         status:         'pago',
         payment_status: 'RECEIVED',
-        email_enviado:  false,    // força reenvio do e-mail de confirmação
       })
       .eq('asaas_payment_id', asaasPaymentId)
       .eq('status', 'pendente')  // condição atômica
