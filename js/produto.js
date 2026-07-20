@@ -222,7 +222,7 @@ async function carregarProduto(produtoId) {
         <div class="produto-payment-strip__row produto-payment-strip__row--pix">
           <span class="produto-payment-strip__metodo">PIX</span>
           <span class="produto-payment-strip__preco">${fmt(preco)}</span>
-          <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">à vista</span>
+          <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">à vista · 5% OFF</span>
         </div>
         <div class="produto-payment-strip__row produto-payment-strip__row--card">
           <span class="produto-payment-strip__metodo">

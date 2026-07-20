@@ -244,6 +244,20 @@ p, li, td, th, label,
   text-decoration: line-through;
 }
 
+/* Gancho de pagamento no card — discreto, PIX em dourado */
+.product-card__payment {
+  margin-top: 5px;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--lux-ice-deep);
+}
+.product-card__payment strong {
+  font-weight: 600;
+  color: var(--color-gold, #b8943f);
+}
+
 /* Swatches: escondidos no card — simplicidade máxima */
 .product-card__swatches {
   display: none;

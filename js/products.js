@@ -227,6 +227,7 @@ const VirtuProducts = (() => {
           <p class="product-card__category">${escHtml((categoria || '').charAt(0).toUpperCase() + (categoria || '').slice(1))}</p>
           <h3 class="product-card__name"><a href="${link}">${escHtml(nome)}</a></h3>
           <div class="product-card__price">${precoHtml}</div>
+          ${produto._esgotado ? '' : `<p class="product-card__payment">Até 12x no cartão · <strong>5% OFF no PIX</strong></p>`}
           ${swatchesHtml ? `<div class="product-card__swatches">${swatchesHtml}</div>` : ''}
         </div>
       </article>`;
