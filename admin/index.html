@@ -61,6 +61,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
         Pedidos
       </button>
+      <button class="admin-nav-btn" data-view="reposicao">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Reposição
+      </button>
 <a class="admin-nav-btn" href="carrinhos.html" style="text-decoration:none">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         Carrinhos
@@ -178,7 +182,7 @@
           </div>
           <div>
             <div class="dash-kpi__value" id="dashFidelidade">—</div>
-            <div class="dash-kpi__label">Clientes no Programa Fidelidade</div>
+            <div class="dash-kpi__label">Clientes que já compraram</div>
           </div>
         </div>
         <div class="dash-kpi">
@@ -681,6 +685,16 @@
     <!-- ══════════════════════════════════════
          VIEW: CONFIGURAÇÕES
     ══════════════════════════════════════ -->
+    <div class="admin-view admin-view--hidden" id="viewReposicao">
+      <div class="admin-view__header">
+        <h1 class="admin-view__title">Avisos de Reposição</h1>
+        <p class="admin-view__subtitle">Clientes esperando peças esgotadas voltarem. O e-mail é enviado automaticamente quando o estoque volta.</p>
+      </div>
+      <div class="admin-card">
+        <div id="reposicaoLista"><p style="color:#888;padding:8px">Carregando…</p></div>
+      </div>
+    </div>
+
     <div class="admin-view admin-view--hidden" id="viewConfiguracoes">
       <div class="admin-config-grid">
 
@@ -1211,10 +1225,11 @@
               <p class="admin-hint">Texto exibido na aba "Entrega & Trocas" do produto. Deixe em branco para usar o texto padrão da loja.</p>
             </div>
             <div class="admin-form-group">
-              <label class="admin-label">Compre Junto — IDs das peças sugeridas</label>
-              <input type="text" class="admin-input" id="formCompreJunto"
-                placeholder="Ex: body-serena, blusa-iris" />
-              <p class="admin-hint">Separados por vírgula. O ID aparece na URL do produto.</p>
+              <label class="admin-label">Compre o look — peças que combinam com esta</label>
+              <input type="hidden" id="formCompreJunto" />
+              <input type="text" id="compreJuntoBusca" class="admin-input" placeholder="Buscar peça pelo nome…" style="margin-bottom:6px" />
+              <div id="compreJuntoPicker"></div>
+              <p class="admin-hint">Marque as peças que formam o look. Aparecem na seção "Complete o look" da página do produto.</p>
             </div>
             <div class="admin-form-group">
               <label class="admin-label">Flags</label>

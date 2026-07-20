@@ -425,7 +425,7 @@ function bindEvents() {
       document.querySelectorAll('.admin-view').forEach(v => v.classList.add('admin-view--hidden'));
       document.getElementById(`view${capitalize(view)}`)?.classList.remove('admin-view--hidden');
       // Títulos legíveis na topbar
-      const viewTitles = { dashboard: 'Dashboard', produtos: 'Produtos', pedidos: 'Pedidos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades' };
+      const viewTitles = { dashboard: 'Dashboard', produtos: 'Produtos', pedidos: 'Pedidos', sobre: 'Página Sobre', configuracoes: 'Configurações', stock: 'Controlo de Stock', avaliacoes: 'Avaliações de Clientes', funcionalidades: 'Funcionalidades', reposicao: 'Avisos de Reposição' };
       document.getElementById('viewTitle').textContent = viewTitles[view] || capitalize(view);
       // Ocultar/mostrar botão Novo Produto
       document.getElementById('btnNewProduct').style.display = view === 'produtos' ? '' : 'none';
@@ -435,6 +435,7 @@ function bindEvents() {
       if (view === 'logs')         carregarLogsAdmin();
       if (view === 'pedidos') { if (typeof window.pedidosInit === 'function') window.pedidosInit(); }
       if (view === 'dashboard')    carregarDashboard();
+      if (view === 'reposicao')    carregarReposicao();
     });
   });
 
@@ -653,7 +654,7 @@ function openModal(id) {
     document.getElementById('formDescricao').value        = p.descricao || '';
     document.getElementById('formComposicao').value       = p.composicao || '';
     document.getElementById('formEntregaTrocas').value    = p.entrega_trocas || '';
-    document.getElementById('formCompreJunto').value      = (p.compre_junto || []).join(', ');
+    renderCompreJuntoPicker(p.compre_junto || [], p.id);
     document.getElementById('formDestaque').checked       = !!p.destaque;
     document.getElementById('formNovidade').checked       = !!p.novidade;
     document.getElementById('formEssencial').checked      = !!p.essencial;
@@ -672,6 +673,7 @@ function openModal(id) {
     document.querySelectorAll('.admin-size-check input').forEach(cb => cb.checked = true);
     buildGaleriaRows([]);
     document.getElementById('btnAddFoto').style.display = '';
+    renderCompreJuntoPicker([], null);
   }
 
   modal?.classList.add('open');
@@ -704,6 +706,96 @@ function resetForm() {
   document.querySelectorAll('.admin-size-check input').forEach(cb => cb.checked = false);
   document.querySelectorAll('.admin-input.error').forEach(el => el.classList.remove('error'));
   buildGaleriaRows([]); // Limpa inputs de galeria
+  const _busca = document.getElementById('compreJuntoBusca'); if (_busca) _busca.value = '';
+  renderCompreJuntoPicker([], null);
+}
+
+/**
+ * "Compre o look" — seletor de peças que combinam com o produto atual.
+ * Renderiza checkboxes com o NOME das peças (não IDs), com busca. Sincroniza
+ * a seleção no input escondido #formCompreJunto (salvo em produtos.compre_junto).
+ */
+function renderCompreJuntoPicker(selectedIds, excludeId) {
+  const wrap   = document.getElementById('compreJuntoPicker');
+  const hidden = document.getElementById('formCompreJunto');
+  const busca  = document.getElementById('compreJuntoBusca');
+  if (!wrap) return;
+
+  const sel = new Set(selectedIds || []);
+  if (hidden) hidden.value = [...sel].join(', ');
+  const todos = (DB.produtos || []).filter(p => p.id !== excludeId);
+
+  function pinta(filtro) {
+    const f = (filtro || '').trim().toLowerCase();
+    const lista = todos.filter(p => !f || (p.nome || '').toLowerCase().includes(f));
+    wrap.style.cssText = 'max-height:190px;overflow-y:auto;border:1px solid #e6e2da;border-radius:8px;padding:6px;background:#fff';
+    if (!todos.length) { wrap.innerHTML = '<p style="margin:8px;color:#999;font-size:.85rem">Cadastre outras peças para montar looks.</p>'; return; }
+    if (!lista.length) { wrap.innerHTML = '<p style="margin:8px;color:#999;font-size:.85rem">Nenhuma peça encontrada.</p>'; return; }
+    wrap.innerHTML = lista.map(p => `
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:.88rem">
+        <input type="checkbox" value="${escHtml(p.id)}" ${sel.has(p.id) ? 'checked' : ''} style="accent-color:#1a2a4a;flex-shrink:0">
+        <span>${escHtml(p.nome)}</span>
+        <span style="margin-left:auto;color:#c4c0b8;font-size:.72rem">${escHtml(p.id)}</span>
+      </label>`).join('');
+    wrap.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) sel.add(cb.value); else sel.delete(cb.value);
+        if (hidden) hidden.value = [...sel].join(', ');
+      });
+    });
+  }
+
+  pinta('');
+  if (busca) busca.oninput = () => pinta(busca.value);
+}
+
+/**
+ * Tela "Avisos de Reposição" — mostra, por peça esgotada, quem pediu para ser
+ * avisado quando voltar. O e-mail sai automático (cron notificar-reposicao).
+ */
+async function carregarReposicao() {
+  const wrap = document.getElementById('reposicaoLista');
+  if (!wrap) return;
+  wrap.innerHTML = '<p style="color:#888;padding:8px">Carregando…</p>';
+  try {
+    const { data, error } = await supabaseClient
+      .from('avisos_reposicao')
+      .select('produto_id, email, tamanho, cor_nome, criado_em, notificado')
+      .eq('notificado', false)
+      .order('criado_em', { ascending: false });
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      wrap.innerHTML = '<p style="color:#888;padding:8px">Nenhum aviso pendente. Quando uma cliente clicar "Avise-me quando chegar" numa peça esgotada, ela aparece aqui.</p>';
+      return;
+    }
+
+    const nomeDe = id => (DB.produtos.find(p => p.id === id)?.nome) || id;
+    const grupos = {};
+    data.forEach(a => { (grupos[a.produto_id] = grupos[a.produto_id] || []).push(a); });
+
+    wrap.innerHTML = Object.entries(grupos)
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([pid, avisos]) => {
+        const itens = avisos.map(a => {
+          const v = [a.tamanho, a.cor_nome].filter(Boolean).join(' · ');
+          return `<div style="font-size:.82rem;padding:4px 0;border-bottom:1px solid #f2eee7">
+            <span style="color:#1a2a4a">${escHtml(a.email)}</span>
+            ${v ? `<span style="color:#999"> — ${escHtml(v)}</span>` : ''}
+            <span style="color:#c4c0b8;float:right">${new Date(a.criado_em).toLocaleDateString('pt-BR')}</span>
+          </div>`;
+        }).join('');
+        return `<div style="border:1px solid #e6e2da;border-radius:10px;padding:14px 16px;margin-bottom:12px;background:#fff">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong style="color:#1a2a4a">${escHtml(nomeDe(pid))}</strong>
+            <span style="background:#1a2a4a;color:#fff;border-radius:999px;padding:2px 10px;font-size:.75rem">${avisos.length} aguardando</span>
+          </div>
+          ${itens}
+        </div>`;
+      }).join('');
+  } catch (e) {
+    wrap.innerHTML = `<p style="color:#c0392b;padding:8px">Erro ao carregar avisos: ${escHtml(e.message || e)}</p>`;
+  }
 }
 
 // ── SALVAR PRODUTO NO SUPABASE ──────────────
