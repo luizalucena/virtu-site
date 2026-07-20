@@ -257,7 +257,7 @@
       const { error } = await supabaseClient.from('pedidos').update(updates).eq('id', id);
       if (error) throw error;
       if (feedback) feedback.innerHTML = codigo
-        ? '<span style="color:#22c55e">✓ Código salvo. Status → Enviado. 📧 Cliente notificada por e-mail com link de rastreio.</span>'
+        ? '<span style="color:#22c55e">✓ Código de rastreio salvo. Status → Enviado.</span>'
         : '<span style="color:#888">Código removido.</span>';
       carregarPedidos(); carregarKPIs();
     } catch (err) {
