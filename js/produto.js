@@ -762,6 +762,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       return true;
     }
 
+    // Abre o mini-carrinho lateral (atalho premium com nudge de frete)
+    if (window.VirtuMiniCart) window.VirtuMiniCart.open();
+
     // Feedback visual no botão
     if (addToCartBtn) {
       const orig = addToCartBtn.innerHTML;

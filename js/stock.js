@@ -489,6 +489,9 @@ const VirtuStock = (() => {
           }
           _avisarLimiteEstoque('');
 
+          // Abre o mini-carrinho lateral (atalho premium com nudge de frete)
+          if (window.VirtuMiniCart) window.VirtuMiniCart.open();
+
           if (typeof onCompra === 'function') onCompra({ sucesso: true }, variacao);
         });
       }
