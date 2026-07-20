@@ -219,6 +219,21 @@
     }
   };
 
+  // Dispara o e-mail de "pedido enviado" à cliente (edge function). Só usado
+  // quando o status vira "enviado". Retorna um texto curto de feedback.
+  async function _notificarCliente(pedidoId) {
+    try {
+      const { error } = await supabaseClient.functions.invoke('notificar-status-pedido', {
+        body: { pedido_id: pedidoId, status_novo: 'enviado' },
+      });
+      if (error) throw error;
+      return ' 📧 Cliente notificada por e-mail.';
+    } catch (e) {
+      console.warn('[notificar-status-pedido]', e?.message || e);
+      return ' ⚠️ (não foi possível enviar o e-mail à cliente agora)';
+    }
+  }
+
   window._pedidosSalvarStatus = async function (id) {
     const select   = document.getElementById('modalStatusSelect');
     const feedback = document.getElementById('pedidoModalFeedback');
@@ -232,7 +247,9 @@
     try {
       const { error } = await supabaseClient.from('pedidos').update({ status: select.value }).eq('id', id);
       if (error) throw error;
-      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
+      // Só o status "enviado" dispara e-mail à cliente (decisão da loja).
+      const notif = select.value === 'enviado' ? await _notificarCliente(id) : '';
+      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}${notif}</span>`;
       carregarPedidos(); carregarKPIs();
     } catch (err) {
       if (feedback) feedback.innerHTML = `<span style="color:#ef4444">⚠️ Erro: ${err.message}</span>`;
@@ -256,8 +273,9 @@
       if (codigo) updates.status = 'enviado';
       const { error } = await supabaseClient.from('pedidos').update(updates).eq('id', id);
       if (error) throw error;
+      const notif = codigo ? await _notificarCliente(id) : '';
       if (feedback) feedback.innerHTML = codigo
-        ? '<span style="color:#22c55e">✓ Código de rastreio salvo. Status → Enviado.</span>'
+        ? `<span style="color:#22c55e">✓ Código de rastreio salvo. Status → Enviado.${notif}</span>`
         : '<span style="color:#888">Código removido.</span>';
       carregarPedidos(); carregarKPIs();
     } catch (err) {

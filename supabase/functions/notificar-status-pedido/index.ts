@@ -40,64 +40,67 @@ function normStatus(s: string): string {
 // ── Mapa de mensagens por status ─────────────────────────────────
 interface StatusConfig {
   emailSubject: string;
-  emailBody: (nome: string, pedidoId: string, link: string) => string;
+  emailBody: (nome: string, numero: string, link: string, codigo: string) => string;
 }
 
 function getStatusConfig(statusNorm: string): StatusConfig | null {
-  const id6 = (id: string) => id.slice(-6).toUpperCase();
+  // Linha do código de rastreio (só aparece se houver código informado)
+  const rastreioLinha = (codigo: string) => codigo
+    ? `<p style="margin:14px 0 0;font-size:13px;color:#555">Código de rastreio: <strong style="letter-spacing:1px">${codigo}</strong></p>`
+    : '';
 
   const configs: Record<string, StatusConfig> = {
     'confirmado': {
       emailSubject: 'Seu pedido foi confirmado! ✅',
-      emailBody: (nome, id) => emailTemplate({
+      emailBody: (nome, numero) => emailTemplate({
         titulo: 'Pedido Confirmado!',
         icon: '✅',
         subtitulo: `Olá, ${nome}!`,
-        corpo: `Seu pedido <strong>#${id6(id)}</strong> foi confirmado e está sendo preparado com muito carinho pela nossa equipe.`,
-        rodape: 'Assim que sair para entrega, você receberá um e-mail com o link de rastreio.',
+        corpo: `Seu pedido <strong>${numero}</strong> foi confirmado e está sendo preparado com muito carinho pela nossa equipe.`,
+        rodape: 'Avisaremos por e-mail assim que o pedido for despachado.',
         cta: null,
       }),
     },
     'em preparacao': {
       emailSubject: 'Seu pedido está sendo preparado 🧵',
-      emailBody: (nome, id) => emailTemplate({
+      emailBody: (nome, numero) => emailTemplate({
         titulo: 'Em Preparação',
         icon: '🧵',
         subtitulo: `Oi, ${nome}!`,
-        corpo: `Seu pedido <strong>#${id6(id)}</strong> está sendo preparado pela nossa equipe com muito cuidado.`,
-        rodape: 'Você receberá uma nova mensagem assim que o pedido sair para entrega.',
+        corpo: `Seu pedido <strong>${numero}</strong> está sendo preparado pela nossa equipe com muito cuidado.`,
+        rodape: 'Você receberá uma nova mensagem assim que o pedido for despachado.',
         cta: null,
       }),
     },
     'enviado': {
-      emailSubject: 'Seu pedido está a caminho! 🚚',
-      emailBody: (nome, id, link) => emailTemplate({
+      emailSubject: 'Seu pedido foi enviado! 🚚',
+      emailBody: (nome, numero, link, codigo) => emailTemplate({
         titulo: 'Pedido Enviado!',
         icon: '🚚',
         subtitulo: `Boa notícia, ${nome}!`,
-        corpo: `Seu pedido <strong>#${id6(id)}</strong> saiu para entrega e já está a caminho!`,
-        rodape: 'Acompanhe o rastreio em tempo real clicando no botão abaixo.',
-        cta: { texto: 'Rastrear meu pedido', href: link },
+        corpo: `Seu pedido <strong>${numero}</strong> foi despachado e já está a caminho.${rastreioLinha(codigo)}`,
+        rodape: 'Você pode acompanhar o status do seu pedido pelo botão abaixo.',
+        cta: { texto: 'Acompanhar meu pedido', href: link },
       }),
     },
     'a caminho': {
       emailSubject: 'Seu pedido está chegando! 📦',
-      emailBody: (nome, id, link) => emailTemplate({
+      emailBody: (nome, numero, link, codigo) => emailTemplate({
         titulo: 'A Caminho!',
         icon: '📦',
         subtitulo: `Quase lá, ${nome}!`,
-        corpo: `Seu pedido <strong>#${id6(id)}</strong> está a caminho e chegará em breve.`,
-        rodape: 'Acompanhe o rastreio clicando no botão abaixo.',
-        cta: { texto: 'Rastrear meu pedido', href: link },
+        corpo: `Seu pedido <strong>${numero}</strong> está a caminho e chegará em breve.${rastreioLinha(codigo)}`,
+        rodape: 'Você pode acompanhar o status do seu pedido pelo botão abaixo.',
+        cta: { texto: 'Acompanhar meu pedido', href: link },
       }),
     },
     'entregue': {
       emailSubject: 'Pedido entregue! Esperamos que você ame 💛',
-      emailBody: (nome, id) => emailTemplate({
+      emailBody: (nome, numero) => emailTemplate({
         titulo: 'Entregue com Amor!',
         icon: '🎁',
         subtitulo: `${nome}, seu pedido chegou!`,
-        corpo: `Seu pedido <strong>#${id6(id)}</strong> foi entregue. Esperamos que você ame cada peça tanto quanto a gente amou preparar para você.`,
+        corpo: `Seu pedido <strong>${numero}</strong> foi entregue. Esperamos que você ame cada peça tanto quanto a gente amou preparar para você.`,
         rodape: 'Se precisar de ajuda com troca ou devolução em até 7 dias, é só nos enviar um e-mail: wearvirtu@gmail.com',
         cta: null,
       }),
@@ -232,7 +235,7 @@ Deno.serve(async (req) => {
 
     const { data: pedido, error: dbErr } = await supabase
       .from('pedidos')
-      .select('id, cliente_nome, nome_cliente, cliente_email, email_cliente')
+      .select('id, numero_pedido, codigo_rastreio, cliente_nome, nome_cliente, cliente_email, email_cliente')
       .eq('id', pedidoId)
       .maybeSingle();
 
@@ -244,14 +247,18 @@ Deno.serve(async (req) => {
     const nome  = pedido.nome_cliente  || pedido.cliente_nome  || 'cliente';
     const email = pedido.email_cliente || pedido.cliente_email || null;
     const primeiroNome = nome.trim().split(' ')[0];
+    const numeroWV = pedido.numero_pedido
+      ? `WV${pedido.numero_pedido}`
+      : `WV${String(pedidoId).slice(-6).toUpperCase()}`;
+    const codigoRastreio = pedido.codigo_rastreio || '';
 
-    const linkRastreio = `https://wearvirtu.com/rastreio.html?id=${pedidoId}`;
+    const linkRastreio = `https://www.wearvirtu.com/rastreio.html?id=${pedidoId}`;
 
     const erros: string[] = [];
 
     // ── E-mail ────────────────────────────────────────────────
     if (email && RESEND_KEY) {
-      const html = config.emailBody(primeiroNome, pedidoId, linkRastreio);
+      const html = config.emailBody(primeiroNome, numeroWV, linkRastreio, codigoRastreio);
       try {
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
@@ -260,9 +267,10 @@ Deno.serve(async (req) => {
             'Content-Type':  'application/json',
           },
           body: JSON.stringify({
-            from:    'Virtù <contato@wearvirtu.com>',
-            to:      [email],
-            subject: config.emailSubject,
+            from:     'Virtù <notificacoes@wearvirtu.com>',
+            to:       [email],
+            reply_to: 'wearvirtu@gmail.com',
+            subject:  config.emailSubject,
             html,
           }),
         });
