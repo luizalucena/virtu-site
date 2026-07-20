@@ -416,28 +416,18 @@
         </div>
       </div>
 
-      <!-- CONFIG WEBHOOK -->
+      <!-- RECUPERAÇÃO AUTOMÁTICA (E-MAIL) -->
       <div class="ca-config-card" id="configCard">
         <h3>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.58a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17v-.08z"/></svg>
-          Recuperação Automática por WhatsApp
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Recuperação automática por e-mail — ativa
         </h3>
-        <div class="ca-config-grid">
-          <div class="ca-field">
-            <label>URL do Webhook (Zapier / Make / Z-API)</label>
-            <input type="url" id="webhookUrl" placeholder="https://hooks.zapier.com/…" />
-            <p class="ca-hint">Deixe vazio para desativar o envio automático.</p>
-          </div>
-          <div class="ca-field">
-            <label>Mensagem de recuperação</label>
-            <textarea id="webhookMsg" rows="3" placeholder="Olá {nome}! Você deixou itens no carrinho da Virtù: {link}"></textarea>
-            <p class="ca-hint">Variáveis: {nome} {link} {total}</p>
-          </div>
-        </div>
-        <div class="ca-config-actions">
-          <button class="admin-btn admin-btn--ghost" id="btnTestarWebhook">Testar envio</button>
-          <button class="admin-btn admin-btn--primary" id="btnSalvarConfig">Salvar configuração</button>
-        </div>
+        <p class="ca-hint" style="margin:0;line-height:1.6">
+          Quando a cliente informa o e-mail e deixa o carrinho, a Virtù envia
+          automaticamente um lembrete por e-mail cerca de <strong>1 hora depois</strong> —
+          só se ela não tiver retomado nem comprado. É automático, não há nada para
+          configurar aqui. (O envio automático por WhatsApp foi descontinuado.)
+        </p>
       </div>
 
       <!-- FILTROS + BUSCA -->
@@ -711,55 +701,10 @@
       }
     };
 
-    /* ─── Configurações webhook ──────────────── */
-    async function carregarConfig() {
-      try {
-        const { data } = await supabaseClient
-          .from('configuracoes')
-          .select('webhook_whatsapp, abandono_mensagem')
-          .eq('id', 1)
-          .maybeSingle();
-        if (data) {
-          document.getElementById('webhookUrl').value = data.webhook_whatsapp || '';
-          document.getElementById('webhookMsg').value = data.abandono_mensagem || '';
-        }
-      } catch { /* silencioso */ }
-    }
-
-    document.getElementById('btnSalvarConfig').addEventListener('click', async () => {
-      const url = document.getElementById('webhookUrl').value.trim();
-      const msg = document.getElementById('webhookMsg').value.trim();
-      try {
-        const { error } = await supabaseClient
-          .from('configuracoes')
-          .update({ webhook_whatsapp: url || null, abandono_mensagem: msg || null })
-          .eq('id', 1);
-        if (error) throw error;
-        toast('Configuração salva!', 'success');
-      } catch (e) {
-        toast('Erro ao salvar: ' + e.message, 'error');
-      }
-    });
-
-    document.getElementById('btnTestarWebhook').addEventListener('click', async () => {
-      const url = document.getElementById('webhookUrl').value.trim();
-      if (!url) { toast('Informe a URL do webhook antes de testar.', 'error'); return; }
-      try {
-        await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            teste: true,
-            telefone: VIRTU_WPP,
-            mensagem: 'Teste de conexão — Virtù Admin',
-            timestamp: new Date().toISOString(),
-          }),
-        });
-        toast('Webhook disparado! Verifique o destino.', 'success');
-      } catch (e) {
-        toast('Erro ao testar webhook: ' + e.message, 'error');
-      }
-    });
+    /* ─── Recuperação automática ─────────────────
+       O antigo webhook de WhatsApp (Z-API) foi descontinuado. A recuperação
+       agora é 100% automática por e-mail (cron fn_processar_carrinhos_abandonados
+       → EF notificar-abandono-carrinho). Sem configuração no painel. */
 
     /* ─── Filtros ────────────────────────────── */
     document.getElementById('caFilter').addEventListener('click', e => {
@@ -797,7 +742,7 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) { window.location.href = 'index.html'; return; }
 
-      await Promise.all([carregarCarrinhos(), carregarConfig()]);
+      await carregarCarrinhos();
     }
 
     if (document.readyState === 'loading') {

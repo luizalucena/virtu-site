@@ -232,9 +232,7 @@
     try {
       const { error } = await supabaseClient.from('pedidos').update({ status: select.value }).eq('id', id);
       if (error) throw error;
-      const statusNotificaveis = ['confirmado','em preparação','enviado','a caminho','entregue'];
-      const notifica = statusNotificaveis.includes(select.value);
-      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${notifica ? ' 📧 Cliente notificada por e-mail automaticamente.' : ''}${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
+      if (feedback) feedback.innerHTML = `<span style="color:#22c55e">✓ Status atualizado para <strong>${STATUS_LABELS[select.value]}</strong>.${select.value === 'pago' ? ' Estoque e financeiro atualizados automaticamente.' : ''}</span>`;
       carregarPedidos(); carregarKPIs();
     } catch (err) {
       if (feedback) feedback.innerHTML = `<span style="color:#ef4444">⚠️ Erro: ${err.message}</span>`;
