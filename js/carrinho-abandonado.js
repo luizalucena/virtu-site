@@ -76,7 +76,7 @@
     const tempo_min    = Math.round((Date.now() - tempo_inicio) / 60000); // minutos na página
 
     try {
-      const { data: registro } = await supabaseClient
+      await supabaseClient
         .from('carrinhos_abandonados')
         .insert({
           email:           email.trim(),
@@ -86,19 +86,12 @@
           origem:          origem || 'carrinho',
           url_recuperacao: url_rec,
           tempo_abandono:  tempo_min,
-        })
-        .select('id')
-        .maybeSingle();
+        });
 
-      // Dispara notificação por e-mail via Edge Function
-      dispararEmail({
-        nome,
-        email: email.trim(),
-        itens: cart,
-        total,
-        url: url_rec,
-        abandono_id: registro?.id,
-      });
+      // O e-mail de recuperação NÃO é disparado aqui. Um cron server-side
+      // (fn_processar_carrinhos_abandonados, a cada 15 min) envia ~1h depois,
+      // só se a cliente não retomou nem comprou — melhor timing e confiável
+      // mesmo quando a aba é fechada. Evita e-mail no segundo que ela sai.
 
     } catch (err) {
       console.warn('[Virtù] Erro ao salvar abandono:', err.message);
@@ -141,36 +134,6 @@
       await saveAbandono({ nome, email, origem: 'timer_inatividade' });
     }
     // Se não tiver e-mail, o registro aguarda o popup ou a digitação no checkout
-  }
-
-  /* ─── Notificação por e-mail via Edge Function ────────────── */
-  // Chama a EF notificar-abandono-carrinho que usa Resend para enviar e-mail.
-  // WhatsApp removido — Z-API não autorizado pelo WhatsApp/Meta (risco de ban).
-
-  async function dispararEmail(dados) {
-    try {
-      const { error } = await supabaseClient.functions.invoke(
-        'notificar-abandono-carrinho',
-        {
-          body: {
-            email:           dados.email,
-            nome:            dados.nome        || null,
-            itens:           dados.itens       || [],
-            total:           dados.total       || 0,
-            url_recuperacao: dados.url,
-            abandono_id:     dados.abandono_id || null,
-          },
-        },
-      );
-
-      if (error) {
-        console.warn('[Virtù] notificar-abandono-carrinho:', error.message || error);
-      }
-
-    } catch (err) {
-      // Falha silenciosa — não prejudica a experiência da cliente
-      console.warn('[Virtù] dispararEmail falhou:', err?.message);
-    }
   }
 
   /* ─── Popup exit intent (página do carrinho) ─────────────── */
