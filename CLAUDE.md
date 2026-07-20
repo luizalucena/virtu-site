@@ -17,7 +17,7 @@ estética boutique/luxo. Site estático servido em produção, com backend serve
 - **Frontend:** HTML + CSS + JavaScript puro (vanilla). **Sem framework, sem build, sem bundler.** Cada página é um `.html` na raiz com seu `.css` e `.js` próprios.
 - **Backend:** Supabase (Postgres + Edge Functions em TypeScript/Deno) em `supabase/`.
 - **Pagamentos:** integração via Asaas/PIX e Mercado Pago (ver `PAGAMENTO-SETUP.md`).
-- **Deploy:** Git push para `origin` (GitHub Pages, domínio próprio via `CNAME`).
+- **Deploy:** produção `wearvirtu.com` roda na **Vercel** (header `server: Vercel`), que auto-deploya do branch `main` do GitHub. Git push para `origin/main` → Vercel gera o deploy de produção. (Havia `CNAME` de uma fase antiga em GitHub Pages, mas o serving atual é Vercel — confirmado por header.)
 - **Idioma do produto e do código:** português (pt-BR), incluindo nomes de arquivos, funções e commits.
 
 **Mapa rápido:**
@@ -57,7 +57,7 @@ Toda tarefa segue estas etapas, nesta ordem:
 
 ## 4. Regras de execução (git, deploy, segredos)
 
-- **Push = deploy.** `origin` publica em produção (GitHub Pages). Não dar `git push` por conta própria — confirmar com a Luíza, salvo combinação prévia.
+- **Push = deploy.** `origin/main` publica em produção via **Vercel** (auto-deploy do `main`). Não dar `git push` por conta própria — confirmar com a Luíza, salvo combinação prévia. Não há Vercel CLI no ambiente local; se o deploy não refletir, é ação no painel da Vercel (Luíza).
 - **Commits:** mensagens em pt-BR no padrão já usado no repo: `tipo(escopo): descrição` (ex.: `fix(galeria): corrige imagem principal`, `feat(fidelidade): desconto automático`). Tipos: `feat, fix, refine, perf, chore, redesign`.
 - **Commits pequenos e temáticos** — um assunto por commit.
 - **Segredos:** NUNCA commitar ou expor tokens, chaves de API ou senhas. Service-role keys do Supabase e tokens de pagamento ficam só nas Edge Functions / variáveis de ambiente — nunca no frontend. A chave do frontend deve ser apenas a `anon` pública.
