@@ -1,7 +1,7 @@
 /**
  * send-order-email — Virtù
  * Dispara dois e-mails automáticos após confirmação de pedido:
- *   1. Para o cliente: confirmação premium com itens e link de rastreio
+ *   1. Para o cliente: confirmação premium (boutique) com itens, resumo e entrega
  *   2. Para a loja (wearvirtu@gmail.com): notificação de novo pedido PAGO
  *
  * Pode ser chamado com dados completos (de processar-pagamento) ou apenas
@@ -30,6 +30,18 @@ const securityHeaders = {
 const SITE_URL    = 'https://wearvirtu.com';
 const STORE_EMAIL = 'wearvirtu@gmail.com';
 const FROM_EMAIL  = 'Virtù <notificacoes@wearvirtu.com>';
+
+// ── Paleta oficial (só estas cores no e-mail) ────────────────────────
+const NAVY   = '#1a2a4a';
+const GOLD   = '#b8943f';
+const CREAM  = '#faf8f5';
+const WHITE  = '#ffffff';
+const INK    = '#2b2b2b';
+const MUTED  = '#5a5a5a';
+const LINE   = '#ece7db'; // divisória fina (equivalente sólido a navy .12 sobre creme)
+
+const SERIF = "Georgia,'Times New Roman',serif";
+const SANS  = "'Helvetica Neue',Arial,sans-serif";
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -125,8 +137,16 @@ Deno.serve(async (req) => {
       return [linha1, linha2, cep].filter(Boolean).join(' · ');
     }
 
-    // Número humano do pedido: WV + sequencial (WV1004). Fallback defensivo
-    // para pedidos antigos sem numero_pedido (não deve ocorrer — backfill feito).
+    // Detalhes de uma peça: "Cor  ·  Tam M  ·  Qtd 2"
+    function detalheItem(it: Record<string, unknown>): string {
+      const qtd = it.qty || it.quantidade || 1;
+      return [
+        it.cor_nome || it.cor,
+        it.tamanho ? `Tam ${it.tamanho}` : '',
+        `Qtd ${qtd}`,
+      ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+    }
+
     const pedidoNum = numero_pedido
       ? `WV${numero_pedido}`
       : (pedido_id ? `WV${String(pedido_id).slice(-6).toUpperCase()}` : 'WV------');
@@ -139,170 +159,142 @@ Deno.serve(async (req) => {
 
     const primeiroNome = (cliente?.nome || 'Cliente').split(' ')[0];
 
+    // Overline de seção (uppercase, letter-spacing, discreto)
+    const overline = (txt: string) =>
+      `<p style="margin:0 0 12px;font-family:${SANS};font-size:11px;letter-spacing:2px;color:${MUTED};text-transform:uppercase">${txt}</p>`;
+
     // ── 1. E-mail premium para o cliente ────────────────────────────
     const itensHtmlCliente = (itens ?? []).map((it: Record<string, unknown>) => `
       <tr>
-        <td style="padding:12px 8px;border-bottom:1px solid #f0ebe4">
-          <div style="font-size:13px;font-weight:600;color:#1A2744;line-height:1.4">
-            ${it.nome || it.name || 'Produto'}
-          </div>
-          ${it.tamanho ? `<div style="font-size:11px;color:#999;margin-top:3px">Tam: ${it.tamanho}</div>` : ''}
-          ${(it.cor_nome || it.cor) ? `<div style="font-size:11px;color:#999">Cor: ${it.cor_nome || it.cor}</div>` : ''}
+        <td style="padding:14px 0;border-bottom:1px solid ${LINE};font-family:${SERIF};font-size:15px;color:${NAVY};line-height:1.4;vertical-align:top">
+          ${it.nome || it.name || 'Produto'}
+          <div style="font-family:${SANS};font-size:12px;color:${MUTED};margin-top:5px;letter-spacing:.02em">${detalheItem(it)}</div>
         </td>
-        <td style="padding:12px 8px;border-bottom:1px solid #f0ebe4;text-align:center;font-size:13px;color:#666">
-          ${it.qty || it.quantidade || 1}
-        </td>
-        <td style="padding:12px 8px;border-bottom:1px solid #f0ebe4;text-align:right;font-size:13px;font-weight:600;color:#1A2744;white-space:nowrap">
+        <td style="padding:14px 0 14px 12px;border-bottom:1px solid ${LINE};font-family:${SANS};font-size:14px;color:${INK};text-align:right;white-space:nowrap;vertical-align:top">
           ${fmtBRL(Number(it.preco || 0))}
         </td>
       </tr>`).join('');
 
-    const descontoRow = Number(desconto) > 0 ? `
-      <tr>
-        <td style="padding:5px 0;font-size:13px;color:#888">Desconto</td>
-        <td style="padding:5px 0;font-size:13px;text-align:right;color:#2e7d32">− ${fmtBRL(Number(desconto))}</td>
-      </tr>` : '';
+    const descontoRow = Number(desconto) > 0
+      ? `<tr>
+           <td style="padding:5px 0;font-family:${SANS};font-size:13px;color:${MUTED}">Desconto</td>
+           <td style="padding:5px 0;font-family:${SANS};font-size:13px;color:${INK};text-align:right">− ${fmtBRL(Number(desconto))}</td>
+         </tr>`
+      : '';
 
-    const freteLabel = Number(frete) === 0
-      ? '<span style="color:#2e7d32">Grátis 🎉</span>'
-      : fmtBRL(Number(frete));
+    const freteTxt = Number(frete) === 0 ? 'Grátis' : fmtBRL(Number(frete));
 
     const htmlCliente = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
   <title>Pedido confirmado — Virtù</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f2ee;font-family:Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased">
+<body style="margin:0;padding:0;background-color:${CREAM};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${CREAM}" style="background-color:${CREAM}">
+    <tr><td align="center" style="padding:32px 16px 48px">
 
-  <div style="max-width:600px;margin:0 auto;padding:40px 16px 60px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:${WHITE};border-radius:16px;overflow:hidden;border:1px solid ${LINE}">
 
-    <!-- Logotipo -->
-    <div style="text-align:center;margin-bottom:36px">
-      <p style="margin:0;font-size:34px;color:#1A2744;letter-spacing:7px;font-style:italic;font-weight:normal">VIRTÙ</p>
-      <div style="width:40px;height:1px;background:#C4934A;margin:14px auto 0"></div>
-    </div>
+        <!-- fio superior navy -->
+        <tr><td style="height:3px;line-height:3px;font-size:0;background-color:${NAVY}">&nbsp;</td></tr>
 
-    <!-- Card principal -->
-    <div style="background:#fff;border-radius:2px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden">
+        <!-- cabeçalho tipográfico -->
+        <tr><td align="center" style="padding:46px 40px 32px;background-color:${WHITE}">
+          <div style="font-family:${SERIF};font-size:30px;letter-spacing:9px;color:${NAVY};font-weight:400;padding-left:9px">VIRTÙ</div>
+          <div style="width:44px;height:1px;line-height:1px;font-size:0;background-color:${GOLD};margin:18px auto 0">&nbsp;</div>
+          <div style="font-family:${SANS};font-size:11px;letter-spacing:3px;color:${MUTED};text-transform:uppercase;margin-top:20px">Pedido confirmado</div>
+          <div style="font-family:${SANS};font-size:16px;letter-spacing:2px;color:${GOLD};font-weight:700;margin-top:7px">${pedidoNum}</div>
+        </td></tr>
 
-      <!-- Header azul -->
-      <div style="background:#1A2744;padding:40px 40px 36px;text-align:center">
-        <div style="width:52px;height:52px;border-radius:50%;background:rgba(196,147,74,.18);border:1.5px solid rgba(196,147,74,.4);margin:0 auto 18px;line-height:52px;font-size:22px;color:#C4934A;text-align:center">
-          ✓
-        </div>
-        <p style="margin:0;font-size:22px;color:#fff;letter-spacing:2.5px;font-weight:normal">Pedido Confirmado</p>
-        <p style="margin:10px 0 0;font-size:13px;color:#C4934A;letter-spacing:2px">${pedidoNum}</p>
-      </div>
+        <!-- saudação -->
+        <tr><td style="padding:8px 40px 0;background-color:${WHITE}">
+          <p style="margin:0 0 10px;font-family:${SERIF};font-size:20px;color:${NAVY};font-weight:400">Olá, ${primeiroNome}.</p>
+          <p style="margin:0;font-family:${SANS};font-size:14px;color:${MUTED};line-height:1.75">Recebemos o seu pedido e já estamos preparando tudo com muito cuidado. Avisaremos por e-mail assim que ele for despachado.</p>
+        </td></tr>
 
-      <!-- Saudação -->
-      <div style="padding:32px 40px 0">
-        <p style="margin:0 0 6px;font-size:17px;color:#1A2744;font-weight:normal">Olá, ${primeiroNome}!</p>
-        <p style="margin:0;font-size:14px;color:#666;line-height:1.75">
-          Recebemos o seu pedido e já estamos preparando tudo com muito cuidado para você.
-          Avisaremos por e-mail assim que ele for despachado.
-        </p>
-      </div>
+        <!-- itens -->
+        <tr><td style="padding:34px 40px 0;background-color:${WHITE}">
+          ${overline('Itens do pedido')}
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${itensHtmlCliente}</table>
+        </td></tr>
 
-      <!-- Itens -->
-      <div style="padding:28px 40px 0">
-        <p style="margin:0 0 14px;font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:2.5px">Itens do pedido</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-          <thead>
-            <tr style="background:#f9f6f2">
-              <th style="padding:9px 8px;text-align:left;font-size:10px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border-bottom:1px solid #f0ebe4">Produto</th>
-              <th style="padding:9px 8px;text-align:center;font-size:10px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border-bottom:1px solid #f0ebe4">Qtd</th>
-              <th style="padding:9px 8px;text-align:right;font-size:10px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border-bottom:1px solid #f0ebe4">Preço</th>
+        <!-- resumo -->
+        <tr><td style="padding:28px 40px 0;background-color:${WHITE}">
+          ${overline('Resumo')}
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="padding:5px 0;font-family:${SANS};font-size:13px;color:${MUTED}">Subtotal</td>
+              <td style="padding:5px 0;font-family:${SANS};font-size:13px;color:${INK};text-align:right">${fmtBRL(Number(subtotal ?? total))}</td>
             </tr>
-          </thead>
-          <tbody>${itensHtmlCliente}</tbody>
-        </table>
-      </div>
+            <tr>
+              <td style="padding:5px 0;font-family:${SANS};font-size:13px;color:${MUTED}">Frete</td>
+              <td style="padding:5px 0;font-family:${SANS};font-size:13px;color:${INK};text-align:right">${freteTxt}</td>
+            </tr>
+            ${descontoRow}
+            <tr><td colspan="2" style="padding:12px 0 0"><div style="height:1px;line-height:1px;font-size:0;background-color:${LINE}">&nbsp;</div></td></tr>
+            <tr>
+              <td style="padding:14px 0 0;font-family:${SERIF};font-size:16px;color:${NAVY}">Total</td>
+              <td style="padding:14px 0 0;font-family:${SANS};font-size:18px;font-weight:700;color:${GOLD};text-align:right">${fmtBRL(Number(total))}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding:6px 0 0;font-family:${SANS};font-size:12px;color:${MUTED}">Pagamento via ${metodoPagto}</td>
+            </tr>
+          </table>
+        </td></tr>
 
-      <!-- Totais -->
-      <div style="padding:20px 40px 28px">
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-          <tr>
-            <td style="padding:5px 0;font-size:13px;color:#888">Subtotal</td>
-            <td style="padding:5px 0;font-size:13px;text-align:right;color:#333">${fmtBRL(Number(subtotal ?? total))}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px 0;font-size:13px;color:#888">Frete</td>
-            <td style="padding:5px 0;font-size:13px;text-align:right">${freteLabel}</td>
-          </tr>
-          ${descontoRow}
-          <tr>
-            <td colspan="2"><div style="height:1px;background:#e8e0d6;margin:10px 0"></div></td>
-          </tr>
-          <tr>
-            <td style="padding:4px 0;font-size:16px;font-weight:bold;color:#1A2744">Total pago</td>
-            <td style="padding:4px 0;font-size:16px;font-weight:bold;text-align:right;color:#C4934A">${fmtBRL(Number(total))}</td>
-          </tr>
-          <tr>
-            <td colspan="2" style="padding:5px 0;font-size:12px;color:#aaa">Pagamento via ${metodoPagto}</td>
-          </tr>
-        </table>
-      </div>
+        <!-- entrega -->
+        <tr><td style="padding:30px 40px 0;background-color:${WHITE}">
+          ${overline('Entrega')}
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};width:80px;vertical-align:top">Nome</td>
+              <td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK}">${cliente?.nome || '—'}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};vertical-align:top">CPF</td>
+              <td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK}">${maskCpf(cliente?.cpf)}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};vertical-align:top">Endereço</td>
+              <td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK};line-height:1.6">${formatEndereco(endereco)}</td>
+            </tr>
+          </table>
+        </td></tr>
 
-      <!-- Divisor pós-totais -->
-      <div style="height:1px;background:#f0ebe4;margin:0 40px"></div>
+        <!-- fecho -->
+        <tr><td style="padding:30px 40px 42px;background-color:${WHITE}">
+          <div style="border-top:1px solid ${LINE};padding-top:26px">
+            <p style="margin:0;font-family:${SANS};font-size:13px;color:${MUTED};line-height:1.75;text-align:center">Seu pedido está sendo preparado com todo o cuidado.<br>Você receberá um novo e-mail assim que ele for enviado.</p>
+          </div>
+        </td></tr>
 
-      <!-- Dados de entrega: Nome completo, CPF e Endereço -->
-      <div style="padding:24px 40px 28px">
-        <p style="margin:0 0 12px;font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:2.5px">Dados de entrega</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-          <tr>
-            <td style="padding:6px 0;font-size:12px;color:#aaa;width:35%;vertical-align:top">Nome</td>
-            <td style="padding:6px 0;font-size:13px;color:#1A2744;font-weight:600">${cliente?.nome || '—'}</td>
-          </tr>
-          <tr>
-            <td style="padding:6px 0;font-size:12px;color:#aaa;vertical-align:top">CPF</td>
-            <td style="padding:6px 0;font-size:13px;color:#555">${maskCpf(cliente?.cpf)}</td>
-          </tr>
-          <tr>
-            <td style="padding:6px 0;font-size:12px;color:#aaa;vertical-align:top">Endereço</td>
-            <td style="padding:6px 0;font-size:13px;color:#555;line-height:1.5">${formatEndereco(endereco)}</td>
-          </tr>
-        </table>
-      </div>
+      </table>
 
-      <!-- Divisor pré-fecho -->
-      <div style="height:1px;background:#f0ebe4;margin:0 40px"></div>
+      <!-- rodapé -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px">
+        <tr><td align="center" style="padding:26px 20px 0">
+          <p style="margin:0;font-family:${SANS};font-size:12px;color:${MUTED}">© Virtù · Moda Feminina · <a href="${SITE_URL}" style="color:${MUTED};text-decoration:none">wearvirtu.com</a></p>
+          <p style="margin:9px 0 0;font-family:${SANS};font-size:12px;color:${MUTED}">Dúvidas? <a href="mailto:${STORE_EMAIL}" style="color:${GOLD};text-decoration:none">${STORE_EMAIL}</a></p>
+        </td></tr>
+      </table>
 
-      <!-- Mensagem de fecho -->
-      <div style="padding:32px 40px;text-align:center">
-        <p style="margin:0;font-size:13px;color:#888;line-height:1.7">
-          Seu pedido já está sendo preparado com todo o cuidado.<br>
-          Você receberá um novo e-mail assim que ele for enviado. ✨
-        </p>
-      </div>
-
-    </div>
-
-    <!-- Footer -->
-    <div style="text-align:center;padding:28px 0 0">
-      <p style="margin:0;font-size:12px;color:#bbb">
-        © Virtù — Moda Feminina ·
-        <a href="${SITE_URL}" style="color:#bbb;text-decoration:none">wearvirtu.com</a>
-      </p>
-      <p style="margin:6px 0 0;font-size:11px;color:#d5d0c8">
-        Este e-mail foi gerado automaticamente. Dúvidas? <a href="mailto:wearvirtu@gmail.com" style="color:#d5d0c8">wearvirtu@gmail.com</a>
-      </p>
-    </div>
-
-  </div>
+    </td></tr>
+  </table>
 </body>
 </html>`;
 
-    // ── 2. E-mail de notificação para a loja ────────────────────────
+    // ── 2. E-mail de notificação para a loja (coerente com o do cliente) ──
     const itensHtmlLoja = (itens ?? []).map((it: Record<string, unknown>) => `
       <tr>
-        <td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:13px;color:#333">${it.nome || it.name || 'Produto'}</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:#555">${it.tamanho || '—'}</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:#555">${it.cor_nome || it.cor || '—'}</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:#555">${it.qty || it.quantidade || 1}</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-size:13px;font-weight:600;color:#1A2744">${fmtBRL(Number(it.preco || 0))}</td>
+        <td style="padding:12px 0;border-bottom:1px solid ${LINE};font-family:${SERIF};font-size:14px;color:${NAVY};vertical-align:top">
+          ${it.nome || it.name || 'Produto'}
+          <div style="font-family:${SANS};font-size:12px;color:${MUTED};margin-top:4px">${detalheItem(it)}</div>
+        </td>
+        <td style="padding:12px 0 12px 12px;border-bottom:1px solid ${LINE};font-family:${SANS};font-size:13px;color:${INK};text-align:right;white-space:nowrap;vertical-align:top">${fmtBRL(Number(it.preco || 0))}</td>
       </tr>`).join('');
 
     const enderecoStr = endereco
@@ -313,61 +305,68 @@ Deno.serve(async (req) => {
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Novo Pedido — Virtù</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
+  <title>Novo pedido — Virtù</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f2ee;font-family:Georgia,'Times New Roman',serif">
-  <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+<body style="margin:0;padding:0;background-color:${CREAM}">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${CREAM}" style="background-color:${CREAM}">
+    <tr><td align="center" style="padding:32px 16px 48px">
 
-    <!-- Header -->
-    <div style="background:#1A2744;padding:26px 32px;text-align:center">
-      <p style="margin:0;color:#C4934A;font-size:22px;letter-spacing:4px;font-style:italic">VIRTÙ</p>
-      <p style="margin:8px 0 0;color:#fff;font-size:12px;letter-spacing:2px">🛍️ NOVO PEDIDO CONFIRMADO NO SITE</p>
-    </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:${WHITE};border-radius:16px;overflow:hidden;border:1px solid ${LINE}">
 
-    <!-- Info principal -->
-    <div style="padding:26px 32px 0">
-      <div style="background:#f9f6f2;border-radius:2px;padding:14px 16px;margin-bottom:20px">
-        <p style="margin:0;font-size:18px;color:#1A2744;font-weight:bold">Pedido ${pedidoNum}</p>
-        <p style="margin:4px 0 0;font-size:13px;color:#C4934A;font-weight:600">${fmtBRL(Number(total))} · ${metodoPagto}</p>
-      </div>
+        <tr><td style="height:3px;line-height:3px;font-size:0;background-color:${NAVY}">&nbsp;</td></tr>
 
-      <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#333;margin-bottom:20px">
-        <tr><td style="padding:5px 0;color:#888;width:38%">Cliente</td><td style="font-weight:600">${cliente?.nome || '—'}</td></tr>
-        <tr><td style="padding:5px 0;color:#888">E-mail</td><td>${cliente?.email || '—'}</td></tr>
-        <tr><td style="padding:5px 0;color:#888">Telefone</td><td>${cliente?.telefone || '—'}</td></tr>
-        <tr><td style="padding:5px 0;color:#888">Endereço</td><td style="font-size:12px">${enderecoStr}</td></tr>
+        <tr><td align="center" style="padding:40px 40px 24px;background-color:${WHITE}">
+          <div style="font-family:${SERIF};font-size:26px;letter-spacing:8px;color:${NAVY};padding-left:8px">VIRTÙ</div>
+          <div style="width:40px;height:1px;line-height:1px;font-size:0;background-color:${GOLD};margin:16px auto 0">&nbsp;</div>
+          <div style="font-family:${SANS};font-size:11px;letter-spacing:3px;color:${MUTED};text-transform:uppercase;margin-top:18px">Novo pedido</div>
+          <div style="font-family:${SANS};font-size:16px;letter-spacing:2px;color:${GOLD};font-weight:700;margin-top:6px">${pedidoNum}</div>
+        </td></tr>
+
+        <tr><td align="center" style="padding:2px 40px 0;background-color:${WHITE}">
+          <p style="margin:0;font-family:${SANS};font-size:15px;color:${NAVY}"><strong style="color:${GOLD};font-weight:700">${fmtBRL(Number(total))}</strong> · ${metodoPagto}</p>
+        </td></tr>
+
+        <tr><td style="padding:30px 40px 0;background-color:${WHITE}">
+          ${overline('Cliente')}
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};width:80px;vertical-align:top">Nome</td><td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK}">${cliente?.nome || '—'}</td></tr>
+            <tr><td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};vertical-align:top">E-mail</td><td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK}">${cliente?.email || '—'}</td></tr>
+            <tr><td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};vertical-align:top">Telefone</td><td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK}">${cliente?.telefone || '—'}</td></tr>
+            <tr><td style="padding:4px 0;font-family:${SANS};font-size:12px;color:${MUTED};vertical-align:top">Endereço</td><td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${INK};line-height:1.6">${enderecoStr}</td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:28px 40px 0;background-color:${WHITE}">
+          ${overline('Itens')}
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${itensHtmlLoja}</table>
+        </td></tr>
+
+        <tr><td style="padding:18px 40px 0;background-color:${WHITE}">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="font-family:${SERIF};font-size:15px;color:${NAVY}">Total</td>
+              <td style="text-align:right;font-family:${SANS};font-size:17px;font-weight:700;color:${GOLD}">${fmtBRL(Number(total))}</td>
+            </tr>
+          </table>
+        </td></tr>
+
+        <tr><td align="center" style="padding:32px 40px 42px;background-color:${WHITE}">
+          <a href="${SITE_URL}/admin/" style="display:inline-block;background-color:${NAVY};color:${CREAM};text-decoration:none;padding:14px 34px;font-family:${SANS};font-size:12px;letter-spacing:2px;text-transform:uppercase;border-radius:10px">Abrir painel admin</a>
+        </td></tr>
+
       </table>
 
-      <!-- Itens -->
-      <p style="margin:0 0 10px;font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:2px">Itens</p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-        <thead>
-          <tr style="background:#f9f6f2">
-            <th style="padding:7px 8px;text-align:left;font-size:11px;color:#888;font-weight:600">Produto</th>
-            <th style="padding:7px 8px;text-align:center;font-size:11px;color:#888;font-weight:600">Tam.</th>
-            <th style="padding:7px 8px;text-align:center;font-size:11px;color:#888;font-weight:600">Cor</th>
-            <th style="padding:7px 8px;text-align:center;font-size:11px;color:#888;font-weight:600">Qtd.</th>
-            <th style="padding:7px 8px;text-align:right;font-size:11px;color:#888;font-weight:600">Preço</th>
-          </tr>
-        </thead>
-        <tbody>${itensHtmlLoja}</tbody>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px">
+        <tr><td align="center" style="padding:24px 20px 0">
+          <p style="margin:0;font-family:${SANS};font-size:12px;color:${MUTED}">© Virtù · wearvirtu.com</p>
+        </td></tr>
       </table>
 
-      <!-- Total -->
-      <div style="margin:16px 0 0;padding:14px 0 0;border-top:2px solid #1A2744;text-align:right">
-        <span style="font-size:15px;font-weight:bold;color:#C4934A">Total: ${fmtBRL(Number(total))}</span>
-      </div>
-    </div>
-
-    <!-- CTA admin -->
-    <div style="padding:24px 32px;text-align:center">
-      <a href="${SITE_URL}/admin/"
-         style="display:inline-block;background:#C4934A;color:#fff;text-decoration:none;padding:12px 28px;font-size:12px;letter-spacing:2px;text-transform:uppercase;border-radius:1px;font-family:Helvetica,Arial,sans-serif">
-        Abrir painel admin →
-      </a>
-    </div>
-
-  </div>
+    </td></tr>
+  </table>
 </body>
 </html>`;
 
@@ -383,11 +382,11 @@ Deno.serve(async (req) => {
           'Content-Type':  'application/json',
         },
         body: JSON.stringify({
-          from:    FROM_EMAIL,
-          to:      [cliente.email],
-          subject: `✅ Pedido ${pedidoNum} confirmado — Obrigada por comprar na Virtù!`,
-        reply_to: STORE_EMAIL,
-          html:    htmlCliente,
+          from:     FROM_EMAIL,
+          to:       [cliente.email],
+          reply_to: STORE_EMAIL,
+          subject:  `Pedido ${pedidoNum} confirmado — obrigada por comprar na Virtù`,
+          html:     htmlCliente,
         }),
       }));
     }
@@ -402,11 +401,11 @@ Deno.serve(async (req) => {
           'Content-Type':  'application/json',
         },
         body: JSON.stringify({
-          from:    FROM_EMAIL,
-          to:      [STORE_EMAIL],
-          subject: `🛍️ Novo pedido ${pedidoNum} — ${fmtBRL(Number(total))} (${metodoPagto})`,
-        reply_to: STORE_EMAIL,
-          html:    htmlLoja,
+          from:     FROM_EMAIL,
+          to:       [STORE_EMAIL],
+          reply_to: STORE_EMAIL,
+          subject:  `Novo pedido ${pedidoNum} — ${fmtBRL(Number(total))} (${metodoPagto})`,
+          html:     htmlLoja,
         }),
       }));
     }
