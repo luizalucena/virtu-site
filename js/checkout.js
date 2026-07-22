@@ -46,13 +46,14 @@ let currentUserId      = null; // UUID do usuário autenticado
 
 // ── AJUSTE POR MÉTODO DE PAGAMENTO ──────────────────────────
 // Edite aqui (e no processar-pagamento/index.ts) quando mudar as regras.
-//   PIX:    sem ajuste (valor cheio)
-//   Débito: +5% (taxa de cartão) sobre o TOTAL (incluindo frete)
-//   Crédito:+5% (taxa de cartão) sobre o TOTAL — parcelamento divide o total
+// MODELO: o preço de tabela JÁ é o preço de CARTÃO.
+//   Cartão/Débito: sem acréscimo (paga o preço de tabela)
+//   PIX:           −5% de DESCONTO à vista sobre o TOTAL (subtotal − cupom −
+//                  gift + frete); parcelamento divide o total do cartão.
 const AJUSTE_METODO = {
-  pix:     0,     // sem ajuste — PIX paga o valor cheio
-  debito:  0.05,  // 5% de ACRÉSCIMO (taxa de cartão)
-  cartao:  0.05,  // 5% de ACRÉSCIMO (taxa de cartão)
+  pix:    -0.05,  // 5% de DESCONTO à vista no PIX
+  debito:  0,     // sem acréscimo (preço de tabela já é o de cartão)
+  cartao:  0,     // sem acréscimo (preço de tabela já é o de cartão)
 };
 
 /**
@@ -84,7 +85,7 @@ function dividirParcelas(total, n) {
 /**
  * Pipeline de preço (ordem exata do spec):
  *   baseTotal = (subtotalLiquido) + frete
- *   PIX = baseTotal ; Cartão/Débito = baseTotal × (1+taxa)
+ *   Cartão/Débito = baseTotal ; PIX = baseTotal × 0,95 (−5% à vista)
  *   → arredondamento estético ,90 no total a pagar.
  * O subtotalLiquido já vem com cupom e gift card descontados.
  *
@@ -92,14 +93,14 @@ function dividirParcelas(total, n) {
  * @param {number} freteReal        Valor do frete selecionado
  * @param {'pix'|'debito'|'cartao'} metodo
  * @param {number} [parcelas]       Número de parcelas (cartão, 1..12)
- * @returns {{ valorFinal, baseTotal, diff, pct, temAjuste, valorPorParcela }}
+ * @returns {{ valorFinal, baseTotal, diff, pct, ehDesconto, ehAcrescimo, temAjuste, valorPorParcela }}
  */
 function calcularPreco(subtotalLiquido, freteReal, metodo, parcelas = 1) {
   const ajuste    = AJUSTE_METODO[metodo] ?? 0;
   const sub       = Math.max(0, subtotalLiquido);
   const baseTotal = Math.round((sub + freteReal) * 100) / 100;
   const valorFinal = arredondar90(baseTotal * (1 + ajuste));
-  const diff      = +(valorFinal - baseTotal).toFixed(2); // acréscimo da taxa+arred.
+  const diff      = +(valorFinal - baseTotal).toFixed(2); // <0 = desconto (PIX); >0 = acréscimo
   const n         = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
 
   return {
@@ -107,7 +108,9 @@ function calcularPreco(subtotalLiquido, freteReal, metodo, parcelas = 1) {
     baseTotal,
     diff,
     pct:            Math.abs(ajuste * 100),
-    temAjuste:      ajuste > 0,
+    ehDesconto:     ajuste < 0,   // PIX (−5%)
+    ehAcrescimo:    ajuste > 0,   // (nenhum método no modelo atual)
+    temAjuste:      ajuste !== 0,
     valorPorParcela: metodo === 'cartao' ? dividirParcelas(valorFinal, n).base : null,
   };
 }
@@ -301,12 +304,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const parcelas = parseInt(document.getElementById('installments')?.value || '1');
     const preco    = calcularPreco(subtotalLiquido, freteReal, metodoAtivo, parcelas);
 
-    // ── Linha de ajuste ──────────────────────────────────────
-    // PIX não tem ajuste (valor cheio) → oculta a linha.
-    // Débito/Crédito mantêm o acréscimo de +5% (taxa de cartão).
+    // ── Linha de ajuste por método ───────────────────────────
+    // Cartão/Débito: sem acréscimo → oculta a linha.
+    // PIX: −5% de desconto à vista → mostra "Desconto PIX (5%)".
     if (!preco.temAjuste) {
       if (taxaLine) taxaLine.style.display = 'none';
+    } else if (preco.ehDesconto) {
+      if (taxaLine) taxaLine.style.display = '';
+      if (taxaLabel) taxaLabel.innerHTML = `Desconto PIX <span style="color:#999;font-size:.78rem;font-weight:400">(${preco.pct.toFixed(0)}%)</span>`;
+      if (taxaEl) {
+        taxaEl.textContent = `− ${formatCurrency(Math.abs(preco.diff))}`;
+        taxaEl.style.color = '#b8943f';
+      }
     } else {
+      // Acréscimo — não usado no modelo atual; mantido por robustez.
       if (taxaLine) taxaLine.style.display = '';
       const eDebito   = metodoAtivo === 'debito';
       const labelHtml = eDebito
@@ -451,22 +462,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── PARCELAS DINÂMICAS (acréscimo fixo +5% sobre o total) ─
-  // O total do cartão é (subtotalLiquido + frete)×1,05 arredondado em ",90";
-  // a parcela é esse total ÷ N (2 casas), com a última absorvendo a sobra.
+  // ── PARCELAS DINÂMICAS (sem acréscimo — tabela já é o preço de cartão) ─
+  // O total do cartão é (subtotalLiquido + frete) arredondado em ",90"; a
+  // parcela é esse total ÷ N (2 casas), com a última absorvendo a sobra.
   function updateInstallments(subtotalLiquido, freteReal) {
     const sel = document.getElementById('installments');
     if (!sel) return;
     const parcelaAtual = parseInt(sel.value || '1');
-    const totalComAcrescimo = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
+    const totalCartao = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
     sel.innerHTML = '';
     for (let i = 1; i <= 12; i++) {
-      const { base } = dividirParcelas(totalComAcrescimo, i);
+      const { base } = dividirParcelas(totalCartao, i);
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = i === 1
-        ? `1x de ${formatCurrency(totalComAcrescimo)} (+5%)`
-        : `${i}x de ${formatCurrency(base)} (+5% = ${formatCurrency(totalComAcrescimo)})`;
+        ? `1x de ${formatCurrency(totalCartao)}`
+        : `${i}x de ${formatCurrency(base)} — total ${formatCurrency(totalCartao)}`;
       if (i === parcelaAtual) opt.selected = true;
       sel.appendChild(opt);
     }
