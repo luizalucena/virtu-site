@@ -403,13 +403,9 @@ function updateSummary() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('summarySubtotal',    formatCurrency(subtotal));
   set('summaryTotal',       formatCurrency(total));
-  // Prévia do parcelado no cartão: +5% (taxa) arredondado ,90, ÷12.
-  // Indicativo (sem frete — o frete é calculado no checkout).
-  const arredondar90 = v => {
-    const arred = Math.floor((v - 0.90) + 0.5 + 1e-9);
-    return Math.round((arred + 0.90) * 100) / 100;
-  };
-  const cardTotalCart = arredondar90(total * 1.05);
+  // Prévia do parcelado no cartão: o preço de tabela JÁ é o de cartão (sem
+  // acréscimo), ÷12. Indicativo (sem frete — o frete é calculado no checkout).
+  const cardTotalCart = total;
   const installmentUp = Math.floor((cardTotalCart / 12) * 100) / 100;
   set('summaryInstallments', total > 0 ? `ou 12x de ${formatCurrency(installmentUp)} no cartão` : '');
 

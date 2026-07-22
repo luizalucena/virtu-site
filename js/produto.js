@@ -205,23 +205,24 @@ async function carregarProduto(produtoId) {
       precoOrigEl.style.display = 'none';
     }
 
-    // Parcelamento — usa preço do cartão (+5%, arredondado ,90) p/ bater com o strip
-    const cardPreco = arredondar90(preco * 1.05);
+    // Parcelamento — o preço de tabela JÁ é o de cartão (sem acréscimo); ÷12.
+    const cardPreco = preco;
     const parcela = cardPreco / 12;
     const parcelaEl = document.querySelector('.produto-parcelamento');
     if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} no cartão`;
 
     // ── Strip de formas de pagamento e valores ─────────────
-    // PIX = valor cheio (sem ajuste) | Crédito/Débito = +5% (taxa) no checkout
+    // Cartão/Débito = preço de tabela (sem acréscimo) | PIX = −5% à vista.
     const payStrip = document.getElementById('produtoPaymentStrip');
     if (payStrip && preco > 0) {
-      const cardPrice = cardPreco;
+      const cardPrice = cardPreco;                     // preço de tabela = cartão
+      const pixPrice  = arredondar90(preco * 0.95);    // 5% de desconto à vista
       const parcela12 = cardPrice / 12;
       const fmtV = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       payStrip.innerHTML = `
         <div class="produto-payment-strip__row produto-payment-strip__row--pix">
           <span class="produto-payment-strip__metodo">PIX</span>
-          <span class="produto-payment-strip__preco">${fmt(preco)}</span>
+          <span class="produto-payment-strip__preco">${fmtV(pixPrice)}</span>
           <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">à vista · 5% OFF</span>
         </div>
         <div class="produto-payment-strip__row produto-payment-strip__row--card">
