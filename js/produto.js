@@ -239,9 +239,10 @@ async function carregarProduto(produtoId) {
       payStrip.style.display = '';
     }
 
-    // Cores — renderiza p.cores imediatamente como base.
-    // VirtuStock sobrescreve depois se houver variações configuradas.
-    if (p.cores && p.cores.length > 0) {
+    // Cores — só renderiza p.cores (cadastro) de imediato quando NÃO há
+    // VirtuStock. Com VirtuStock, as cores vêm das variações reais no callback
+    // (evita flash de cor errada quando produtos.cores está desatualizado).
+    if (typeof VirtuStock === 'undefined' && p.cores && p.cores.length > 0) {
       _renderCores(p.cores);
     }
 
@@ -955,6 +956,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
     .catch(err => {
       console.warn('[Produto] Erro ao inicializar stock:', err);
+      // Fallback: se o stock falhar ao carregar, mostra as cores do cadastro
+      const fallback = _produtoCarregado?.cores || [];
+      if (fallback.length > 0) _renderCores(fallback);
     });
   }
 
