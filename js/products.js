@@ -99,6 +99,16 @@ const VirtuProducts = (() => {
     return `produto.html?id=${id}`;
   }
 
+  // Normaliza nome de cor para casar filtro↔produto de forma robusta:
+  // minúsculo, sem acento e sem espaço/hífen ("Off White" e "Off-White" → "offwhite").
+  // Usado no filtro do catálogo em vez de casar por hex (que varia entre peças da mesma cor).
+  function normalizeCor(nome) {
+    return (nome || '').toString().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+  }
+
   /* ── RENDERIZA UM CARD ───────────────────── */
   function renderCard(produto, opts = {}) {
     // opts.index: posição na lista (0-based) — primeiros 4 items carregam eager
@@ -201,13 +211,15 @@ const VirtuProducts = (() => {
 
     const sizesAttr    = (produto.tamanhos || []).join(',');
     const colorsAttr   = (produto.cores    || []).map(c => (c.hex || '').toLowerCase()).join(',');
+    // Nomes de cor normalizados: chave real do filtro de cores (ver catalogo.js)
+    const colorNamesAttr = (produto.cores || []).map(c => normalizeCor(c.nome)).filter(Boolean).join(',');
     const essencialAttr = produto.essencial ? 'true' : '';
     const novidadeAttr  = produto.novidade  ? 'true' : '';
     const destaqueAttr  = produto.destaque  ? 'true' : '';
 
     const dateAttr = produto.criado_em ? new Date(produto.criado_em).getTime() : 0;
     return `
-      <article class="product-card" data-cat="${escHtml(categoria)}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" data-date="${dateAttr}" role="listitem">
+      <article class="product-card" data-cat="${escHtml(categoria)}" data-price="${precoFinal}" data-id="${id}" data-sizes="${sizesAttr}" data-colors="${colorsAttr}" data-color-names="${colorNamesAttr}" data-essencial="${essencialAttr}" data-novidade="${novidadeAttr}" data-destaque="${destaqueAttr}" data-date="${dateAttr}" role="listitem">
         <a href="${link}" class="product-card__image-link" tabindex="-1" aria-hidden="true">
           <div class="product-card__image-wrap${wrapPhClass}">
             ${imgHtml}
@@ -412,6 +424,6 @@ const VirtuProducts = (() => {
   }
 
   // API pública
-  return { fetchAll, renderGrid, renderCarousel, getConfig, applyHomeBanners, applyHomeExtras, renderCard, formatCurrency };
+  return { fetchAll, renderGrid, renderCarousel, getConfig, applyHomeBanners, applyHomeExtras, renderCard, formatCurrency, normalizeCor };
 
 })();

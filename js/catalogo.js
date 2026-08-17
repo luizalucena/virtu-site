@@ -161,9 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeSizes = [...document.querySelectorAll('#sizeGrid .size-btn.size-btn--active')]
       .map(b => b.dataset.size || b.textContent.trim());
 
-    // Cores ativas (hex, minúsculas)
+    // Cores ativas (nome normalizado — casa filtro↔produto sem depender do hex exato)
     const activeColors = [...document.querySelectorAll('#colorGrid .color-btn.color-btn--active')]
-      .map(b => (b.dataset.hex || '').toLowerCase());
+      .map(b => b.dataset.name || '')
+      .filter(Boolean);
 
     const products = document.querySelectorAll('.product-card[data-cat]');
     let visibleCount = 0;
@@ -172,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cat    = product.getAttribute('data-cat');
       const price  = parseInt(product.getAttribute('data-price') || 0);
       const sizes  = (product.getAttribute('data-sizes')  || '').split(',').filter(Boolean);
-      const colors = (product.getAttribute('data-colors') || '').split(',').filter(Boolean).map(c => c.toLowerCase());
+      const colors = (product.getAttribute('data-color-names') || '').split(',').filter(Boolean);
       const isSale      = !!product.querySelector('.product-card__badge--sale');
       const isEssencial = product.getAttribute('data-essencial') === 'true' || cat === 'essenciais';
       const isNovidade  = product.getAttribute('data-novidade')  === 'true';
@@ -302,8 +303,10 @@ document.addEventListener('DOMContentLoaded', () => {
           ? '#' + rawHex[1]+rawHex[1]+rawHex[2]+rawHex[2]+rawHex[3]+rawHex[3]
           : rawHex;
         const isLight = ['#f9f7f4','#e8d5b5','#ffffff','#fafafa','#f5f5f5'].includes(hex);
+        // data-name (nome normalizado) é a chave do filtro; data-hex é só a cor do swatch.
+        const nome = VirtuProducts.normalizeCor(c.nome);
         return `<button class="color-btn" style="background:${c.hex}${isLight ? ';border:1px solid #ccc' : ''}"
-                  title="${c.nome}" aria-label="${c.nome}" data-hex="${hex}"></button>`;
+                  title="${c.nome}" aria-label="${c.nome}" data-hex="${hex}" data-name="${nome}"></button>`;
       }).join('');
     }
   }
