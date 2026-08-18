@@ -66,6 +66,7 @@
     if (p.payment_method === 'pix')    return 'PIX';
     if (p.payment_method === 'cartao') return 'Cartão';
     if (p.payment_method === 'debito') return 'Débito';
+    if (p.payment_method === 'dinheiro') return 'Dinheiro';  // venda presencial (PDV do Garimpo)
     return p.payment_method || '—';
   }
 
