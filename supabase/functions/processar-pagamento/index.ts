@@ -6,7 +6,7 @@
  *   - Cartão: dados tokenizados via ASAAS (PCI-DSS) — nosso servidor repassa
  *             dados criptografados diretamente ao ASAAS, nunca os armazena
  *   - Preços: recalculados no servidor a partir do banco (anti-tampering)
- *   - Taxa de cartão (5%) e arredondamento ,90 aplicados server-side
+ *   - Desconto PIX (3%) e arredondamento ,90 aplicados server-side
  *   - Gift Card R$100: elegibilidade validada server-side (gift_card_status)
  *
  * Variáveis de ambiente necessárias (Supabase Secrets):
