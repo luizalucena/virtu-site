@@ -87,7 +87,7 @@
       <div class="vt-mc__items" id="vtMcItems"></div>
       <div class="vt-mc__foot">
         <div class="vt-mc__sub"><span>Subtotal</span><span id="vtMcSub">R$ 0,00</span></div>
-        <p class="vt-mc__pix"><strong>5% OFF no PIX</strong> · frete e descontos no checkout</p>
+        <p class="vt-mc__pix"><strong>3% OFF no PIX</strong> · frete e descontos no checkout</p>
         <div class="vt-mc__btns">
           <a class="vt-mc__btn vt-mc__btn--primary" href="checkout.html">Finalizar compra</a>
           <a class="vt-mc__btn vt-mc__btn--ghost" href="carrinho.html">Ver sacola</a>

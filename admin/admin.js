@@ -983,7 +983,7 @@ function populateConfig() {
   // Diferenciais
   const difs = cfg.diferenciais || [
     {titulo:'Frete Grátis',descricao:'Com o cupom FRETEGRATIS'},
-    {titulo:'Parcelamento',descricao:'Até 12x no cartão · 5% OFF no PIX'},
+    {titulo:'Parcelamento',descricao:'Até 6x no cartão · 3% OFF no PIX'},
     {titulo:'Trocas Fáceis',descricao:'Até 7 dias para trocar'},
     {titulo:'Atendimento',descricao:'Via WhatsApp, de seg. a sáb.'},
   ];

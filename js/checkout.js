@@ -51,7 +51,7 @@ let currentUserId      = null; // UUID do usuário autenticado
 //   PIX:           −5% de DESCONTO à vista sobre o TOTAL (subtotal − cupom −
 //                  gift + frete); parcelamento divide o total do cartão.
 const AJUSTE_METODO = {
-  pix:    -0.05,  // 5% de DESCONTO à vista no PIX
+  pix:    -0.03,  // 3% de DESCONTO à vista no PIX
   debito:  0,     // sem acréscimo (preço de tabela já é o de cartão)
   cartao:  0,     // sem acréscimo (preço de tabela já é o de cartão)
 };
@@ -70,7 +70,7 @@ function arredondar90(valor) {
 /**
  * Divide um total em N parcelas com 2 casas; a ÚLTIMA absorve a sobra de
  * centavos para a soma bater EXATAMENTE. NÃO arredonda em ",90".
- *   188,90 em 12x → 11×15,74 + 1×15,76
+ *   188,90 em 6x → 5×31,48 + 1×31,50
  * @returns {{ base:number, ultima:number, parcelas:number[] }}
  */
 function dividirParcelas(total, n) {
@@ -85,14 +85,14 @@ function dividirParcelas(total, n) {
 /**
  * Pipeline de preço (ordem exata do spec):
  *   baseTotal = (subtotalLiquido) + frete
- *   Cartão/Débito = baseTotal ; PIX = baseTotal × 0,95 (−5% à vista)
+ *   Cartão/Débito = baseTotal ; PIX = baseTotal × 0,97 (−3% à vista)
  *   → arredondamento estético ,90 no total a pagar.
  * O subtotalLiquido já vem com cupom e gift card descontados.
  *
  * @param {number} subtotalLiquido  Subtotal após cupom e gift card
  * @param {number} freteReal        Valor do frete selecionado
  * @param {'pix'|'debito'|'cartao'} metodo
- * @param {number} [parcelas]       Número de parcelas (cartão, 1..12)
+ * @param {number} [parcelas]       Número de parcelas (cartão, 1..6)
  * @returns {{ valorFinal, baseTotal, diff, pct, ehDesconto, ehAcrescimo, temAjuste, valorPorParcela }}
  */
 function calcularPreco(subtotalLiquido, freteReal, metodo, parcelas = 1) {
@@ -101,7 +101,7 @@ function calcularPreco(subtotalLiquido, freteReal, metodo, parcelas = 1) {
   const baseTotal = Math.round((sub + freteReal) * 100) / 100;
   const valorFinal = arredondar90(baseTotal * (1 + ajuste));
   const diff      = +(valorFinal - baseTotal).toFixed(2); // <0 = desconto (PIX); >0 = acréscimo
-  const n         = Math.max(1, Math.min(parseInt(parcelas) || 1, 12));
+  const n         = Math.max(1, Math.min(parseInt(parcelas) || 1, 6));
 
   return {
     valorFinal,
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Linha de ajuste por método ───────────────────────────
     // Cartão/Débito: sem acréscimo → oculta a linha.
-    // PIX: −5% de desconto à vista → mostra "Desconto PIX (5%)".
+    // PIX: −3% de desconto à vista → mostra "Desconto PIX (3%)".
     if (!preco.temAjuste) {
       if (taxaLine) taxaLine.style.display = 'none';
     } else if (preco.ehDesconto) {
@@ -348,11 +348,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (compareEl && subtotalLiquido > 0) {
       const totalPix   = calcularPreco(subtotalLiquido, freteReal, 'pix',    1).valorFinal;
       const totalCard  = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
-      const parcela12  = dividirParcelas(totalCard, 12).base;
+      const parcela6   = dividirParcelas(totalCard, 6).base;
       if (comparePixEl)    comparePixEl.textContent    = formatCurrency(totalPix);
       if (compareCardEl)   compareCardEl.textContent   = formatCurrency(totalCard);
       if (compareDebitoEl) compareDebitoEl.textContent = formatCurrency(totalCard);
-      if (compareCardParc) compareCardParc.textContent = `até 12x de ${formatCurrency(parcela12)}`;
+      if (compareCardParc) compareCardParc.textContent = `até 6x de ${formatCurrency(parcela6)}`;
       compareEl.style.display = '';
     } else if (compareEl) {
       compareEl.style.display = 'none';
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const parcelaAtual = parseInt(sel.value || '1');
     const totalCartao = calcularPreco(subtotalLiquido, freteReal, 'cartao', 1).valorFinal;
     sel.innerHTML = '';
-    for (let i = 1; i <= 12; i++) {
+    for (let i = 1; i <= 6; i++) {
       const { base } = dividirParcelas(totalCartao, i);
       const opt = document.createElement('option');
       opt.value = i;

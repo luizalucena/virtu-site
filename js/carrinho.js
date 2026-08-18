@@ -404,10 +404,10 @@ function updateSummary() {
   set('summarySubtotal',    formatCurrency(subtotal));
   set('summaryTotal',       formatCurrency(total));
   // Prévia do parcelado no cartão: o preço de tabela JÁ é o de cartão (sem
-  // acréscimo), ÷12. Indicativo (sem frete — o frete é calculado no checkout).
+  // acréscimo), ÷6. Indicativo (sem frete — o frete é calculado no checkout).
   const cardTotalCart = total;
-  const installmentUp = Math.floor((cardTotalCart / 12) * 100) / 100;
-  set('summaryInstallments', total > 0 ? `ou 12x de ${formatCurrency(installmentUp)} no cartão` : '');
+  const installmentUp = Math.floor((cardTotalCart / 6) * 100) / 100;
+  set('summaryInstallments', total > 0 ? `ou 6x de ${formatCurrency(installmentUp)} no cartão` : '');
 
   const discLine = document.getElementById('discountLine');
   const discEl   = document.getElementById('summaryDiscount');

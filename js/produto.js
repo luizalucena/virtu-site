@@ -205,30 +205,30 @@ async function carregarProduto(produtoId) {
       precoOrigEl.style.display = 'none';
     }
 
-    // Parcelamento — o preço de tabela JÁ é o de cartão (sem acréscimo); ÷12.
+    // Parcelamento — o preço de tabela JÁ é o de cartão (sem acréscimo); ÷6.
     const cardPreco = preco;
-    const parcela = cardPreco / 12;
+    const parcela = cardPreco / 6;
     const parcelaEl = document.querySelector('.produto-parcelamento');
-    if (parcelaEl) parcelaEl.textContent = `ou 12x de ${fmtParc(parcela)} no cartão`;
+    if (parcelaEl) parcelaEl.textContent = `ou 6x de ${fmtParc(parcela)} no cartão`;
 
     // ── Strip de formas de pagamento e valores ─────────────
     // Cartão/Débito = preço de tabela (sem acréscimo) | PIX = −5% à vista.
     const payStrip = document.getElementById('produtoPaymentStrip');
     if (payStrip && preco > 0) {
       const cardPrice = cardPreco;                     // preço de tabela = cartão
-      const pixPrice  = arredondar90(preco * 0.95);    // 5% de desconto à vista
-      const parcela12 = cardPrice / 12;
+      const pixPrice  = arredondar90(preco * 0.97);    // 3% de desconto à vista
+      const parcela6  = cardPrice / 6;
       const fmtV = v => `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       payStrip.innerHTML = `
         <div class="produto-payment-strip__row produto-payment-strip__row--pix">
           <span class="produto-payment-strip__metodo">PIX</span>
           <span class="produto-payment-strip__preco">${fmtV(pixPrice)}</span>
-          <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">à vista · 5% OFF</span>
+          <span class="produto-payment-strip__nota produto-payment-strip__nota--pix">à vista · 3% OFF</span>
         </div>
         <div class="produto-payment-strip__row produto-payment-strip__row--card">
           <span class="produto-payment-strip__metodo">
             Crédito
-            <small class="produto-payment-strip__parcelamento">até 12x de ${fmtV(parcela12)}</small>
+            <small class="produto-payment-strip__parcelamento">até 6x de ${fmtV(parcela6)}</small>
           </span>
           <span class="produto-payment-strip__preco">${fmtV(cardPrice)}</span>
         </div>

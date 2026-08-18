@@ -34,11 +34,11 @@ const securityHeaders = {
 
 // ── AJUSTE POR MÉTODO — espelho de AJUSTE_METODO no frontend ──
 // MODELO: o preço de tabela JÁ é o preço de CARTÃO. Cartão/Débito não têm
-// acréscimo; o PIX ganha 5% de DESCONTO à vista sobre o TOTAL (subtotal −
+// acréscimo; o PIX ganha 3% de DESCONTO à vista sobre o TOTAL (subtotal −
 // cupom − gift + frete). Edite aqui E no checkout.js/produto.js/carrinho.js
 // de forma sincronizada.
 const AJUSTE_METODO: Record<string, number> = {
-  pix:    -0.05,  // 5% de DESCONTO à vista no PIX
+  pix:    -0.03,  // 3% de DESCONTO à vista no PIX
   debito:  0,     // sem acréscimo (preço de tabela já é o de cartão)
   cartao:  0,     // sem acréscimo (preço de tabela já é o de cartão)
 };
@@ -235,7 +235,7 @@ Deno.serve(async (req) => {
       card_expiry_month,  // string — MM
       card_expiry_year,   // string — YYYY
       card_cvv,           // string
-      parcelas,           // number — 1..12
+      parcelas,           // number — 1..6
       // cupom
       cupom_codigo,
       // gift card R$100 (clientes fiéis) — o frontend só SOLICITA; a
@@ -425,10 +425,10 @@ Deno.serve(async (req) => {
     // ── Pipeline de cálculo (ordem exata) ────────────────────
     //   subtotal → frete → desconto (cupom + gift card) →
     //   baseTotal = (subtotal − desconto) + frete →
-    //   Cartão/Débito = baseTotal (preço de tabela) ; PIX = baseTotal × 0,95
-    //   (5% de desconto à vista, após cupom/gift, sobre subtotal + frete)
+    //   Cartão/Débito = baseTotal (preço de tabela) ; PIX = baseTotal × 0,97
+    //   (3% de desconto à vista, após cupom/gift, sobre subtotal + frete)
     //   → arredondamento estético ,90.
-    const parcelasNum   = Math.max(1, Math.min(Number(parcelas) || 1, 12));
+    const parcelasNum   = Math.max(1, Math.min(Number(parcelas) || 1, 6));
     const ajuste        = AJUSTE_METODO[tipo] ?? 0;
     const descontoTotal = descontoNum + descontoGiftCard;
     const subMenosDesc  = Math.max(0, serverSubtotal - descontoTotal);
