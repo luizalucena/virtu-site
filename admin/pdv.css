@@ -472,6 +472,11 @@
 
 .pdv-linha--desconto label { font-size: 0.83rem; }
 
+/* Desconto à vista (PIX/dinheiro) — some quando o método não tem ajuste */
+.pdv-linha--ajuste { color: var(--gold); }
+.pdv-linha--ajuste strong { color: var(--gold); font-weight: 600; }
+.pdv-linha--ajuste[hidden] { display: none; }
+
 .pdv-linha--total {
   padding-top: 0.6rem;
   margin-top: 0.15rem;
@@ -545,7 +550,13 @@
 }
 
 .pdv-pag {
-  height: 40px;
+  min-height: 52px;
+  padding: 0.4rem 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
   font-family: var(--font);
   font-size: 0.76rem;
   font-weight: 500;
@@ -556,6 +567,18 @@
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
+
+/* Valor do pedido naquela forma de pagamento, embaixo do rótulo */
+.pdv-pag__valor {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.2;
+}
+
+.pdv-pag__valor:empty { display: none; }
+
+.pdv-pag--ativo .pdv-pag__valor { color: var(--gold-light); }
 
 .pdv-pag:hover { border-color: var(--navy); }
 

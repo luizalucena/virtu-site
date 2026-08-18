@@ -22,6 +22,13 @@
   /* ══════════ ESTADO ══════════ */
   const CART_KEY = 'virtu_pdv_carrinho';
 
+  // Ajuste por método — ESPELHO de AJUSTE_METODO em processar-pagamento
+  // (site) e de registrar_venda_presencial (banco). Mantenha os três
+  // sincronizados: o servidor é a autoridade, isto é só a prévia na tela.
+  //   PIX e dinheiro → à vista, custo quase zero → 3% de desconto
+  //   crédito/débito → preço de tabela (a taxa do cartão já está embutida)
+  const AJUSTE_METODO = { pix: -0.03, dinheiro: -0.03, credito: 0, debito: 0 };
+
   let _variacoes = [];          // [{id, produto_id, tamanho, cor_nome, cor_hex, estoque, ativo, produto:{…}}]
   let _porId     = new Map();   // variacao_id → variação
   let _carrinho  = [];          // [{variacao_id, qty}]
@@ -209,6 +216,22 @@
 
   /* ══════════ CÁLCULO DOS TOTAIS (em centavos) ══════════ */
 
+  /**
+   * Arredondamento estético: leva ao múltiplo terminado em ",90" mais
+   * próximo. Espelha arredondar90() do site e arredondar_90() do banco.
+   * Trabalha em centavos inteiros — sem ponto flutuante.
+   */
+  function arredondar90(centavos) {
+    return Math.round((centavos - 90) / 100) * 100 + 90;
+  }
+
+  /** Total já com o ajuste do método aplicado (em centavos). */
+  function totalDoMetodo(baseCentavos, metodo) {
+    const ajuste = AJUSTE_METODO[metodo] ?? 0;
+    if (!ajuste || baseCentavos <= 0) return baseCentavos;
+    return arredondar90(Math.round(baseCentavos * (1 + ajuste)));
+  }
+
   function calcularTotais() {
     let subtotal = 0;
     let pecas = 0;
@@ -220,9 +243,12 @@
 
     const descontoBruto = paraCentavos(document.getElementById('pdvDesconto')?.value);
     const desconto = Math.max(0, Math.min(descontoBruto, subtotal));
-    const total = subtotal - desconto;
 
-    return { subtotal, desconto, total, pecas };
+    // base = o que a cliente pagaria no cartão (preço de tabela − desconto)
+    const base  = subtotal - desconto;
+    const total = _pagamento ? totalDoMetodo(base, _pagamento) : base;
+
+    return { subtotal, desconto, base, total, ajuste: base - total, pecas };
   }
 
   /* ══════════ CARREGAMENTO DE DADOS ══════════ */
@@ -403,7 +429,7 @@
   }
 
   function renderTotais() {
-    const { subtotal, desconto, total, pecas } = calcularTotais();
+    const { subtotal, desconto, base, total, ajuste, pecas } = calcularTotais();
 
     const texto = (id, valor) => {
       const el = document.getElementById(id);
@@ -414,6 +440,25 @@
     texto('pdvTotal',    fmt(total));
     texto('pdvTotalBtn', ` · ${fmt(total)}`);
     texto('pdvQtdPecas', pecas > 0 ? `(${pecas} peça${pecas > 1 ? 's' : ''})` : '');
+
+    // Linha do desconto à vista (PIX / dinheiro)
+    const linhaAjuste = document.getElementById('pdvLinhaAjuste');
+    if (linhaAjuste) {
+      const mostra = ajuste > 0;
+      linhaAjuste.hidden = !mostra;
+      if (mostra) {
+        const pct = Math.abs((AJUSTE_METODO[_pagamento] ?? 0) * 100);
+        texto('pdvAjusteLabel', `Desconto à vista (${pct.toFixed(0)}%)`);
+        texto('pdvAjuste', `− ${fmt(ajuste)}`);
+      }
+    }
+
+    // Prévia do valor em cada forma de pagamento — a cliente pergunta
+    // "quanto fica no PIX?" e a resposta fica na tela, sem precisar clicar.
+    document.querySelectorAll('[data-valor-pag]').forEach(el => {
+      const metodo = el.getAttribute('data-valor-pag');
+      el.textContent = base > 0 ? fmt(totalDoMetodo(base, metodo)) : '';
+    });
 
     // Aviso quando o desconto foi truncado no subtotal
     const inputDesc = document.getElementById('pdvDesconto');

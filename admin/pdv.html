@@ -153,6 +153,10 @@
               <label for="pdvDesconto">Desconto (R$)</label>
               <input type="text" id="pdvDesconto" class="pdv-input pdv-input--valor" placeholder="0,00" inputmode="decimal" autocomplete="off" data-moeda />
             </div>
+            <div class="pdv-linha pdv-linha--ajuste" id="pdvLinhaAjuste" hidden>
+              <span id="pdvAjusteLabel">Desconto à vista</span>
+              <strong id="pdvAjuste">− R$ 0,00</strong>
+            </div>
             <div class="pdv-linha pdv-linha--total">
               <span>Total</span>
               <strong id="pdvTotal">R$ 0,00</strong>
@@ -163,10 +167,18 @@
           <div class="pdv-bloco">
             <span class="pdv-label">Forma de pagamento</span>
             <div class="pdv-pagamentos" id="pdvPagamentos" role="group" aria-label="Forma de pagamento">
-              <button type="button" class="pdv-pag" data-pag="pix">PIX</button>
-              <button type="button" class="pdv-pag" data-pag="dinheiro">Dinheiro</button>
-              <button type="button" class="pdv-pag" data-pag="credito">Crédito</button>
-              <button type="button" class="pdv-pag" data-pag="debito">Débito</button>
+              <button type="button" class="pdv-pag" data-pag="pix">
+                PIX<small class="pdv-pag__valor" data-valor-pag="pix"></small>
+              </button>
+              <button type="button" class="pdv-pag" data-pag="dinheiro">
+                Dinheiro<small class="pdv-pag__valor" data-valor-pag="dinheiro"></small>
+              </button>
+              <button type="button" class="pdv-pag" data-pag="credito">
+                Crédito<small class="pdv-pag__valor" data-valor-pag="credito"></small>
+              </button>
+              <button type="button" class="pdv-pag" data-pag="debito">
+                Débito<small class="pdv-pag__valor" data-valor-pag="debito"></small>
+              </button>
             </div>
 
             <!-- Parcelas (crédito) -->
