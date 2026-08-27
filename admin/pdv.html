@@ -157,6 +157,10 @@
               <span id="pdvAjusteLabel">Desconto à vista</span>
               <strong id="pdvAjuste">− R$ 0,00</strong>
             </div>
+            <div class="pdv-linha pdv-linha--juros" id="pdvLinhaJuros" hidden>
+              <span id="pdvJurosLabel">Juros do parcelamento</span>
+              <strong id="pdvJuros">+ R$ 0,00</strong>
+            </div>
             <div class="pdv-linha pdv-linha--total">
               <span>Total</span>
               <strong id="pdvTotal">R$ 0,00</strong>
@@ -186,6 +190,7 @@
               <label for="pdvParcelas" class="pdv-label">Parcelas</label>
               <select id="pdvParcelas" class="pdv-input"></select>
               <p class="pdv-hint" id="pdvHintParcela"></p>
+              <p class="pdv-hint pdv-hint--avista" id="pdvHintAvista" hidden></p>
             </div>
 
             <!-- Troco (dinheiro) -->

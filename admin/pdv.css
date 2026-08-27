@@ -477,6 +477,12 @@
 .pdv-linha--ajuste strong { color: var(--gold); font-weight: 600; }
 .pdv-linha--ajuste[hidden] { display: none; }
 
+/* Juros do parcelamento (crédito 2x+) — um custo, não um mimo: tom
+   sóbrio (não dourado, para não parecer desconto) e some sem juros */
+.pdv-linha--juros { color: var(--text-light); }
+.pdv-linha--juros strong { color: var(--navy); font-weight: 600; }
+.pdv-linha--juros[hidden] { display: none; }
+
 .pdv-linha--total {
   padding-top: 0.6rem;
   margin-top: 0.15rem;
@@ -535,6 +541,10 @@
 
 .pdv-hint--ok { color: var(--navy); font-weight: 500; }
 .pdv-hint--falta { color: var(--pdv-danger); font-weight: 500; }
+
+/* Dica discreta de que à vista sai mais barato — tempero dourado leve */
+.pdv-hint--avista { color: var(--gold); }
+.pdv-hint--avista[hidden] { display: none; }
 
 .pdv-extra { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; }
 

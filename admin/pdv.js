@@ -29,10 +29,23 @@
   //   crédito/débito → preço de tabela (a taxa do cartão já está embutida)
   const AJUSTE_METODO = { pix: -0.03, dinheiro: -0.03, credito: 0, debito: 0 };
 
+  // Taxas da maquininha (Ton) para o repasse dos juros do parcelado.
+  // Fonte real: configuracoes.taxas_cartao_ton (editável no painel). Isto
+  // é só o fallback caso a config falte/quebre — espelha
+  // taxas_cartao_ton_default() do banco (faixa "Ton Mega+ até R$3 mil").
+  //   avista   = taxa do crédito à vista, já embutida no preço de tabela
+  //   parcelado[n] = taxa total da Ton no parcelamento em n vezes
+  const TAXAS_TON_FALLBACK = {
+    avista: 0.0386,
+    parcelado: { 2: 0.0986, 3: 0.1124, 4: 0.1259, 5: 0.1392, 6: 0.1522 }
+  };
+
   let _variacoes = [];          // [{id, produto_id, tamanho, cor_nome, cor_hex, estoque, ativo, produto:{…}}]
   let _porId     = new Map();   // variacao_id → variação
   let _carrinho  = [];          // [{variacao_id, qty}]
   let _pagamento = null;        // 'pix' | 'dinheiro' | 'credito' | 'debito'
+  let _parcelas  = 1;           // parcelas do crédito (1 = à vista)
+  let _taxasTon  = null;        // taxas da Ton vindas da config (ou null → fallback)
   let _categoria = 'todas';
   let _busca     = '';
   let _canal     = null;
@@ -205,6 +218,7 @@
 
   function limparCarrinho() {
     _carrinho = [];
+    _parcelas = 1;
     salvarCarrinho();
     const desc = document.getElementById('pdvDesconto');
     const receb = document.getElementById('pdvRecebido');
@@ -232,6 +246,40 @@
     return arredondar90(Math.round(baseCentavos * (1 + ajuste)));
   }
 
+  /* ─── Juros do parcelamento no crédito (repasse do excedente) ─── */
+
+  function taxasTon()   { return _taxasTon || TAXAS_TON_FALLBACK; }
+  function taxaAvista() { return taxasTon()?.avista ?? TAXAS_TON_FALLBACK.avista; }
+  function taxaParcela(n) {
+    const t = taxasTon()?.parcelado || {};
+    // aceita chave numérica ou string ("2" | 2)
+    const v = t[n] ?? t[String(n)];
+    return (typeof v === 'number' && v > 0 && v < 1) ? v : null;
+  }
+
+  /** Maior nº de parcelas com taxa configurada (1x sempre existe). */
+  function maxParcelas() {
+    const t = taxasTon()?.parcelado || {};
+    let max = 1;
+    for (let n = 2; n <= 12; n++) if (taxaParcela(n) != null) max = n;
+    return max;
+  }
+
+  /**
+   * Total do crédito para n parcelas, em centavos. À vista (n≤1) é a
+   * base exata — igual ao crédito de hoje. De 2x em diante repassa só
+   * o excedente da taxa da Ton, igualando o líquido ao do crédito à
+   * vista:  cobrado = base × (1 − taxa_avista) ÷ (1 − taxa_n)  → ,90.
+   * É DIVISÃO. Espelha o cálculo de registrar_venda_presencial.
+   */
+  function totalCredito(baseCentavos, n) {
+    if (baseCentavos <= 0 || n <= 1) return baseCentavos;
+    const taxa = taxaParcela(n);
+    if (taxa == null) return baseCentavos;   // sem taxa → não inventa juros
+    const bruto = Math.round(baseCentavos * (1 - taxaAvista()) / (1 - taxa));
+    return arredondar90(bruto);
+  }
+
   function calcularTotais() {
     let subtotal = 0;
     let pecas = 0;
@@ -244,9 +292,14 @@
     const descontoBruto = paraCentavos(document.getElementById('pdvDesconto')?.value);
     const desconto = Math.max(0, Math.min(descontoBruto, subtotal));
 
-    // base = o que a cliente pagaria no cartão (preço de tabela − desconto)
-    const base  = subtotal - desconto;
-    const total = _pagamento ? totalDoMetodo(base, _pagamento) : base;
+    // base = o que a cliente pagaria no cartão à vista (tabela − desconto)
+    const base = subtotal - desconto;
+
+    // No crédito, o total depende do parcelamento; nos demais, do método.
+    let total;
+    if (_pagamento === 'credito')  total = totalCredito(base, _parcelas);
+    else if (_pagamento)           total = totalDoMetodo(base, _pagamento);
+    else                           total = base;
 
     return { subtotal, desconto, base, total, ajuste: base - total, pecas };
   }
@@ -280,6 +333,25 @@
     renderGrade();
     renderCarrinho();
     renderKpiEstoque();
+  }
+
+  // Taxas da Ton para o repasse dos juros — configuráveis no painel
+  // (configuracoes.taxas_cartao_ton). Se faltar/quebrar, fica no
+  // TAXAS_TON_FALLBACK; o servidor recalcula tudo de qualquer forma.
+  async function carregarTaxas() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('configuracoes')
+        .select('taxas_cartao_ton')
+        .eq('id', 1)
+        .maybeSingle();
+      if (error) throw error;
+      const t = data?.taxas_cartao_ton;
+      _taxasTon = (t && t.parcelado) ? t : null;
+    } catch (e) {
+      console.warn('[PDV] Taxas da Ton não carregadas, usando fallback:', e?.message || e);
+      _taxasTon = null;
+    }
   }
 
   /* ══════════ RENDER: CATEGORIAS ══════════ */
@@ -441,7 +513,7 @@
     texto('pdvTotalBtn', ` · ${fmt(total)}`);
     texto('pdvQtdPecas', pecas > 0 ? `(${pecas} peça${pecas > 1 ? 's' : ''})` : '');
 
-    // Linha do desconto à vista (PIX / dinheiro)
+    // Linha do desconto à vista (PIX / dinheiro) — ajuste > 0
     const linhaAjuste = document.getElementById('pdvLinhaAjuste');
     if (linhaAjuste) {
       const mostra = ajuste > 0;
@@ -453,11 +525,27 @@
       }
     }
 
+    // Linha dos juros do parcelamento (crédito 2x+) — ajuste < 0
+    const linhaJuros = document.getElementById('pdvLinhaJuros');
+    if (linhaJuros) {
+      const juros = ajuste < 0 ? -ajuste : 0;
+      const mostra = _pagamento === 'credito' && _parcelas >= 2 && juros > 0;
+      linhaJuros.hidden = !mostra;
+      if (mostra) {
+        texto('pdvJurosLabel', `Juros do parcelamento (${_parcelas}×)`);
+        texto('pdvJuros', `+ ${fmt(juros)}`);
+      }
+    }
+
     // Prévia do valor em cada forma de pagamento — a cliente pergunta
     // "quanto fica no PIX?" e a resposta fica na tela, sem precisar clicar.
+    // No crédito, mostra o total do parcelamento selecionado.
     document.querySelectorAll('[data-valor-pag]').forEach(el => {
       const metodo = el.getAttribute('data-valor-pag');
-      el.textContent = base > 0 ? fmt(totalDoMetodo(base, metodo)) : '';
+      if (base <= 0) { el.textContent = ''; return; }
+      el.textContent = metodo === 'credito'
+        ? fmt(totalCredito(base, _parcelas))
+        : fmt(totalDoMetodo(base, metodo));
     });
 
     // Aviso quando o desconto foi truncado no subtotal
@@ -466,7 +554,7 @@
       mostrarErro('O desconto não pode ser maior que o subtotal.');
     }
 
-    renderParcelas(total);
+    renderParcelas(base);
     renderTroco(total);
 
     const btn = document.getElementById('btnConfirmar');
@@ -475,33 +563,51 @@
     }
   }
 
-  function renderParcelas(totalCentavos) {
-    const bloco = document.getElementById('pdvBlocoParcelas');
+  function renderParcelas(baseCentavos) {
+    const bloco  = document.getElementById('pdvBlocoParcelas');
     const select = document.getElementById('pdvParcelas');
     if (!bloco || !select) return;
 
     bloco.hidden = _pagamento !== 'credito';
     if (bloco.hidden) return;
 
-    const atual = parseInt(select.value, 10) || 1;
-    const opcoes = [];
+    const maxN = maxParcelas();
+    if (_parcelas > maxN) _parcelas = maxN;
 
-    for (let n = 1; n <= 12; n++) {
-      const parcela = Math.floor(totalCentavos / n);
-      opcoes.push(
-        `<option value="${n}"${n === atual ? ' selected' : ''}>${n}× de ${fmt(parcela)}</option>`
-      );
+    // Cada opção mostra o total do parcelamento, para a cliente ver o
+    // valor final e comparar com o à vista — nada de pegadinha.
+    const opcoes = [];
+    for (let n = 1; n <= maxN; n++) {
+      const tot     = totalCredito(baseCentavos, n);
+      const parcela = Math.floor(tot / n);
+      const rotulo  = n === 1
+        ? `1× à vista — ${fmt(tot)}`
+        : `${n}× de ${fmt(parcela)} — total ${fmt(tot)}`;
+      opcoes.push(`<option value="${n}"${n === _parcelas ? ' selected' : ''}>${rotulo}</option>`);
     }
     select.innerHTML = opcoes.join('');
 
-    // Mostra o resto quando a divisão não é exata (a última parcela absorve)
-    const n = parseInt(select.value, 10) || 1;
-    const base = Math.floor(totalCentavos / n);
-    const resto = totalCentavos - base * n;
+    const totalSel = totalCredito(baseCentavos, _parcelas);
+
+    // Resto da divisão: a última parcela absorve os centavos.
+    const parcela = Math.floor(totalSel / _parcelas);
+    const resto   = totalSel - parcela * _parcelas;
     const hint = document.getElementById('pdvHintParcela');
     if (hint) {
       hint.textContent = resto > 0
-        ? `Última parcela: ${fmt(base + resto)} (arredondamento).`
+        ? `Última parcela: ${fmt(parcela + resto)} (arredondamento).`
+        : '';
+    }
+
+    // Aviso discreto de que à vista sai mais barato (quando há juros).
+    const avista = document.getElementById('pdvHintAvista');
+    if (avista) {
+      const aVistaCentavos = totalCredito(baseCentavos, 1);
+      const economia = totalSel - aVistaCentavos;
+      const mostra = _parcelas >= 2 && economia > 0;
+      avista.hidden = !mostra;
+      avista.textContent = mostra
+        ? `À vista sai por ${fmt(aVistaCentavos)} — a cliente economiza ${fmt(economia)}.`
         : '';
     }
   }
@@ -572,9 +678,7 @@
         p_desconto: desconto / 100,
         p_cliente_nome: document.getElementById('pdvCliente')?.value?.trim() || null,
         p_cliente_telefone: document.getElementById('pdvTelefone')?.value?.trim() || null,
-        p_parcelas: _pagamento === 'credito'
-          ? (parseInt(document.getElementById('pdvParcelas')?.value, 10) || 1)
-          : null,
+        p_parcelas: _pagamento === 'credito' ? _parcelas : null,
         p_observacao: document.getElementById('pdvObs')?.value?.trim() || null
       });
 
@@ -599,6 +703,7 @@
         if (el) el.value = '';
       });
       _pagamento = null;
+      _parcelas  = 1;
       document.querySelectorAll('#pdvPagamentos .pdv-pag')
         .forEach(b => b.classList.remove('pdv-pag--ativo'));
 
@@ -626,6 +731,7 @@
     const itens = Array.isArray(venda.itens) ? venda.itens : [];
     const subtotal = paraCentavos(venda.subtotal ?? subtotalLocal);
     const desconto = paraCentavos(venda.desconto);
+    const juros    = paraCentavos(venda.juros);
     const total    = paraCentavos(venda.total);
 
     const linhas = itens.map(i => `
@@ -645,6 +751,7 @@
       <div class="pdv-recibo__totais">
         <div class="pdv-recibo__l"><span>Subtotal</span><strong>${fmt(subtotal)}</strong></div>
         ${desconto > 0 ? `<div class="pdv-recibo__l"><span>Desconto</span><strong>− ${fmt(desconto)}</strong></div>` : ''}
+        ${juros > 0 ? `<div class="pdv-recibo__l"><span>Juros do parcelamento (${escHtml(venda.parcelas)}×)</span><strong>+ ${fmt(juros)}</strong></div>` : ''}
         <div class="pdv-recibo__l"><span>Pagamento</span><strong>${escHtml(venda.pagamento_rotulo || '')}${parcelaTxt}</strong></div>
         <div class="pdv-recibo__total"><span>Total</span><strong>${fmt(total)}</strong></div>
       </div>`;
@@ -859,7 +966,10 @@
         renderTotais();
       });
     });
-    document.getElementById('pdvParcelas')?.addEventListener('change', renderTotais);
+    document.getElementById('pdvParcelas')?.addEventListener('change', e => {
+      _parcelas = parseInt(e.target.value, 10) || 1;
+      renderTotais();
+    });
 
     document.getElementById('btnLimparCarrinho')?.addEventListener('click', limparCarrinho);
     document.getElementById('btnConfirmar')?.addEventListener('click', confirmarVenda);
@@ -901,7 +1011,7 @@
     carregarCarrinho();
     ligarEventos();
 
-    await Promise.all([carregarEstoque(), carregarVendasHoje()]);
+    await Promise.all([carregarTaxas(), carregarEstoque(), carregarVendasHoje()]);
     iniciarRealtime();
   });
 
