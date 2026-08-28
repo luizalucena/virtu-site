@@ -732,6 +732,37 @@
         </div>
 
         <div class="admin-card">
+          <h3 class="admin-card__title">Taxas do cartão — Garimpo · PDV</h3>
+          <p class="admin-hint">Taxas da sua maquininha (Ton) usadas para repassar os juros do parcelado no PDV. Informe em <strong>porcentagem</strong>. Só o crédito de 2× em diante encarece; à vista, débito, PIX e dinheiro não mudam. Atualize aqui quando a Ton trocar sua faixa de taxas.</p>
+          <div class="admin-form-group">
+            <label class="admin-label">Crédito à vista (%) — já embutida no preço de tabela</label>
+            <input type="number" class="admin-input" id="cfgTaxaAvista" min="0" max="50" step="0.01" placeholder="3,86" />
+          </div>
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-label">2× (%)</label>
+              <input type="number" class="admin-input" id="cfgTaxa2" min="0" max="99" step="0.01" placeholder="9,86" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">3× (%)</label>
+              <input type="number" class="admin-input" id="cfgTaxa3" min="0" max="99" step="0.01" placeholder="11,24" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">4× (%)</label>
+              <input type="number" class="admin-input" id="cfgTaxa4" min="0" max="99" step="0.01" placeholder="12,59" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">5× (%)</label>
+              <input type="number" class="admin-input" id="cfgTaxa5" min="0" max="99" step="0.01" placeholder="13,92" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-label">6× (%)</label>
+              <input type="number" class="admin-input" id="cfgTaxa6" min="0" max="99" step="0.01" placeholder="15,22" />
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
           <h3 class="admin-card__title">Banner Principal (Home)</h3>
           <div class="admin-form-group">
             <label class="admin-label">Linha 1 (sobrescrito)</label>

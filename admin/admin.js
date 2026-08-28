@@ -955,6 +955,12 @@ function populateConfig() {
   set('cfgFrete',    cfg.frete_gratis_acima);
   set('cfgParcelas', cfg.max_parcelas);
   set('cfgEmbalagem', cfg.preco_embalagem_presente);
+  // Taxas do cartão (Ton) para o PDV — guardadas em fração, exibidas em %
+  const tx  = cfg.taxas_cartao_ton || {};
+  const txp = tx.parcelado || {};
+  const pct = v => (typeof v === 'number' ? +(v * 100).toFixed(2) : '');
+  set('cfgTaxaAvista', pct(tx.avista));
+  [2, 3, 4, 5, 6].forEach(n => set(`cfgTaxa${n}`, pct(txp[n] ?? txp[String(n)])));
   const b = cfg.banner_home || {};
   set('cfgBannerL1',    b.titulo_linha1);
   set('cfgBannerL2',    b.titulo_linha2);
@@ -1174,8 +1180,25 @@ async function saveConfig() {
   const btnSave = document.getElementById('btnSaveConfig');
   if (btnSave) { btnSave.disabled = true; btnSave.textContent = 'Salvando…'; }
 
+  // Taxas do cartão (Ton) — entram em %, guardadas em fração (9,86% → 0.0986).
+  // Se os campos vierem vazios/inválidos, preserva o que já está salvo (não zera).
+  const _frac = (id) => {
+    const v = parseFloat(String(document.getElementById(id)?.value ?? '').replace(',', '.'));
+    return Number.isFinite(v) && v >= 0 && v < 100 ? +(v / 100).toFixed(4) : null;
+  };
+  const _taxaAvista = _frac('cfgTaxaAvista');
+  const _taxasParc = {};
+  [2, 3, 4, 5, 6].forEach(n => {
+    const f = _frac(`cfgTaxa${n}`);
+    if (f != null && f > 0 && f < 1) _taxasParc[String(n)] = f;
+  });
+  const _taxasCartao = (_taxaAvista != null && Object.keys(_taxasParc).length)
+    ? { avista: _taxaAvista, parcelado: _taxasParc }
+    : (DB.configuracoes?.taxas_cartao_ton || null);
+
   const cfg = {
     id:                 1,
+    taxas_cartao_ton:   _taxasCartao,
     nome_loja:          document.getElementById('cfgNomeLoja')?.value.trim(),
     slogan:             document.getElementById('cfgSlogan')?.value.trim(),
     instagram:          document.getElementById('cfgInstagram')?.value.trim(),
